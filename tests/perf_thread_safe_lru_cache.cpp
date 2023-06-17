@@ -141,7 +141,7 @@ protected:
                 if (cache.find(td[r], val)) {
                     ++hit_count;
                 } else {
-                    cache.update(td[r], td[r]);
+                    cache.insert(td[r], td[r]);
                 }
                 total_count++;
             }
@@ -164,6 +164,43 @@ private:
 } // <anonymous> namespace
 
 PERF_TEST_F(cache_fixture, cache_request)
+{
+    PERF_INIT_TIMER(request);
+
+    lru_cache cache(cache_env::count(), threads_count());
+    lru_cache::value_type val;
+    const test_data_vector& td = cache_env::test_data();
+    for (size_t i = 0; i < std::min(cache_env::count(), td.size()); ++i) {
+        if (! cache.find(td[i], val)) {
+            cache.insert(td[i], td[i]);
+        }
+    }
+
+    init_threads(cache);
+
+    // Waiting until all threads have started.
+    while (! is_threads_started()) {}
+
+    PERF_START_TIMER(request);
+
+    // Start work;
+    start();
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    stop();
+    while (! is_threads_stopped()) {}
+
+    PERF_PAUSE_TIMER(request);
+
+    // Finish threads.
+    join_threads();
+
+    PERF_MESSAGE() << "hit_count   = " << cache_env::hit_count;
+    PERF_MESSAGE() << "total_count = " << cache_env::total_count;
+    PERF_MESSAGE() << "speed = "
+        << (cache_env::total_count / PERF_TIMER_MSECS(request)) << " requests/ms";
+}
+
+PERF_TEST_F(cache_fixture, cache_request_hot)
 {
     PERF_INIT_TIMER(request);
 
@@ -193,7 +230,50 @@ PERF_TEST_F(cache_fixture, cache_request)
         << (cache_env::total_count / PERF_TIMER_MSECS(request)) << " requests/ms";
 }
 
-PERF_TEST_F(cache_fixture, DISABLED_cache_request_medium)
+PERF_TEST_F(cache_fixture, cache_request_many_shards)
+{
+    PERF_INIT_TIMER(request);
+
+    lru_cache cache(cache_env::count(), threads_count());
+
+    constexpr size_t kRepeatCount = 10;
+    for (size_t i = 1; i < kRepeatCount; ++i) {
+        cache_env::hit_count = {0};
+        cache_env::total_count = {0};
+
+        init_state();
+        lru_cache cache(cache_env::count(), i * threads_count());
+
+        init_threads(cache);
+
+        // Waiting until all threads have started.
+        while (! is_threads_started()) {}
+
+        PERF_RESTART_TIMER(request);
+
+        // Start work;
+        start();
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        stop();
+        while (! is_threads_stopped()) {}
+
+        PERF_PAUSE_TIMER(request);
+
+        // Finish threads.
+        join_threads();
+
+        PERF_MESSAGE() << "BEGIN SHARDS COUNT " << i << " x CPU COUNT *******************";
+        PERF_MESSAGE() << "hit_count   = " << cache_env::hit_count;
+        PERF_MESSAGE() << "total_count = " << cache_env::total_count;
+        PERF_MESSAGE() << "medium hit_count   = " << cache_env::hit_count / kRepeatCount;
+        PERF_MESSAGE() << "medium total_count = " << cache_env::total_count / kRepeatCount;
+        PERF_MESSAGE() << "medium speed = "
+            << (cache_env::total_count / PERF_TIMER_MSECS(request)) << " requests/ms";
+        PERF_MESSAGE() << "END SHARDS COUNT " << i << " x CPU COUNT *********************";
+    }
+}
+
+PERF_TEST_F(cache_fixture, cache_request_medium)
 {
     PERF_INIT_TIMER(request);
 
@@ -223,6 +303,8 @@ PERF_TEST_F(cache_fixture, DISABLED_cache_request_medium)
         join_threads();
     }
 
+    PERF_MESSAGE() << "hit_count   = " << cache_env::hit_count;
+    PERF_MESSAGE() << "total_count = " << cache_env::total_count;
     PERF_MESSAGE() << "medium hit_count   = " << cache_env::hit_count / kRepeatCount;
     PERF_MESSAGE() << "medium total_count = " << cache_env::total_count / kRepeatCount;
     PERF_MESSAGE() << "medium speed = "

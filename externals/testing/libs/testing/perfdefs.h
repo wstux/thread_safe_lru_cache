@@ -63,6 +63,9 @@
 #define PERF_START_TIMER(sw_name)                   \
     __PERF_START_TIMER_IMPL(sw_name)
 
+#define PERF_RESTART_TIMER(sw_name)                 \
+    __PERF_RESTART_TIMER_IMPL(sw_name)
+
 #define PERF_PAUSE_TIMER(sw_name)                   \
     __PERF_PAUSE_TIMER_IMPL(sw_name)
 

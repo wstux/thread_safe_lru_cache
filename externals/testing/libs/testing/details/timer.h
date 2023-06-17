@@ -47,7 +47,13 @@ public:
         m_time_ms = value_ms();
         is_start = false;
     }
-    
+
+    void restart()
+    {
+        stop();
+        start();
+    }
+
     void start()
     {
         is_start = true;
@@ -69,7 +75,7 @@ public:
         }
         return m_time_ms;
     }
-    
+
 private:
     bool is_start = false;
     time_point m_start;
