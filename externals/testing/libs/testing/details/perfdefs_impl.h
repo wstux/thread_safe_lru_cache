@@ -68,6 +68,9 @@
 #define __PERF_START_TIMER_IMPL(sw_name)                            \
     this->__get_sw(#sw_name).start()
 
+#define __PERF_RESTART_TIMER_IMPL(sw_name)                          \
+    this->__get_sw(#sw_name).restart()
+
 #define __PERF_PAUSE_TIMER_IMPL(sw_name)                            \
     this->__get_sw(#sw_name).pause()
 
