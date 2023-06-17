@@ -46,13 +46,13 @@ class lru_cache
     typedef TKey                _key_type;
     typedef TValue              _value_type;
 
-    struct _value_t
+    struct _map_value_t
     {
-        explicit _value_t(const _value_type& v)
+        explicit _map_value_t(const _value_type& v)
             : value(v)
         {}
 
-        explicit _value_t(_value_type&& v)
+        explicit _map_value_t(_value_type&& v)
             : value(std::move(v))
         {}
 
@@ -61,7 +61,7 @@ class lru_cache
     };
 
     using _lru_list_t = TList<_key_type>;
-    using _cache_map_t = TMap<_key_type, _value_t, THash>;
+    using _cache_map_t = TMap<_key_type, _map_value_t, THash>;
 
 public:
     typedef _key_type           key_type;
@@ -106,7 +106,7 @@ public:
     bool insert(const key_type& key, const value_type& val)
     {
         std::pair<typename _cache_map_t::iterator, bool> rc =
-            m_cache.emplace(key, _value(val));
+            m_cache.emplace(key, _map_value_t(val));
         if (! rc.second) {
             return false;
         }
@@ -126,12 +126,13 @@ public:
         } else {
             ++m_size;
         }
+        return true;
     }
 
     void update(const key_type& key, const value_type& val)
     {
         std::pair<typename _cache_map_t::iterator, bool> rc =
-            m_cache.emplace(key, _value_t(val));
+            m_cache.emplace(key, _map_value_t(val));
         if (! rc.second) {
             rc.first->second.value = val;
             move_to_front(m_lru_list, rc.first->second.lru_it);
@@ -158,7 +159,7 @@ public:
 /*    void update(const key_type& key, value_type&& val)
     {
         std::pair<typename _cache_map_t::iterator, bool> rc =
-            m_cache.emplace(key, _value_t(val));
+            m_cache.emplace(key, _map_value_t(val));
         if (! rc.second) {
             rc.first->second.value = std::move(val);
             move_to_front(m_lru_list, rc.first->second.lru_it);
