@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 3.10)
 # Project definition
 ################################################################################
 
-project(@project_name@
+project(lru_cache
         VERSION 0.0.1
         LANGUAGES CXX)
 
@@ -24,5 +24,5 @@ include(${COMMON_MAIN_CMAKE} PUBLIC)
 
 add_subdirectory(externals)
 add_subdirectory(libs/lru_cache)
-#add_subdirectory(tests)
+add_subdirectory(tests)
 
