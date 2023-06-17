@@ -28,9 +28,8 @@
 
 namespace {
 
-using lru_key_type = size_t;
-using lru_value_type = size_t;
-using test_data_vector = std::vector<lru_key_type>;
+using lru_cache = ::wstux::cnt::lru_cache<size_t, size_t>;
+using test_data_vector = std::vector<lru_cache::key_type>;
 
 ////////////////////////////////////////////////////////////////////////////////
 // class cache_env
@@ -84,8 +83,6 @@ protected:
 
 TEST_F(cache_fixture, insert)
 {
-    using lru_cache = ::wstux::cnt::lru_cache<lru_key_type, lru_value_type>;
-
     const test_data_vector& td = cache_env::test_data();
     size_t hit_count = 0;
     size_t total_count = 0;
@@ -109,8 +106,6 @@ TEST_F(cache_fixture, insert)
 
 TEST_F(cache_fixture, update)
 {
-    using lru_cache = ::wstux::cnt::lru_cache<lru_key_type, lru_value_type>;
-
     const test_data_vector& td = cache_env::test_data();
     size_t hit_count = 0;
     size_t total_count = 0;
