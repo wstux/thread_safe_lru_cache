@@ -180,6 +180,36 @@ TEST_F(cache_fixture, insert)
     const size_t actual_total_count = 10 * threads_count() * cache_env::count();
     EXPECT_TRUE(actual_total_count == cache_env::total_count)
         << "total_count = " << cache_env::total_count;
+    EXPECT_TRUE(cache_env::hit_count > 0) << "hit_count = " << cache_env::hit_count;
+    EXPECT_TRUE(cache_env::hit_count < cache_env::total_count)
+        << "hit_count = " << cache_env::hit_count;
+}
+
+TEST_F(cache_fixture, update)
+{
+    std::atomic_bool is_start = {false};
+
+    lru_cache cache(10 * threads_count(), threads_count());
+
+    const insert_fn_t insert_fn =
+        [](lru_cache& c, const lru_cache::key_type& k, const lru_cache::value_type& v) -> void {
+            c.update(k, v);
+        };
+    init_threads(cache, insert_fn);
+
+    // Waiting until all threads have started.
+    while (! is_threads_started()) {}
+    // Start work.
+    start();
+    // Finish threads.
+    join_threads();
+
+    const size_t actual_total_count = 10 * threads_count() * cache_env::count();
+    EXPECT_TRUE(actual_total_count == cache_env::total_count)
+        << "total_count = " << cache_env::total_count;
+    EXPECT_TRUE(cache_env::hit_count > 0) << "hit_count = " << cache_env::hit_count;
+    EXPECT_TRUE(cache_env::hit_count < cache_env::total_count)
+        << "hit_count = " << cache_env::hit_count;
 }
 
 int main(int /*argc*/, char** /*argv*/)
