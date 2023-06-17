@@ -198,8 +198,8 @@ set_flag_by_opt(USE_FAST_MAT        "--ffast-math")
 set_flag_by_opt(USE_PEDANTIC        "-pedantic")
 set_flag_by_opt(USE_WERROR          "-Werror")
 
-set_flag_by_opt(USE_LTO             "-flto")
-set_linker_flag_by_opt(USE_LTO      "-flto")
+set_flag_by_opt(USE_LTO             "-flto=auto")
+set_linker_flag_by_opt(USE_LTO      "-flto=auto")
 
 try_set_flag_by_opt(USE_PTHREAD             "-pthread")
 if (LINUX)
