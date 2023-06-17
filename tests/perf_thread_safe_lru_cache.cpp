@@ -200,6 +200,51 @@ PERF_TEST_F(cache_fixture, cache_request)
         << (cache_env::total_count / PERF_TIMER_MSECS(request)) << " requests/ms";
 }
 
+PERF_TEST_F(cache_fixture, cache_request_mutex)
+{
+    using lru_cache_mutex
+        = ::wstux::cnt::thread_safe_lru_cache<std::string,
+                                              std::string,
+                                              std::hash,
+                                              std::unordered_map,
+                                              std::list,
+                                              std::mutex>;
+
+    PERF_INIT_TIMER(request);
+
+    lru_cache_mutex cache(cache_env::count(), threads_count());
+    lru_cache_mutex::value_type val;
+    const test_data_vector& td = cache_env::test_data();
+    for (size_t i = 0; i < std::min(cache_env::count(), td.size()); ++i) {
+        if (! cache.find(td[i], val)) {
+            cache.insert(td[i], td[i]);
+        }
+    }
+
+    init_threads(cache);
+
+    // Waiting until all threads have started.
+    while (! is_threads_started()) {}
+
+    PERF_START_TIMER(request);
+
+    // Start work;
+    start();
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    stop();
+    while (! is_threads_stopped()) {}
+
+    PERF_PAUSE_TIMER(request);
+
+    // Finish threads.
+    join_threads();
+
+    PERF_MESSAGE() << "hit_count   = " << cache_env::hit_count;
+    PERF_MESSAGE() << "total_count = " << cache_env::total_count;
+    PERF_MESSAGE() << "speed = "
+        << (cache_env::total_count / PERF_TIMER_MSECS(request)) << " requests/ms";
+}
+
 PERF_TEST_F(cache_fixture, cache_request_hot)
 {
     PERF_INIT_TIMER(request);
@@ -236,8 +281,8 @@ PERF_TEST_F(cache_fixture, cache_request_many_shards)
 
     lru_cache cache(cache_env::count(), threads_count());
 
-    constexpr size_t kRepeatCount = 10;
-    for (size_t i = 1; i < kRepeatCount; ++i) {
+    constexpr size_t kRepeatCount = 11;
+    for (size_t i = 1; i < kRepeatCount; i += 3) {
         cache_env::hit_count = {0};
         cache_env::total_count = {0};
 
