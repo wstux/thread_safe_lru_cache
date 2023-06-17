@@ -38,13 +38,15 @@ void move_to_front(TList& list, typename TList::iterator& it)
     list.splice(list.begin(), list, it);
 }
 
-template<typename TKey, typename TValue, class THash = std::hash<TKey>,
+template<typename TKey, typename TValue,
+         template<typename THType> class THasher = std::hash,
          template<typename TMKey, typename TMVal, typename TMHash> class TMap = std::unordered_map,
          template<typename TLType> class TList = std::list>
 class lru_cache
 {
     typedef TKey                _key_type;
     typedef TValue              _value_type;
+    typedef THasher<_key_type>  _hasher;
 
     struct _map_value_t
     {
@@ -61,13 +63,13 @@ class lru_cache
     };
 
     using _lru_list_t = TList<_key_type>;
-    using _cache_map_t = TMap<_key_type, _map_value_t, THash>;
+    using _cache_map_t = TMap<_key_type, _map_value_t, _hasher>;
 
 public:
     typedef _key_type           key_type;
     typedef _value_type         value_type;
     typedef size_t              size_type;
-    typedef THash               hasher;
+    typedef _hasher             hasher;
     typedef value_type&         reference;
     typedef const value_type&   const_reference;
     typedef value_type*         pointer;

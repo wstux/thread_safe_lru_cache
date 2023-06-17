@@ -36,12 +36,13 @@
 namespace wstux {
 namespace cnt {
 
-template<typename TKey, typename TValue, class THash = std::hash<TKey>,
+template<typename TKey, typename TValue,
+         template<typename THType> class THasher = std::hash,
          template<typename TMKey, typename TMVal, typename TMHash> class TMap = std::unordered_map,
          template<typename TLType> class TList = std::list>
 class thread_safe_lru_cache
 {
-    typedef lru_cache<TKey, TValue, THash, TMap, TList>     _shard_type;
+    typedef lru_cache<TKey, TValue, THasher, TMap, TList>   _shard_type;
     typedef std::shared_ptr<_shard_type>                    _shard_ptr_type;
 
     typedef std::pair<_shard_ptr_type, std::mutex>          _safe_shard_type;
