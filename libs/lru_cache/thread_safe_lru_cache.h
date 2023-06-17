@@ -32,6 +32,7 @@
 #include <utility>
 
 #include "lru_cache/lru_cache.h"
+#include "lru_cache/spinlock.h"
 
 namespace wstux {
 namespace cnt {
@@ -39,13 +40,13 @@ namespace cnt {
 template<typename TKey, typename TValue,
          template<typename THType> class THasher = std::hash,
          template<typename TMKey, typename TMVal, typename TMHash> class TMap = std::unordered_map,
-         template<typename TLType> class TList = std::list>
+         template<typename TLType> class TList = std::list,
+         class TLock = std::mutex>
 class thread_safe_lru_cache
 {
     typedef lru_cache<TKey, TValue, THasher, TMap, TList>   _shard_type;
     typedef std::shared_ptr<_shard_type>                    _shard_ptr_type;
-
-    typedef std::pair<_shard_ptr_type, std::mutex>          _safe_shard_type;
+    typedef std::pair<_shard_ptr_type, TLock>               _safe_shard_type;
 
 public:
     typedef typename _shard_type::key_type          key_type;
