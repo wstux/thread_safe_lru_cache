@@ -58,6 +58,11 @@ class lru_cache
             : value(std::move(v))
         {}
 
+        template<typename... TArgs>
+        explicit _map_value_t(TArgs&&... args)
+            : value(std::forward<TArgs>(args)...)
+        {}
+
         _value_type value;
         typename TList<TKey>::iterator lru_it;
     };
@@ -100,6 +105,33 @@ public:
         m_size = 0;
         m_cache.clear();
         m_lru_list.clear();
+    }
+
+    template<typename... TArgs>
+    bool emplace(const key_type& key, TArgs&&... args)
+    {
+        std::pair<typename _cache_map_t::iterator, bool> rc =
+            m_cache.emplace(key, _map_value_t(args...));
+        if (! rc.second) {
+            return false;
+        }
+
+        m_lru_list.emplace_front(key);
+        rc.first->second.lru_it = m_lru_list.begin();
+
+        if (m_size >= m_capacity) {
+            if (m_lru_list.empty()) {
+                return false;
+            }
+            typename _cache_map_t::iterator it = m_cache.find(m_lru_list.back());
+            m_lru_list.pop_back();
+            if (it != m_cache.end()) {
+                m_cache.erase(it);
+            }
+        } else {
+            ++m_size;
+        }
+        return true;
     }
 
     bool find(const key_type& key, value_type& result)

@@ -117,6 +117,12 @@ public:
         }
     }
 
+    template<typename... TArgs>
+    bool emplace(const key_type& key, TArgs&&... args)
+    {
+        return wrapper(get_shard(key), &_shard_type::emplace, args...);
+    }
+
     bool find(const key_type& key, value_type& result)
     {
         return wrapper(get_shard(key), &_shard_type::find, key, result);
