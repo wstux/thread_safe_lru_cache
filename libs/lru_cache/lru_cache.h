@@ -93,6 +93,15 @@ public:
     lru_cache(const lru_cache&) = delete;
     lru_cache& operator=(const lru_cache&) = delete;
 
+    size_type capacity() const { return m_capacity; }
+
+    void clear()
+    {
+        m_size = 0;
+        m_cache.clear();
+        m_lru_list.clear();
+    }
+
     bool find(const key_type& key, value_type& result)
     {
         typename _cache_map_t::iterator it = m_cache.find(key);
@@ -130,6 +139,8 @@ public:
         }
         return true;
     }
+
+    size_type size() const { return m_size; }
 
     void update(const key_type& key, const value_type& val)
     {

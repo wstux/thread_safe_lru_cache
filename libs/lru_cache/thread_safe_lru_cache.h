@@ -108,6 +108,15 @@ public:
     thread_safe_lru_cache(const thread_safe_lru_cache&) = delete;
     thread_safe_lru_cache& operator=(const thread_safe_lru_cache&) = delete;
 
+    size_type capacity() const { return m_capacity; }
+
+    void clear()
+    {
+        for (_safe_shard_type& sh : m_shards) {
+            wrapper(sh, &_shard_type::clear);
+        }
+    }
+
     bool find(const key_type& key, value_type& result)
     {
         return wrapper(get_shard(key), &_shard_type::find, key, result);
@@ -116,6 +125,15 @@ public:
     bool insert(const key_type& key, const value_type& val)
     {
         return wrapper(get_shard(key), &_shard_type::insert, key, val);
+    }
+
+    size_type size() const
+    {
+        size_type s = 0;
+        for (_safe_shard_type& sh : m_shards) {
+            s += wrapper(sh, &_shard_type::size);
+        }
+        return s;
     }
 
     void update(const key_type& key, const value_type& val)
