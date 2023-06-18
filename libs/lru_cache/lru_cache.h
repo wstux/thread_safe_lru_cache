@@ -134,6 +134,8 @@ public:
         return true;
     }
 
+    bool empty() const { return (size() == 0); }
+
     bool find(const key_type& key, value_type& result)
     {
         typename _cache_map_t::iterator it = m_cache.find(key);
@@ -171,6 +173,8 @@ public:
         }
         return true;
     }
+
+//    void reserve(size_type new_capacity) {}
 
     size_type size() const { return m_size; }
 

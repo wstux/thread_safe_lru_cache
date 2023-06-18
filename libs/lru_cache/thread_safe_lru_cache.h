@@ -123,6 +123,16 @@ public:
         return wrapper(get_shard(key), &_shard_type::emplace, args...);
     }
 
+    bool empty() const
+    {
+        for (_safe_shard_type& sh : m_shards) {
+            if (! wrapper(sh, &_shard_type::empty)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     bool find(const key_type& key, value_type& result)
     {
         return wrapper(get_shard(key), &_shard_type::find, key, result);
