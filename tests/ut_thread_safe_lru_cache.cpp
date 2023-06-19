@@ -36,9 +36,9 @@ using lru_cache = ::wstux::cnt::thread_safe_lru_cache<size_t, size_t>;
 using test_data_vector = std::vector<lru_cache::key_type>;
 
 ////////////////////////////////////////////////////////////////////////////////
-// class cache_env
+// class thread_safe_cache_env
 
-class cache_env : public ::testing::Environment
+class thread_safe_cache_env : public ::testing::Environment
 {
     using base = ::testing::Environment;
 
@@ -64,14 +64,14 @@ private:
     static test_data_vector m_test_data;
 };
 
-std::atomic_size_t cache_env::hit_count = {0};
-std::atomic_size_t cache_env::total_count = {0};
-test_data_vector cache_env::m_test_data = {};
+std::atomic_size_t thread_safe_cache_env::hit_count = {0};
+std::atomic_size_t thread_safe_cache_env::total_count = {0};
+test_data_vector thread_safe_cache_env::m_test_data = {};
 
 ////////////////////////////////////////////////////////////////////////////////
 // class cache_fixture
 
-class cache_fixture : public ::testing::Test
+class thread_safe_cache_fixture : public ::testing::Test
 {
     using base = ::testing::Test;
 
@@ -87,8 +87,8 @@ public:
         m_threads_count = std::thread::hardware_concurrency();
         m_run_threads = m_threads_count;
 
-        cache_env::hit_count = {0};
-        cache_env::total_count = {0};
+        thread_safe_cache_env::hit_count = {0};
+        thread_safe_cache_env::total_count = {0};
     }
 
     void join_threads()
@@ -120,11 +120,11 @@ protected:
     template<typename TCache>
     void thread_main(TCache& cache, const insert_fn_t& insert_fn)
     {
-        const test_data_vector& td = cache_env::test_data();
+        const test_data_vector& td = thread_safe_cache_env::test_data();
         const std::string val = "";
 
         std::mt19937 gen(std::hash<std::thread::id>()(std::this_thread::get_id()));
-        std::uniform_int_distribution<size_t> rand(0, cache_env::count() - 1);
+        std::uniform_int_distribution<size_t> rand(0, thread_safe_cache_env::count() - 1);
 
         size_t hit_count = 0;
         size_t total_count = 0;
@@ -145,8 +145,8 @@ protected:
             total_count++;
         }
 
-        cache_env::hit_count += hit_count;
-        cache_env::total_count += total_count;
+        thread_safe_cache_env::hit_count += hit_count;
+        thread_safe_cache_env::total_count += total_count;
     }
 
 private:
@@ -158,7 +158,100 @@ private:
 
 } // <anonymous> namespace
 
-TEST_F(cache_fixture, insert)
+TEST_F(thread_safe_cache_fixture, emplace)
+{
+    using lru_cache = ::wstux::cnt::thread_safe_lru_cache<size_t, std::string>;
+
+    lru_cache cache(10 * threads_count(), threads_count());
+
+    lru_cache::value_type val;
+    EXPECT_FALSE(cache.find(0, val));
+
+    EXPECT_TRUE(cache.emplace(0, 4, 'b'));
+    EXPECT_TRUE(cache.find(0, val));
+    EXPECT_TRUE(val == "bbbb") << val;
+}
+
+TEST_F(thread_safe_cache_fixture, insert)
+{
+    using lru_cache = ::wstux::cnt::thread_safe_lru_cache<size_t, std::string>;
+
+    lru_cache cache(10 * threads_count(), threads_count());
+
+    lru_cache::value_type val;
+    EXPECT_FALSE(cache.find(0, val));
+
+    EXPECT_TRUE(cache.insert(0, std::string(4, 'b')));
+    EXPECT_TRUE(cache.find(0, val));
+    EXPECT_TRUE(val == "bbbb") << val;
+}
+
+TEST_F(thread_safe_cache_fixture, empty)
+{
+    using lru_cache = ::wstux::cnt::thread_safe_lru_cache<size_t, std::string>;
+
+    lru_cache cache(10 * threads_count(), threads_count());
+
+    EXPECT_TRUE(cache.empty());
+    cache.insert(0, std::string(4, 'b'));
+    EXPECT_FALSE(cache.empty());
+}
+
+TEST_F(thread_safe_cache_fixture, erase)
+{
+    using lru_cache = ::wstux::cnt::thread_safe_lru_cache<size_t, std::string>;
+
+    lru_cache cache(10 * threads_count(), threads_count());
+
+    EXPECT_TRUE(cache.empty());
+    EXPECT_TRUE(cache.insert(0, std::string(4, 'b')));
+    EXPECT_FALSE(cache.empty());
+
+    lru_cache::value_type val;
+    EXPECT_TRUE(cache.find(0, val));
+
+    cache.erase(0);
+    EXPECT_TRUE(cache.empty());
+    EXPECT_FALSE(cache.find(0, val));
+}
+
+TEST_F(thread_safe_cache_fixture, size)
+{
+    using lru_cache = ::wstux::cnt::thread_safe_lru_cache<size_t, std::string>;
+
+    lru_cache cache(10 * threads_count(), threads_count());
+
+    EXPECT_TRUE(cache.size() == 0);
+    cache.insert(0, std::string(4, 'b'));
+    EXPECT_TRUE(cache.size() == 1);
+    cache.erase(0);
+    EXPECT_TRUE(cache.size() == 0);
+}
+
+TEST_F(thread_safe_cache_fixture, update)
+{
+    using lru_cache = ::wstux::cnt::thread_safe_lru_cache<size_t, std::string>;
+
+    lru_cache cache(10 * threads_count(), threads_count());
+
+    lru_cache::value_type val;
+    EXPECT_FALSE(cache.find(0, val));
+    EXPECT_FALSE(cache.find(1, val));
+
+    EXPECT_TRUE(cache.insert(0, std::string(4, 'b')));
+    EXPECT_TRUE(cache.find(0, val));
+    EXPECT_TRUE(val == "bbbb") << val;
+
+    cache.update(0, std::string(3, 'a'));
+    EXPECT_TRUE(cache.find(0, val));
+    EXPECT_TRUE(val == "aaa") << val;
+
+    cache.update(1, std::string(3, 'c'));
+    EXPECT_TRUE(cache.find(1, val));
+    EXPECT_TRUE(val == "ccc") << val;
+}
+
+TEST_F(thread_safe_cache_fixture, hit)
 {
     std::atomic_bool is_start = {false};
 
@@ -177,43 +270,16 @@ TEST_F(cache_fixture, insert)
     // Finish threads.
     join_threads();
 
-    const size_t actual_total_count = 10 * threads_count() * cache_env::count();
-    EXPECT_TRUE(actual_total_count == cache_env::total_count)
-        << "total_count = " << cache_env::total_count;
-    EXPECT_TRUE(cache_env::hit_count > 0) << "hit_count = " << cache_env::hit_count;
-    EXPECT_TRUE(cache_env::hit_count < cache_env::total_count)
-        << "hit_count = " << cache_env::hit_count;
-}
-
-TEST_F(cache_fixture, update)
-{
-    std::atomic_bool is_start = {false};
-
-    lru_cache cache(10 * threads_count(), threads_count());
-
-    const insert_fn_t insert_fn =
-        [](lru_cache& c, const lru_cache::key_type& k, const lru_cache::value_type& v) -> void {
-            c.update(k, v);
-        };
-    init_threads(cache, insert_fn);
-
-    // Waiting until all threads have started.
-    while (! is_threads_started()) {}
-    // Start work.
-    start();
-    // Finish threads.
-    join_threads();
-
-    const size_t actual_total_count = 10 * threads_count() * cache_env::count();
-    EXPECT_TRUE(actual_total_count == cache_env::total_count)
-        << "total_count = " << cache_env::total_count;
-    EXPECT_TRUE(cache_env::hit_count > 0) << "hit_count = " << cache_env::hit_count;
-    EXPECT_TRUE(cache_env::hit_count < cache_env::total_count)
-        << "hit_count = " << cache_env::hit_count;
+    const size_t actual_total_count = 10 * threads_count() * thread_safe_cache_env::count();
+    EXPECT_TRUE(actual_total_count == thread_safe_cache_env::total_count)
+        << "total_count = " << thread_safe_cache_env::total_count;
+    EXPECT_TRUE(thread_safe_cache_env::hit_count > 0) << "hit_count = " << thread_safe_cache_env::hit_count;
+    EXPECT_TRUE(thread_safe_cache_env::hit_count < thread_safe_cache_env::total_count)
+        << "hit_count = " << thread_safe_cache_env::hit_count;
 }
 
 int main(int /*argc*/, char** /*argv*/)
 {
-    ::testing::AddGlobalTestEnvironment(new cache_env());
+    ::testing::AddGlobalTestEnvironment(new thread_safe_cache_env());
     return RUN_ALL_TESTS();
 }

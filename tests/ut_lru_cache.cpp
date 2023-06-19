@@ -26,68 +26,113 @@
 
 #include "lru_cache/lru_cache.h"
 
-namespace {
-
-using lru_cache = ::wstux::cnt::lru_cache<size_t, size_t>;
-using test_data_vector = std::vector<lru_cache::key_type>;
-
-////////////////////////////////////////////////////////////////////////////////
-// class cache_env
-
-class cache_env : public ::testing::Environment
+TEST(cache, emplace)
 {
-    using base = ::testing::Environment;
+    using lru_cache = ::wstux::cnt::lru_cache<size_t, std::string>;
 
-public:
-    virtual void SetUp() override
-    {
-        base::SetUp();
+    lru_cache cache(10);
 
-        m_test_data.reserve(count());
-        for (size_t i = 0; i < count(); ++i) {
-            m_test_data.emplace_back(i);
-        }
+    lru_cache::value_type val;
+    EXPECT_FALSE(cache.find(0, val));
+
+    EXPECT_TRUE(cache.emplace(0, 4, 'b'));
+    EXPECT_TRUE(cache.find(0, val));
+    EXPECT_TRUE(val == "bbbb") << val;
+}
+
+TEST(cache, insert)
+{
+    using lru_cache = ::wstux::cnt::lru_cache<size_t, std::string>;
+
+    lru_cache cache(10);
+
+    lru_cache::value_type val;
+    EXPECT_FALSE(cache.find(0, val));
+
+    EXPECT_TRUE(cache.insert(0, std::string(4, 'b')));
+    EXPECT_TRUE(cache.find(0, val));
+    EXPECT_TRUE(val == "bbbb") << val;
+}
+
+TEST(cache, empty)
+{
+    using lru_cache = ::wstux::cnt::lru_cache<size_t, std::string>;
+
+    lru_cache cache(10);
+
+    EXPECT_TRUE(cache.empty());
+    cache.emplace(0, 4, 'b');
+    EXPECT_FALSE(cache.empty());
+}
+
+TEST(cache, erase)
+{
+    using lru_cache = ::wstux::cnt::lru_cache<size_t, std::string>;
+
+    lru_cache cache(10);
+
+    EXPECT_TRUE(cache.empty());
+    EXPECT_TRUE(cache.insert(0, std::string(4, 'b')));
+    EXPECT_FALSE(cache.empty());
+
+    lru_cache::value_type val;
+    EXPECT_TRUE(cache.find(0, val));
+
+    cache.erase(0);
+    EXPECT_TRUE(cache.empty());
+    EXPECT_FALSE(cache.find(0, val));
+}
+
+TEST(cache, size)
+{
+    using lru_cache = ::wstux::cnt::lru_cache<size_t, std::string>;
+
+    lru_cache cache(10);
+
+    EXPECT_TRUE(cache.size() == 0);
+    cache.emplace(0, 4, 'b');
+    EXPECT_TRUE(cache.size() == 1);
+    cache.erase(0);
+    EXPECT_TRUE(cache.size() == 0);
+}
+
+TEST(cache, update)
+{
+    using lru_cache = ::wstux::cnt::lru_cache<size_t, std::string>;
+
+    lru_cache cache(10);
+
+    lru_cache::value_type val;
+    EXPECT_FALSE(cache.find(0, val));
+    EXPECT_FALSE(cache.find(1, val));
+
+    EXPECT_TRUE(cache.insert(0, std::string(4, 'b')));
+    EXPECT_TRUE(cache.find(0, val));
+    EXPECT_TRUE(val == "bbbb") << val;
+
+    cache.update(0, std::string(3, 'a'));
+    EXPECT_TRUE(cache.find(0, val));
+    EXPECT_TRUE(val == "aaa") << val;
+
+    cache.update(1, std::string(3, 'c'));
+    EXPECT_TRUE(cache.find(1, val));
+    EXPECT_TRUE(val == "ccc") << val;
+}
+
+TEST(cache, hit)
+{
+    using lru_cache = ::wstux::cnt::lru_cache<size_t, size_t>;
+    using test_data_vector = std::vector<lru_cache::key_type>;
+
+    test_data_vector td(10);
+    for (size_t i = 0; i < 10; ++i) {
+        td.emplace_back(i);
     }
 
-    static size_t count() { return 10; }
-    static const test_data_vector& test_data() { return m_test_data; }
-
-private:
-    static test_data_vector m_test_data;
-};
-
-test_data_vector cache_env::m_test_data = {};
-
-////////////////////////////////////////////////////////////////////////////////
-// class cache_fixture
-
-class cache_fixture : public ::testing::Test
-{
-    using base = ::testing::Test;
-
-public:
-    virtual void SetUp() override
-    {
-        base::SetUp();
-
-        hit_count = {0};
-        total_count = {0};
-    }
-
-protected:
-    size_t hit_count;
-    size_t total_count;
-};
-
-} // <anonymous> namespace
-
-TEST_F(cache_fixture, insert)
-{
-    const test_data_vector& td = cache_env::test_data();
     size_t hit_count = 0;
     size_t total_count = 0;
 
-    lru_cache cache(cache_env::count());
+    lru_cache cache(10);
     for (size_t i = 0; i < 10; ++i) {
         for (const lru_cache::key_type& key : td) {
             lru_cache::value_type val;
@@ -100,35 +145,12 @@ TEST_F(cache_fixture, insert)
             ++total_count;
         }
     }
-    EXPECT_TRUE((hit_count + cache_env::count()) == total_count)
-        << "hit_count = " << hit_count << "; total_count = " << total_count;
-}
-
-TEST_F(cache_fixture, update)
-{
-    const test_data_vector& td = cache_env::test_data();
-    size_t hit_count = 0;
-    size_t total_count = 0;
-
-    lru_cache cache(cache_env::count());
-    for (size_t i = 0; i < 10; ++i) {
-        for (const lru_cache::key_type& key : td) {
-            lru_cache::value_type val;
-            if (! cache.find(key, val)) {
-                cache.update(key, key);
-            } else {
-                EXPECT_TRUE(key == val) << "key('" << key << "') != value('" << val << "'";
-                ++hit_count;
-            }
-            ++total_count;
-        }
-    }
-    EXPECT_TRUE((hit_count + cache_env::count()) == total_count)
+    EXPECT_TRUE((hit_count + 10) == total_count)
         << "hit_count = " << hit_count << "; total_count = " << total_count;
 }
 
 int main(int /*argc*/, char** /*argv*/)
 {
-    ::testing::AddGlobalTestEnvironment(new cache_env());
+    //::testing::AddGlobalTestEnvironment(new cache_env());
     return RUN_ALL_TESTS();
 }
