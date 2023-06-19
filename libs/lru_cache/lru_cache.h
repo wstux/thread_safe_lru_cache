@@ -44,37 +44,11 @@ template<typename TKey, typename TValue,
          template<typename TLType> class TList = std::list>
 class lru_cache
 {
-    typedef TKey                _key_type;
-    typedef TValue              _value_type;
-    typedef THasher<_key_type>  _hasher;
-
-    struct _map_value_t
-    {
-        explicit _map_value_t(const _value_type& v)
-            : value(v)
-        {}
-
-        explicit _map_value_t(_value_type&& v)
-            : value(std::move(v))
-        {}
-
-        template<typename... TArgs>
-        explicit _map_value_t(TArgs&&... args)
-            : value(std::forward<TArgs>(args)...)
-        {}
-
-        _value_type value;
-        typename TList<TKey>::iterator lru_it;
-    };
-
-    using _lru_list_t = TList<_key_type>;
-    using _cache_map_t = TMap<_key_type, _map_value_t, _hasher>;
-
 public:
-    typedef _key_type           key_type;
-    typedef _value_type         value_type;
+    typedef TKey                key_type;
+    typedef TValue              value_type;
     typedef size_t              size_type;
-    typedef _hasher             hasher;
+    typedef THasher<key_type>   hasher;
     typedef value_type&         reference;
     typedef const value_type&   const_reference;
     typedef value_type*         pointer;
@@ -135,6 +109,16 @@ public:
     }
 
     bool empty() const { return (size() == 0); }
+
+    void erase(const key_type& key)
+    {
+        typename _cache_map_t::iterator it = m_cache.find(key);
+        if (it != m_cache.end()) {
+            m_lru_list.erase(it->second.lru_it);
+            m_cache.erase(it);
+            --m_size;
+        }
+    }
 
     bool find(const key_type& key, value_type& result)
     {
@@ -205,7 +189,7 @@ public:
         }
     }
 
-/*    void update(const key_type& key, value_type&& val)
+    void update(const key_type& key, value_type&& val)
     {
         std::pair<typename _cache_map_t::iterator, bool> rc =
             m_cache.emplace(key, _map_value_t(val));
@@ -231,7 +215,32 @@ public:
             ++m_size;
         }
     }
-*/
+
+private:
+    struct _map_value_t
+    {
+        explicit _map_value_t(const value_type& v)
+            : value(v)
+        {}
+
+        explicit _map_value_t(value_type&& v)
+            : value(std::move(v))
+        {}
+
+        template<typename... TArgs>
+        explicit _map_value_t(TArgs&&... args)
+            : value(std::forward<TArgs>(args)...)
+        {}
+
+        value_type value;
+        typename TList<key_type>::iterator lru_it;
+    };
+
+    /// \todo   Remove key duplicate.
+    using _lru_list_t = TList<key_type>;
+    using _cache_map_t = TMap<key_type, _map_value_t, hasher>;
+
+
 private:
     const size_t m_capacity;
 
