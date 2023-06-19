@@ -28,7 +28,7 @@
 
 TEST(cache, emplace)
 {
-    using lru_cache = ::wstux::cnt::lru_cache<size_t, std::string>;
+    using lru_cache = ::wstux::lru::lru_cache<size_t, std::string>;
 
     lru_cache cache(10);
 
@@ -42,7 +42,7 @@ TEST(cache, emplace)
 
 TEST(cache, insert)
 {
-    using lru_cache = ::wstux::cnt::lru_cache<size_t, std::string>;
+    using lru_cache = ::wstux::lru::lru_cache<size_t, std::string>;
 
     lru_cache cache(10);
 
@@ -56,7 +56,7 @@ TEST(cache, insert)
 
 TEST(cache, empty)
 {
-    using lru_cache = ::wstux::cnt::lru_cache<size_t, std::string>;
+    using lru_cache = ::wstux::lru::lru_cache<size_t, std::string>;
 
     lru_cache cache(10);
 
@@ -67,7 +67,7 @@ TEST(cache, empty)
 
 TEST(cache, erase)
 {
-    using lru_cache = ::wstux::cnt::lru_cache<size_t, std::string>;
+    using lru_cache = ::wstux::lru::lru_cache<size_t, std::string>;
 
     lru_cache cache(10);
 
@@ -85,7 +85,7 @@ TEST(cache, erase)
 
 TEST(cache, size)
 {
-    using lru_cache = ::wstux::cnt::lru_cache<size_t, std::string>;
+    using lru_cache = ::wstux::lru::lru_cache<size_t, std::string>;
 
     lru_cache cache(10);
 
@@ -98,7 +98,7 @@ TEST(cache, size)
 
 TEST(cache, update)
 {
-    using lru_cache = ::wstux::cnt::lru_cache<size_t, std::string>;
+    using lru_cache = ::wstux::lru::lru_cache<size_t, std::string>;
 
     lru_cache cache(10);
 
@@ -121,7 +121,7 @@ TEST(cache, update)
 
 TEST(cache, hit)
 {
-    using lru_cache = ::wstux::cnt::lru_cache<size_t, size_t>;
+    using lru_cache = ::wstux::lru::lru_cache<size_t, size_t>;
     using test_data_vector = std::vector<lru_cache::key_type>;
 
     test_data_vector td(10);
@@ -151,6 +151,5 @@ TEST(cache, hit)
 
 int main(int /*argc*/, char** /*argv*/)
 {
-    //::testing::AddGlobalTestEnvironment(new cache_env());
     return RUN_ALL_TESTS();
 }

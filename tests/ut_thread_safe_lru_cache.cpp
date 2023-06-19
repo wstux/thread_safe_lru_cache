@@ -32,7 +32,7 @@
 
 namespace {
 
-using lru_cache = ::wstux::cnt::thread_safe_lru_cache<size_t, size_t>;
+using lru_cache = ::wstux::lru::thread_safe_lru_cache<size_t, size_t>;
 using test_data_vector = std::vector<lru_cache::key_type>;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -160,7 +160,7 @@ private:
 
 TEST_F(thread_safe_cache_fixture, emplace)
 {
-    using lru_cache = ::wstux::cnt::thread_safe_lru_cache<size_t, std::string>;
+    using lru_cache = ::wstux::lru::thread_safe_lru_cache<size_t, std::string>;
 
     lru_cache cache(10 * threads_count(), threads_count());
 
@@ -174,7 +174,7 @@ TEST_F(thread_safe_cache_fixture, emplace)
 
 TEST_F(thread_safe_cache_fixture, insert)
 {
-    using lru_cache = ::wstux::cnt::thread_safe_lru_cache<size_t, std::string>;
+    using lru_cache = ::wstux::lru::thread_safe_lru_cache<size_t, std::string>;
 
     lru_cache cache(10 * threads_count(), threads_count());
 
@@ -188,7 +188,7 @@ TEST_F(thread_safe_cache_fixture, insert)
 
 TEST_F(thread_safe_cache_fixture, empty)
 {
-    using lru_cache = ::wstux::cnt::thread_safe_lru_cache<size_t, std::string>;
+    using lru_cache = ::wstux::lru::thread_safe_lru_cache<size_t, std::string>;
 
     lru_cache cache(10 * threads_count(), threads_count());
 
@@ -199,7 +199,7 @@ TEST_F(thread_safe_cache_fixture, empty)
 
 TEST_F(thread_safe_cache_fixture, erase)
 {
-    using lru_cache = ::wstux::cnt::thread_safe_lru_cache<size_t, std::string>;
+    using lru_cache = ::wstux::lru::thread_safe_lru_cache<size_t, std::string>;
 
     lru_cache cache(10 * threads_count(), threads_count());
 
@@ -217,7 +217,7 @@ TEST_F(thread_safe_cache_fixture, erase)
 
 TEST_F(thread_safe_cache_fixture, size)
 {
-    using lru_cache = ::wstux::cnt::thread_safe_lru_cache<size_t, std::string>;
+    using lru_cache = ::wstux::lru::thread_safe_lru_cache<size_t, std::string>;
 
     lru_cache cache(10 * threads_count(), threads_count());
 
@@ -230,7 +230,7 @@ TEST_F(thread_safe_cache_fixture, size)
 
 TEST_F(thread_safe_cache_fixture, update)
 {
-    using lru_cache = ::wstux::cnt::thread_safe_lru_cache<size_t, std::string>;
+    using lru_cache = ::wstux::lru::thread_safe_lru_cache<size_t, std::string>;
 
     lru_cache cache(10 * threads_count(), threads_count());
 

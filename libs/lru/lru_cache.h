@@ -30,7 +30,7 @@
 #include <unordered_map>
 
 namespace wstux {
-namespace cnt {
+namespace lru {
 
 template<typename TList>
 void move_to_front(TList& list, typename TList::iterator& it)
@@ -249,7 +249,7 @@ private:
     _lru_list_t m_lru_list;
 };
 
-} // namespace cnt
+} // namespace lru
 } // namespace wstux
 
 #endif /* _LRU_CACHE_LRU_CACHE_H */

@@ -35,7 +35,7 @@
 #include "lru/lru_cache.h"
 
 namespace wstux {
-namespace cnt {
+namespace lru {
 namespace details {
 
 /*
@@ -75,7 +75,7 @@ template<typename TKey, typename TValue,
          template<typename THType> class THasher = std::hash,
          template<typename TMKey, typename TMVal, typename TMHash> class TMap = std::unordered_map,
          template<typename TLType> class TList = std::list,
-         class TLock = ::wstux::cnt::details::spinlock>
+         class TLock = ::wstux::lru::details::spinlock>
 class thread_safe_lru_cache
 {
     typedef lru_cache<TKey, TValue, THasher, TMap, TList>   _shard_type;
@@ -215,7 +215,7 @@ private:
     std::vector<_shard_guard> m_shards;
 };
 
-} // namespace cnt
+} // namespace lru
 } // namespace wstux
 
 #endif /* _LRU_CACHE_THREAD_SAFE_LRU_CACHE_H */
