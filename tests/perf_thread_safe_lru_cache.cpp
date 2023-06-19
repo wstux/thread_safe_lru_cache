@@ -28,11 +28,11 @@
 
 #include <testing/perfdefs.h>
 
-#include "lru_cache/thread_safe_lru_cache.h"
+#include "lru/thread_safe_lru_cache.h"
 
 namespace {
 
-using lru_cache = ::wstux::cnt::thread_safe_lru_cache<std::string, std::string>;
+using lru_cache = ::wstux::lru::thread_safe_lru_cache<std::string, std::string>;
 using test_data_vector = std::vector<lru_cache::key_type>;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -203,7 +203,7 @@ PERF_TEST_F(cache_fixture, cache_request)
 PERF_TEST_F(cache_fixture, cache_request_mutex)
 {
     using lru_cache_mutex
-        = ::wstux::cnt::thread_safe_lru_cache<std::string,
+        = ::wstux::lru::thread_safe_lru_cache<std::string,
                                               std::string,
                                               std::hash,
                                               std::unordered_map,

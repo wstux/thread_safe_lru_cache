@@ -32,10 +32,10 @@
 #include <vector>
 #include <utility>
 
-#include "lru_cache/lru_cache.h"
+#include "lru/lru_cache.h"
 
 namespace wstux {
-namespace cnt {
+namespace lru {
 namespace details {
 
 /*
@@ -75,12 +75,10 @@ template<typename TKey, typename TValue,
          template<typename THType> class THasher = std::hash,
          template<typename TMKey, typename TMVal, typename TMHash> class TMap = std::unordered_map,
          template<typename TLType> class TList = std::list,
-         class TLock = ::wstux::cnt::details::spinlock>
+         class TLock = ::wstux::lru::details::spinlock>
 class thread_safe_lru_cache
 {
     typedef lru_cache<TKey, TValue, THasher, TMap, TList>   _shard_type;
-    typedef std::shared_ptr<_shard_type>                    _shard_ptr_type;
-    typedef std::pair<_shard_ptr_type, TLock>               _safe_shard_type;
 
 public:
     typedef typename _shard_type::key_type          key_type;
@@ -108,6 +106,50 @@ public:
     thread_safe_lru_cache(const thread_safe_lru_cache&) = delete;
     thread_safe_lru_cache& operator=(const thread_safe_lru_cache&) = delete;
 
+    size_type capacity() const { return m_capacity; }
+
+    void clear()
+    {
+        for (_shard_guard& sh : m_shards) {
+            wrapper(sh, &_shard_type::clear);
+        }
+    }
+
+    bool contains(const key_type& key) const
+    {
+        return wrapper(get_shard(key), &_shard_type::contains, key);
+    }
+
+    /**
+     *  \attention  This method constructs the object in place, so it may take a
+     *              long time to complete. The lock will be held during the
+     *              construction of the object, so it is not recommended to use
+     *              this method in a multi-threaded application.
+     */
+    template<typename... TArgs>
+    bool emplace(const key_type& key, TArgs&&... args)
+    {
+        // Fixing error: no matching function for call to
+        // 'wrapper(_safe_shard_type&, <unresolved overloaded function type>)'
+        return wrapper(get_shard(key), &_shard_type::template emplace<TArgs...>,
+                       key, std::forward<TArgs>(args)...);
+    }
+
+    bool empty() const
+    {
+        for (const _shard_guard& sh : m_shards) {
+            if (! wrapper(sh, &_shard_type::empty)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    void erase(const key_type& key)
+    {
+        wrapper(get_shard(key), &_shard_type::erase, key);
+    }
+
     bool find(const key_type& key, value_type& result)
     {
         return wrapper(get_shard(key), &_shard_type::find, key, result);
@@ -118,22 +160,66 @@ public:
         return wrapper(get_shard(key), &_shard_type::insert, key, val);
     }
 
-    void update(const key_type& key, const value_type& val)
+    void reserve(size_type new_capacity)
     {
-        wrapper(get_shard(key), &_shard_type::update, key, val);
+        //m_capacity = new_capacity;
+        //m_cache.reserve(m_capacity);
+        size_t shards_count = m_shards.size();
+        for (size_t i = 0; i < shards_count; i++) {
+            const size_t shard_capacity = (i != 0)
+                ? (new_capacity / shards_count)
+                : ((new_capacity / shards_count) + (new_capacity % shards_count));
+            //m_shards[i].first = std::make_shared<_shard_type>(shard_capacity);
+            wrapper(m_shards[i], &_shard_type::reserve, shard_capacity);
+        }
+        m_capacity = new_capacity;
     }
 
-//    void update(const key_type& key, value_type&& val)
-//    {
-//        wrapper(get_shard(key), &_shard_type::update, key, val);
-//    }
+    size_type size() const
+    {
+        size_type s = 0;
+        for (const _shard_guard& sh : m_shards) {
+            s += wrapper(sh, &_shard_type::size);
+        }
+        return s;
+    }
+
+    void update(const key_type& key, const value_type& val)
+    {
+        //wrapper(get_shard(key), &_shard_type::update, key, val);
+        constexpr void (_shard_type::*p_update)(const key_type&, const value_type&) = &_shard_type::update;
+        wrapper(get_shard(key), p_update, key, std::forward<decltype(val)>(val));
+    }
+
+    void update(const key_type& key, value_type&& val)
+    {
+        //wrapper(get_shard(key), &_shard_type::update, key, val);
+        constexpr void (_shard_type::*p_update)(const key_type&, value_type&&) = &_shard_type::update;
+        wrapper(get_shard(key), p_update, key, std::forward<decltype(val)>(val));
+    }
 
 private:
-    inline _safe_shard_type& get_shard(const TKey& key)
+    typedef std::shared_ptr<_shard_type>                    _shard_ptr_type;
+//    typedef std::pair<_shard_ptr_type, TLock>               _shard_guard;
+    struct _shard_guard
     {
-        constexpr size_t shift = std::numeric_limits<size_t>::digits - 16;
-        const size_t h = (hasher{}(key) >> shift) % m_shards.size();
-        return m_shards[h];
+        _shard_ptr_type first;
+        mutable TLock   second;
+    };
+
+private:
+    inline const _shard_guard& get_shard(const TKey& key) const
+    {
+        //constexpr size_t shift = std::numeric_limits<size_t>::digits - 16;
+        //return m_shards[(hasher{}(key) >> shift) % m_shards.size()];
+        return m_shards[(hasher{}(key)) % m_shards.size()];
+    }
+
+    inline _shard_guard& get_shard(const TKey& key)
+    {
+        //constexpr size_t shift = std::numeric_limits<size_t>::digits - 16;
+        //return m_shards[(hasher{}(key) >> shift) % m_shards.size()];
+        return m_shards[(hasher{}(key)) % m_shards.size()];
     }
 
     template<typename T, typename TFn, typename... TArgs>
@@ -143,12 +229,19 @@ private:
         return (p.first.get()->*func)(std::forward<TArgs>(args)...);
     }
 
+    template<typename T, typename TFn, typename... TArgs>
+    inline typename std::result_of<TFn(_shard_type, TArgs...)>::type wrapper(const T& p, const TFn& func, TArgs&&... args) const
+    {
+        std::unique_lock<decltype(p.second)> lock(p.second);
+        return (p.first.get()->*func)(std::forward<TArgs>(args)...);
+    }
+
 private:
-    const size_t m_capacity;
-    std::vector<_safe_shard_type> m_shards;
+    size_t m_capacity;
+    std::vector<_shard_guard> m_shards;
 };
 
-} // namespace cnt
+} // namespace lru
 } // namespace wstux
 
 #endif /* _LRU_CACHE_THREAD_SAFE_LRU_CACHE_H */

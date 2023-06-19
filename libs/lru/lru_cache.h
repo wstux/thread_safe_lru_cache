@@ -30,7 +30,7 @@
 #include <unordered_map>
 
 namespace wstux {
-namespace cnt {
+namespace lru {
 
 template<typename TList>
 void move_to_front(TList& list, typename TList::iterator& it)
@@ -44,32 +44,11 @@ template<typename TKey, typename TValue,
          template<typename TLType> class TList = std::list>
 class lru_cache
 {
-    typedef TKey                _key_type;
-    typedef TValue              _value_type;
-    typedef THasher<_key_type>  _hasher;
-
-    struct _map_value_t
-    {
-        explicit _map_value_t(const _value_type& v)
-            : value(v)
-        {}
-
-        explicit _map_value_t(_value_type&& v)
-            : value(std::move(v))
-        {}
-
-        _value_type value;
-        typename TList<TKey>::iterator lru_it;
-    };
-
-    using _lru_list_t = TList<_key_type>;
-    using _cache_map_t = TMap<_key_type, _map_value_t, _hasher>;
-
 public:
-    typedef _key_type           key_type;
-    typedef _value_type         value_type;
+    typedef TKey                key_type;
+    typedef TValue              value_type;
     typedef size_t              size_type;
-    typedef _hasher             hasher;
+    typedef THasher<key_type>   hasher;
     typedef value_type&         reference;
     typedef const value_type&   const_reference;
     typedef value_type*         pointer;
@@ -92,6 +71,59 @@ public:
 
     lru_cache(const lru_cache&) = delete;
     lru_cache& operator=(const lru_cache&) = delete;
+
+    size_type capacity() const { return m_capacity; }
+
+    void clear()
+    {
+        m_size = 0;
+        m_cache.clear();
+        m_lru_list.clear();
+    }
+
+    bool contains(const key_type& key) const
+    {
+        return (m_cache.find(key) != m_cache.end());
+    }
+
+    template<typename... TArgs>
+    bool emplace(const key_type& key, TArgs&&... args)
+    {
+        std::pair<typename _cache_map_t::iterator, bool> rc =
+            m_cache.emplace(key, _map_value_t(args...));
+        if (! rc.second) {
+            return false;
+        }
+
+        m_lru_list.emplace_front(key);
+        rc.first->second.lru_it = m_lru_list.begin();
+
+        if (m_size >= m_capacity) {
+            if (m_lru_list.empty()) {
+                return false;
+            }
+            typename _cache_map_t::iterator it = m_cache.find(m_lru_list.back());
+            m_lru_list.pop_back();
+            if (it != m_cache.end()) {
+                m_cache.erase(it);
+            }
+        } else {
+            ++m_size;
+        }
+        return true;
+    }
+
+    bool empty() const { return (size() == 0); }
+
+    void erase(const key_type& key)
+    {
+        typename _cache_map_t::iterator it = m_cache.find(key);
+        if (it != m_cache.end()) {
+            m_lru_list.erase(it->second.lru_it);
+            m_cache.erase(it);
+            --m_size;
+        }
+    }
 
     bool find(const key_type& key, value_type& result)
     {
@@ -131,6 +163,14 @@ public:
         return true;
     }
 
+    void reserve(size_type new_capacity)
+    {
+        m_capacity = new_capacity;
+        m_cache.reserve(m_capacity);
+    }
+
+    size_type size() const { return m_size; }
+
     void update(const key_type& key, const value_type& val)
     {
         std::pair<typename _cache_map_t::iterator, bool> rc =
@@ -158,7 +198,7 @@ public:
         }
     }
 
-/*    void update(const key_type& key, value_type&& val)
+    void update(const key_type& key, value_type&& val)
     {
         std::pair<typename _cache_map_t::iterator, bool> rc =
             m_cache.emplace(key, _map_value_t(val));
@@ -184,16 +224,41 @@ public:
             ++m_size;
         }
     }
-*/
+
 private:
-    const size_t m_capacity;
+    struct _map_value_t
+    {
+        explicit _map_value_t(const value_type& v)
+            : value(v)
+        {}
+
+        explicit _map_value_t(value_type&& v)
+            : value(std::move(v))
+        {}
+
+        template<typename... TArgs>
+        explicit _map_value_t(TArgs&&... args)
+            : value(std::forward<TArgs>(args)...)
+        {}
+
+        value_type value;
+        typename TList<key_type>::iterator lru_it;
+    };
+
+    /// \todo   Remove key duplicate.
+    using _lru_list_t = TList<key_type>;
+    using _cache_map_t = TMap<key_type, _map_value_t, hasher>;
+
+
+private:
+    size_t m_capacity;
 
     size_t m_size;
     _cache_map_t m_cache;
     _lru_list_t m_lru_list;
 };
 
-} // namespace cnt
+} // namespace lru
 } // namespace wstux
 
 #endif /* _LRU_CACHE_LRU_CACHE_H */
