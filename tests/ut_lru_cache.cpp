@@ -144,6 +144,20 @@ TYPED_TEST_SUITE(cache_fixture, lru_types);
 
 } // <anonymous> namespace
 
+TYPED_TEST(cache_fixture, contains)
+{
+    using cache_type = TypeParam;
+    using lru_cache = typename cache_type::cache;
+
+    lru_cache cache = cache_type::create();
+
+    typename lru_cache::value_type val;
+    EXPECT_FALSE(cache.contains(0));
+
+    EXPECT_TRUE(cache.emplace(0, 4, 'b'));
+    EXPECT_TRUE(cache.contains(0));
+}
+
 TYPED_TEST(cache_fixture, emplace)
 {
     using cache_type = TypeParam;

@@ -115,6 +115,11 @@ public:
         }
     }
 
+    bool contains(const key_type& key) const
+    {
+        return wrapper(get_shard(key), &_shard_type::contains, key);
+    }
+
     /**
      *  \attention  This method constructs the object in place, so it may take a
      *              long time to complete. The lock will be held during the
@@ -188,11 +193,16 @@ private:
     };
 
 private:
+    inline const _shard_guard& get_shard(const TKey& key) const
+    {
+        constexpr size_t shift = std::numeric_limits<size_t>::digits - 16;
+        return m_shards[(hasher{}(key) >> shift) % m_shards.size()];
+    }
+
     inline _shard_guard& get_shard(const TKey& key)
     {
         constexpr size_t shift = std::numeric_limits<size_t>::digits - 16;
-        const size_t h = (hasher{}(key) >> shift) % m_shards.size();
-        return m_shards[h];
+        return m_shards[(hasher{}(key) >> shift) % m_shards.size()];
     }
 
     template<typename T, typename TFn, typename... TArgs>

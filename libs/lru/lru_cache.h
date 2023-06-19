@@ -81,6 +81,11 @@ public:
         m_lru_list.clear();
     }
 
+    bool contains(const key_type& key) const
+    {
+        return (m_cache.find(key) != m_cache.end());
+    }
+
     template<typename... TArgs>
     bool emplace(const key_type& key, TArgs&&... args)
     {
