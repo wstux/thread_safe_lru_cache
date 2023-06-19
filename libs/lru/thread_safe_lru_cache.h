@@ -32,7 +32,7 @@
 #include <vector>
 #include <utility>
 
-#include "lru_cache/lru_cache.h"
+#include "lru/lru_cache.h"
 
 namespace wstux {
 namespace cnt {

@@ -28,7 +28,7 @@
 
 #include <testing/perfdefs.h>
 
-#include "lru_cache/thread_safe_lru_cache.h"
+#include "lru/thread_safe_lru_cache.h"
 
 namespace {
 

@@ -23,6 +23,6 @@ include(${COMMON_MAIN_CMAKE} PUBLIC)
 ################################################################################
 
 add_subdirectory(externals)
-add_subdirectory(libs/lru_cache)
+add_subdirectory(libs/lru)
 add_subdirectory(tests)
 

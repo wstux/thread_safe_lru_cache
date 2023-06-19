@@ -24,7 +24,7 @@
 
 #include <testing/testdefs.h>
 
-#include "lru_cache/lru_cache.h"
+#include "lru/lru_cache.h"
 
 TEST(cache, emplace)
 {
