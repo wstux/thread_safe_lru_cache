@@ -163,7 +163,11 @@ public:
         return true;
     }
 
-//    void reserve(size_type new_capacity) {}
+    void reserve(size_type new_capacity)
+    {
+        m_capacity = new_capacity;
+        m_cache.reserve(m_capacity);
+    }
 
     size_type size() const { return m_size; }
 
@@ -247,7 +251,7 @@ private:
 
 
 private:
-    const size_t m_capacity;
+    size_t m_capacity;
 
     size_t m_size;
     _cache_map_t m_cache;

@@ -128,14 +128,14 @@ struct lru_cache
 {
     using cache = ::wstux::lru::lru_cache<size_t, std::string>;
 
-    static cache create() { return cache(10); }
+    static cache create(size_t cap = 10) { return cache(cap); }
 };
 
 struct thread_safe_lru_cache
 {
     using cache = ::wstux::lru::thread_safe_lru_cache<size_t, std::string>;
 
-    static cache create() { return cache(10, 2); }
+    static cache create(size_t cap = 10) { return cache(cap, 2); }
 };
 
 using lru_types = testing::Types<lru_cache,
@@ -217,6 +217,33 @@ TYPED_TEST(cache_fixture, erase)
     cache.erase(0);
     EXPECT_TRUE(cache.empty());
     EXPECT_FALSE(cache.find(0, val));
+}
+
+TYPED_TEST(cache_fixture, reserve)
+{
+    using cache_type = TypeParam;
+    using lru_cache = typename cache_type::cache;
+
+    lru_cache cache = cache_type::create(2);
+
+    EXPECT_TRUE(cache.size() == 0);
+    EXPECT_TRUE(cache.capacity() == 2);
+    cache.emplace(0, 4, 'a');
+    cache.emplace(1, 4, 'b');
+    cache.emplace(2, 4, 'c');
+    EXPECT_TRUE(cache.size() == 2) << cache.size();
+    EXPECT_FALSE(cache.contains(0));
+    EXPECT_TRUE(cache.contains(1));
+    EXPECT_TRUE(cache.contains(2));
+
+    cache.reserve(4);
+    EXPECT_TRUE(cache.size() == 2);
+    EXPECT_TRUE(cache.capacity() == 4);
+
+    cache.emplace(0, 4, 'a');
+    EXPECT_TRUE(cache.contains(0));
+    EXPECT_TRUE(cache.contains(1));
+    EXPECT_TRUE(cache.contains(2));
 }
 
 TYPED_TEST(cache_fixture, size)

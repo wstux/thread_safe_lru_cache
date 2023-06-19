@@ -160,6 +160,21 @@ public:
         return wrapper(get_shard(key), &_shard_type::insert, key, val);
     }
 
+    void reserve(size_type new_capacity)
+    {
+        //m_capacity = new_capacity;
+        //m_cache.reserve(m_capacity);
+        size_t shards_count = m_shards.size();
+        for (size_t i = 0; i < shards_count; i++) {
+            const size_t shard_capacity = (i != 0)
+                ? (new_capacity / shards_count)
+                : ((new_capacity / shards_count) + (new_capacity % shards_count));
+            //m_shards[i].first = std::make_shared<_shard_type>(shard_capacity);
+            wrapper(m_shards[i], &_shard_type::reserve, shard_capacity);
+        }
+        m_capacity = new_capacity;
+    }
+
     size_type size() const
     {
         size_type s = 0;
@@ -195,14 +210,16 @@ private:
 private:
     inline const _shard_guard& get_shard(const TKey& key) const
     {
-        constexpr size_t shift = std::numeric_limits<size_t>::digits - 16;
-        return m_shards[(hasher{}(key) >> shift) % m_shards.size()];
+        //constexpr size_t shift = std::numeric_limits<size_t>::digits - 16;
+        //return m_shards[(hasher{}(key) >> shift) % m_shards.size()];
+        return m_shards[(hasher{}(key)) % m_shards.size()];
     }
 
     inline _shard_guard& get_shard(const TKey& key)
     {
-        constexpr size_t shift = std::numeric_limits<size_t>::digits - 16;
-        return m_shards[(hasher{}(key) >> shift) % m_shards.size()];
+        //constexpr size_t shift = std::numeric_limits<size_t>::digits - 16;
+        //return m_shards[(hasher{}(key) >> shift) % m_shards.size()];
+        return m_shards[(hasher{}(key)) % m_shards.size()];
     }
 
     template<typename T, typename TFn, typename... TArgs>
@@ -220,8 +237,7 @@ private:
     }
 
 private:
-    const size_t m_capacity;
-//    mutable std::vector<_shard_guard> m_shards;
+    size_t m_capacity;
     std::vector<_shard_guard> m_shards;
 };
 
