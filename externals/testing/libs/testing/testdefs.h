@@ -36,7 +36,7 @@
 
 #define ASSERT_FALSE(cond)                      \
     if (! (cond)) ;                             \
-    else return __FATAL_FAILURE_MESSAGE(cond)
+    else return __FATAL_FAILURE_MESSAGE(! (cond))
 
 #define ASSERT_TRUE(cond)                       \
     if ((cond)) ;                               \
@@ -44,7 +44,7 @@
 
 #define EXPECT_FALSE(cond)                      \
     if (! (cond)) ;                             \
-    else __FAILURE_MESSAGE(cond)
+    else __FAILURE_MESSAGE(! (cond))
 
 #define EXPECT_TRUE(cond)                       \
     if ((cond)) ;                               \
