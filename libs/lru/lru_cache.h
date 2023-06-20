@@ -81,9 +81,14 @@ public:
         m_lru_list.clear();
     }
 
-    bool contains(const key_type& key) const
+    bool contains(const key_type& key)
     {
-        return (m_cache.find(key) != m_cache.end());
+        typename _cache_map_t::iterator it = m_cache.find(key);
+        if (it != m_cache.end()) {
+            move_to_front(m_lru_list, it->second.lru_it);
+            return true;
+        }
+        return false;
     }
 
     template<typename... TArgs>

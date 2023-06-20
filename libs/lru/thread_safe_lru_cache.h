@@ -115,7 +115,7 @@ public:
         }
     }
 
-    bool contains(const key_type& key) const
+    bool contains(const key_type& key)
     {
         return wrapper(get_shard(key), &_shard_type::contains, key);
     }
@@ -175,6 +175,8 @@ public:
         m_capacity = new_capacity;
     }
 
+    size_type shards_size() const { return m_shards.size(); }
+
     size_type size() const
     {
         size_type s = 0;
@@ -187,6 +189,8 @@ public:
     void update(const key_type& key, const value_type& val)
     {
         //wrapper(get_shard(key), &_shard_type::update, key, val);
+        // Fixing error: no matching function for call to
+        // 'wrapper(_safe_shard_type&, <unresolved overloaded function type>)'
         constexpr void (_shard_type::*p_update)(const key_type&, const value_type&) = &_shard_type::update;
         wrapper(get_shard(key), p_update, key, std::forward<decltype(val)>(val));
     }
@@ -194,6 +198,8 @@ public:
     void update(const key_type& key, value_type&& val)
     {
         //wrapper(get_shard(key), &_shard_type::update, key, val);
+        // Fixing error: no matching function for call to
+        // 'wrapper(_safe_shard_type&, <unresolved overloaded function type>)'
         constexpr void (_shard_type::*p_update)(const key_type&, value_type&&) = &_shard_type::update;
         wrapper(get_shard(key), p_update, key, std::forward<decltype(val)>(val));
     }
