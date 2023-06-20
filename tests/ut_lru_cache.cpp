@@ -158,6 +158,27 @@ TYPED_TEST(cache_fixture, contains)
     EXPECT_TRUE(cache.contains(0));
 }
 
+TYPED_TEST(cache_fixture, contains_touch)
+{
+    using cache_type = TypeParam;
+    using lru_cache = typename cache_type::cache;
+
+    lru_cache cache = cache_type::create(4);
+
+    typename lru_cache::value_type val;
+    EXPECT_FALSE(cache.contains(0));
+
+    EXPECT_TRUE(cache.emplace(0, 4, 'b'));
+    EXPECT_TRUE(cache.emplace(1, 4, 'b'));
+    EXPECT_TRUE(cache.emplace(2, 4, 'b'));
+    EXPECT_TRUE(cache.emplace(3, 4, 'b'));
+    EXPECT_TRUE(cache.contains(0));
+
+    EXPECT_TRUE(cache.emplace(5, 4, 'b'));
+    EXPECT_TRUE(cache.contains(0));
+    EXPECT_FALSE(cache.contains(1));
+}
+
 TYPED_TEST(cache_fixture, emplace)
 {
     using cache_type = TypeParam;
@@ -312,6 +333,20 @@ TEST(lru_cache, hit)
     }
     EXPECT_TRUE((hit_count + 10) == total_count)
         << "hit_count = " << hit_count << "; total_count = " << total_count;
+}
+
+TEST_F(thread_safe_cache_fixture, shards_leak)
+{
+    using lru_cache = ::wstux::lru::thread_safe_lru_cache<size_t, size_t>;
+
+    lru_cache cache(1, 2);
+    EXPECT_TRUE(cache.shards_size() == 1);
+
+    EXPECT_TRUE(cache.insert(0, 3));
+    EXPECT_TRUE(cache.insert(1, 4));
+
+    EXPECT_FALSE(cache.contains(0));
+    EXPECT_TRUE(cache.contains(1));
 }
 
 TEST_F(thread_safe_cache_fixture, hit)
