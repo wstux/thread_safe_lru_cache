@@ -79,6 +79,7 @@ public:
     cache_fixture()
         : base()
         , m_run_threads(std::thread::hardware_concurrency())
+        , m_total_count(0)
     {}
 
     virtual void TearDown() override
@@ -89,6 +90,8 @@ public:
             t.join();
         }
     }
+
+    size_t request_count() const { return m_total_count; }
 
     void run_threads(std::function<void(size_t)> run_fn)
     {
@@ -124,6 +127,7 @@ private:
 
         for (size_t k : td) {
             run_fn(k);
+            ++m_total_count;
         }
 
         ++m_run_threads;
@@ -134,6 +138,87 @@ private:
 
     std::atomic_bool m_is_start = {false};
     std::atomic_size_t m_run_threads = {0};
+    std::atomic_size_t m_total_count = {0};
+    std::vector<std::thread> m_threads;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// class cache_wait_fixture
+
+class cache_wait_fixture : public ::testing::Test
+{
+    using base = ::testing::Test;
+
+public:
+    cache_wait_fixture()
+        : base()
+        , m_run_threads(std::thread::hardware_concurrency())
+        , m_total_count(0)
+    {}
+
+    virtual void TearDown() override
+    {
+        base::TearDown();
+        
+        for (std::thread& t : m_threads) {
+            t.join();
+        }
+    }
+
+    size_t request_count() const { return m_total_count; }
+
+    void run_threads(std::function<void(size_t)> run_fn)
+    {
+        m_threads.clear();
+        m_threads.reserve(cache_env::threads_count());
+        for (size_t i = 0; i < cache_env::threads_count(); ++i) {
+            m_threads.emplace_back([this, &run_fn]() -> void { thread_main(run_fn); });
+        }
+
+        // Waiting until all threads have started.
+        while (! is_threads_started()) {}
+    }
+
+    void wait_finish(size_t secs = 1)
+    {
+        m_is_start = true;
+        std::this_thread::sleep_for(std::chrono::seconds(secs));
+        m_is_start = false;
+
+        while (! is_threads_stopped()) {}
+    }
+
+    static double to_ns(double ms) { return (ms * 1000000.0); }
+
+private:
+    bool is_threads_started() const { return (m_run_threads == 0); }
+    bool is_threads_stopped() const { return (m_run_threads == cache_env::threads_count()); }
+
+    void thread_main(std::function<void(size_t)> run_fn)
+    {
+        const test_data_vector& td = cache_env::test_data();
+        std::mt19937 gen(std::hash<std::thread::id>()(std::this_thread::get_id()));
+        std::uniform_int_distribution<size_t> rand(0, cache_env::count() - 1);
+
+        --m_run_threads;
+        while (! m_is_start) {}
+
+        while (m_is_start) {
+            for (size_t i = 0; i < 1000; ++i) {
+                run_fn(td[rand(gen)]);
+                ++m_total_count;
+            }
+        }
+
+        ++m_run_threads;
+    }
+
+private:
+    test_data_vector m_test_data;
+
+    std::atomic_bool m_is_start = {false};
+    std::atomic_size_t m_run_threads = {0};
+    std::atomic_size_t m_total_count = {0};
     std::vector<std::thread> m_threads;
 };
 
@@ -155,7 +240,7 @@ PERF_TEST_F(cache_fixture, insert)
     PERF_PAUSE_TIMER(insert);
 
     const double ms = PERF_TIMER_MSECS(insert);
-    const size_t td_size = cache_env::count();
+    const size_t td_size = request_count();
     PERF_MESSAGE() << "insert time: total = " << ms << " ms; "
                    << "one element = " << to_ns(ms / (double)td_size) << " ns";
     PERF_MESSAGE() << "speed = " << ((double)td_size / ms) << " insert/ms";
@@ -177,7 +262,7 @@ PERF_TEST_F(cache_fixture, emplace)
     PERF_PAUSE_TIMER(emplace);
 
     const double ms = PERF_TIMER_MSECS(emplace);
-    const size_t td_size = cache_env::count();
+    const size_t td_size = request_count();
     PERF_MESSAGE() << "emplace time: total = " << ms << " ms; "
                    << "one element = " << to_ns(ms / (double)td_size) << " ns";
     PERF_MESSAGE() << "speed = " << ((double)td_size / ms) << " emplace/ms";
@@ -199,7 +284,7 @@ PERF_TEST_F(cache_fixture, update_insert)
     PERF_PAUSE_TIMER(update_insert);
 
     const double ms = PERF_TIMER_MSECS(update_insert);
-    const size_t td_size = cache_env::count();
+    const size_t td_size = request_count();
     PERF_MESSAGE() << "update-insert time: total = " << ms << " ms; "
                    << "one element = " << to_ns(ms / (double)td_size) << " ns";
     PERF_MESSAGE() << "speed = " << ((double)td_size / ms) << " update/ms";
@@ -225,7 +310,7 @@ PERF_TEST_F(cache_fixture, update)
     PERF_PAUSE_TIMER(update);
 
     const double ms = PERF_TIMER_MSECS(update);
-    const size_t td_size = cache_env::count();
+    const size_t td_size = request_count();
     PERF_MESSAGE() << "update time: total = " << ms << " ms; "
                    << "one element = " << to_ns(ms / (double)td_size) << " ns";
     PERF_MESSAGE() << "speed = " << ((double)td_size / ms) << " update/ms";
@@ -252,7 +337,7 @@ PERF_TEST_F(cache_fixture, find)
     PERF_PAUSE_TIMER(find);
 
     const double ms = PERF_TIMER_MSECS(find);
-    const size_t td_size = cache_env::count();
+    const size_t td_size = request_count();
     PERF_MESSAGE() << "find time: total = " << ms << " ms; "
                    << "one element = " << to_ns(ms / (double)td_size) << " ns";
     PERF_MESSAGE() << "speed = " << ((double)td_size / ms) << " find/ms";
@@ -278,10 +363,123 @@ PERF_TEST_F(cache_fixture, insert_overflow)
     PERF_PAUSE_TIMER(insert_overflow);
 
     const double ms = PERF_TIMER_MSECS(insert_overflow);
-    const size_t td_size = cache_env::count();
+    const size_t td_size = request_count();
     PERF_MESSAGE() << "insert overflow time: total = " << ms << " ms; "
                    << "one element = " << to_ns(ms / (double)td_size) << " ns";
     PERF_MESSAGE() << "speed = " << ((double)td_size / ms) << " insert_overflow/ms";
+}
+
+PERF_TEST_F(cache_wait_fixture, request)
+{
+    PERF_INIT_TIMER(request);
+
+    lru_cache cache(cache_env::count(), cache_env::threads_count());
+    std::function<void(size_t)> run_fn = [&cache](size_t k) -> void {
+        lru_cache::value_type val;
+        if (! cache.find(k, val)) {
+            cache.insert(k, k);
+        }
+    };
+
+    run_threads(run_fn);
+
+    PERF_START_TIMER(request);
+    wait_finish();
+    PERF_PAUSE_TIMER(request);
+
+    const double ms = PERF_TIMER_MSECS(request);
+    const size_t td_size = request_count();
+    PERF_MESSAGE() << "insert time: total = " << ms << " ms; "
+                   << "one element = " << to_ns(ms / (double)td_size) << " ns";
+    PERF_MESSAGE() << "speed = " << ((double)td_size / ms) << " insert/ms";
+}
+
+PERF_TEST_F(cache_wait_fixture, request_hot)
+{
+    PERF_INIT_TIMER(request_hot);
+
+    lru_cache cache(cache_env::count(), cache_env::threads_count());
+    std::function<void(size_t)> run_fn = [&cache](size_t k) -> void {
+        lru_cache::value_type val;
+        if (! cache.find(k, val)) {
+            cache.insert(k, k);
+        }
+    };
+
+    for (size_t k : cache_env::test_data()) {
+        cache.insert(k, k);
+    }
+
+    run_threads(run_fn);
+
+    PERF_START_TIMER(request_hot);
+    wait_finish();
+    PERF_PAUSE_TIMER(request_hot);
+
+    const double ms = PERF_TIMER_MSECS(request_hot);
+    const size_t td_size = request_count();
+    PERF_MESSAGE() << "insert time: total = " << ms << " ms; "
+                   << "one element = " << to_ns(ms / (double)td_size) << " ns";
+    PERF_MESSAGE() << "speed = " << ((double)td_size / ms) << " insert/ms";
+}
+
+PERF_TEST_F(cache_wait_fixture, request_mutex_hot)
+{
+    using lru_cache_mutex
+        = ::wstux::lru::thread_safe_lru_cache<size_t, size_t, std::hash,
+                                              std::unordered_map, std::list,
+                                              std::mutex>;
+
+    PERF_INIT_TIMER(request_mutex_hot);
+
+    lru_cache_mutex cache(cache_env::count(), cache_env::threads_count());
+    std::function<void(size_t)> run_fn = [&cache](size_t k) -> void {
+        lru_cache::value_type val;
+        if (! cache.find(k, val)) {
+            cache.insert(k, k);
+        }
+    };
+
+    for (size_t k : cache_env::test_data()) {
+        cache.insert(k, k);
+    }
+
+    run_threads(run_fn);
+
+    PERF_START_TIMER(request_mutex_hot);
+    wait_finish();
+    PERF_PAUSE_TIMER(request_mutex_hot);
+
+    const double ms = PERF_TIMER_MSECS(request_mutex_hot);
+    const size_t td_size = request_count();
+    PERF_MESSAGE() << "insert time: total = " << ms << " ms; "
+                   << "one element = " << to_ns(ms / (double)td_size) << " ns";
+    PERF_MESSAGE() << "speed = " << ((double)td_size / ms) << " insert/ms";
+}
+
+PERF_TEST_F(cache_wait_fixture, many_shards)
+{
+    PERF_INIT_TIMER(request);
+
+    lru_cache cache(cache_env::count(), 3 * cache_env::threads_count());
+    std::function<void(size_t)> run_fn = [&cache](size_t k) -> void {
+        lru_cache::value_type val;
+        if (! cache.find(k, val)) {
+            cache.insert(k, k);
+        }
+    };
+
+    run_threads(run_fn);
+
+    PERF_START_TIMER(request);
+    wait_finish();
+    PERF_PAUSE_TIMER(request);
+
+    const double ms = PERF_TIMER_MSECS(request);
+    const size_t td_size = request_count();
+    PERF_MESSAGE() << "insert time: total = " << ms << " ms; "
+                   << "one element = " << to_ns(ms / (double)td_size) << " ns";
+    PERF_MESSAGE() << "speed = " << ((double)td_size / ms) << " insert/ms";
 }
 
 int main(int /*argc*/, char** /*argv*/)
