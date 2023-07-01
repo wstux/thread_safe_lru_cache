@@ -11,6 +11,15 @@ TestTarget(ut_lru_cache
 
 # Performance tests
 
+ExecTarget(perf_lru_cache
+    SOURCES
+        perf_lru_cache.cpp
+    LIBRARIES
+        lru_cache
+    DEPENDS
+        testing
+)
+
 ExecTarget(perf_thread_safe_lru_cache
     SOURCES
         perf_thread_safe_lru_cache.cpp
