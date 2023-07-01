@@ -38,17 +38,17 @@ void move_to_front(TList& list, typename TList::iterator& it)
     list.splice(list.begin(), list, it);
 }
 
+/// \todo   Add allocator as template parameter.
 template<typename TKey, typename TValue,
-         template<typename THType> class THasher = std::hash,
-         template<typename TMKey, typename TMVal, typename TMHash> class TMap = std::unordered_map,
-         template<typename TLType> class TList = std::list>
+         class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>>
 class lru_cache
 {
 public:
     typedef TKey                key_type;
     typedef TValue              value_type;
     typedef size_t              size_type;
-    typedef THasher<key_type>   hasher;
+    typedef THash               hasher;
+    typedef TKeyEqual           key_equal;
     typedef value_type&         reference;
     typedef const value_type&   const_reference;
     typedef value_type*         pointer;
@@ -83,7 +83,7 @@ public:
 
     bool contains(const key_type& key)
     {
-        typename _cache_map_t::iterator it = m_cache.find(key);
+        typename _lru_map_t::iterator it = m_cache.find(key);
         if (it != m_cache.end()) {
             move_to_front(m_lru_list, it->second.lru_it);
             return true;
@@ -94,7 +94,7 @@ public:
     template<typename... TArgs>
     bool emplace(const key_type& key, TArgs&&... args)
     {
-        std::pair<typename _cache_map_t::iterator, bool> rc =
+        std::pair<typename _lru_map_t::iterator, bool> rc =
             m_cache.emplace(key, _map_value_t(args...));
         if (! rc.second) {
             return false;
@@ -107,7 +107,7 @@ public:
             if (m_lru_list.empty()) {
                 return false;
             }
-            typename _cache_map_t::iterator it = m_cache.find(m_lru_list.back());
+            typename _lru_map_t::iterator it = m_cache.find(m_lru_list.back());
             m_lru_list.pop_back();
             if (it != m_cache.end()) {
                 m_cache.erase(it);
@@ -122,7 +122,7 @@ public:
 
     void erase(const key_type& key)
     {
-        typename _cache_map_t::iterator it = m_cache.find(key);
+        typename _lru_map_t::iterator it = m_cache.find(key);
         if (it != m_cache.end()) {
             m_lru_list.erase(it->second.lru_it);
             m_cache.erase(it);
@@ -132,7 +132,7 @@ public:
 
     bool find(const key_type& key, value_type& result)
     {
-        typename _cache_map_t::iterator it = m_cache.find(key);
+        typename _lru_map_t::iterator it = m_cache.find(key);
         if (it == m_cache.end()) {
             return false;
         }
@@ -144,7 +144,7 @@ public:
 
     bool insert(const key_type& key, const value_type& val)
     {
-        std::pair<typename _cache_map_t::iterator, bool> rc =
+        std::pair<typename _lru_map_t::iterator, bool> rc =
             m_cache.emplace(key, _map_value_t(val));
         if (! rc.second) {
             return false;
@@ -157,7 +157,7 @@ public:
             if (m_lru_list.empty()) {
                 return false;
             }
-            typename _cache_map_t::iterator it = m_cache.find(m_lru_list.back());
+            typename _lru_map_t::iterator it = m_cache.find(m_lru_list.back());
             m_lru_list.pop_back();
             if (it != m_cache.end()) {
                 m_cache.erase(it);
@@ -178,7 +178,7 @@ public:
 
     void update(const key_type& key, const value_type& val)
     {
-        std::pair<typename _cache_map_t::iterator, bool> rc =
+        std::pair<typename _lru_map_t::iterator, bool> rc =
             m_cache.emplace(key, _map_value_t(val));
         if (! rc.second) {
             rc.first->second.value = val;
@@ -193,7 +193,7 @@ public:
             if (m_lru_list.empty()) {
                 return;
             }
-            typename _cache_map_t::iterator it = m_cache.find(m_lru_list.back());
+            typename _lru_map_t::iterator it = m_cache.find(m_lru_list.back());
             m_lru_list.pop_back();
             if (it != m_cache.end()) {
                 m_cache.erase(it);
@@ -205,7 +205,7 @@ public:
 
     void update(const key_type& key, value_type&& val)
     {
-        std::pair<typename _cache_map_t::iterator, bool> rc =
+        std::pair<typename _lru_map_t::iterator, bool> rc =
             m_cache.emplace(key, _map_value_t(val));
         if (! rc.second) {
             rc.first->second.value = std::move(val);
@@ -220,7 +220,7 @@ public:
             if (m_lru_list.empty()) {
                 return;
             }
-            typename _cache_map_t::iterator it = m_cache.find(m_lru_list.back());
+            typename _lru_map_t::iterator it = m_cache.find(m_lru_list.back());
             m_lru_list.pop_back();
             if (it != m_cache.end()) {
                 m_cache.erase(it);
@@ -247,19 +247,18 @@ private:
         {}
 
         value_type value;
-        typename TList<key_type>::iterator lru_it;
+        typename std::list<key_type>::iterator lru_it;
     };
 
     /// \todo   Remove key duplicate.
-    using _lru_list_t = TList<key_type>;
-    using _cache_map_t = TMap<key_type, _map_value_t, hasher>;
-
+    using _lru_list_t = std::list<key_type>;
+    using _lru_map_t = std::unordered_map<key_type, _map_value_t, hasher, key_equal>;
 
 private:
     size_t m_capacity;
 
     size_t m_size;
-    _cache_map_t m_cache;
+    _lru_map_t m_cache;
     _lru_list_t m_lru_list;
 };
 
