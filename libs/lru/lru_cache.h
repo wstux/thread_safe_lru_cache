@@ -79,7 +79,7 @@ public:
     {
         typename _lru_map_t::iterator it = m_cache.find(key);
         if (it != m_cache.end()) {
-            move_to_front(m_lru_list, it->second.lru_it);
+            move_to_top(m_lru_list, it->second.lru_it);
             return true;
         }
         return false;
@@ -88,27 +88,13 @@ public:
     template<typename... TArgs>
     bool emplace(const key_type& key, TArgs&&... args)
     {
-        std::pair<typename _lru_map_t::iterator, bool> rc =
-            m_cache.emplace(key, _map_value_t(args...));
-        if (! rc.second) {
+        typename _lru_map_t::iterator it = m_cache.find(key);
+        if (it != m_cache.end()) {
+            move_to_top(m_lru_list, it->second.lru_it);
             return false;
         }
 
-        m_lru_list.emplace_front(key);
-        rc.first->second.lru_it = m_lru_list.begin();
-
-        if (m_size >= m_capacity) {
-            if (m_lru_list.empty()) {
-                return false;
-            }
-            typename _lru_map_t::iterator it = m_cache.find(m_lru_list.back());
-            m_lru_list.pop_back();
-            if (it != m_cache.end()) {
-                m_cache.erase(it);
-            }
-        } else {
-            ++m_size;
-        }
+        insert_to_cache(key, std::forward<TArgs>(args)...);
         return true;
     }
 
@@ -131,34 +117,20 @@ public:
             return false;
         }
 
-        move_to_front(m_lru_list, it->second.lru_it);
+        move_to_top(m_lru_list, it->second.lru_it);
         result = it->second.value;
         return true;
     }
 
     bool insert(const key_type& key, const value_type& val)
     {
-        std::pair<typename _lru_map_t::iterator, bool> rc =
-            m_cache.emplace(key, _map_value_t(val));
-        if (! rc.second) {
+        typename _lru_map_t::iterator it = m_cache.find(key);
+        if (it != m_cache.end()) {
+            move_to_top(m_lru_list, it->second.lru_it);
             return false;
         }
 
-        m_lru_list.emplace_front(key);
-        rc.first->second.lru_it = m_lru_list.begin();
-
-        if (m_size >= m_capacity) {
-            if (m_lru_list.empty()) {
-                return false;
-            }
-            typename _lru_map_t::iterator it = m_cache.find(m_lru_list.back());
-            m_lru_list.pop_back();
-            if (it != m_cache.end()) {
-                m_cache.erase(it);
-            }
-        } else {
-            ++m_size;
-        }
+        insert_to_cache(key, val);
         return true;
     }
 
@@ -172,69 +144,31 @@ public:
 
     void update(const key_type& key, const value_type& val)
     {
-        std::pair<typename _lru_map_t::iterator, bool> rc =
-            m_cache.emplace(key, _map_value_t(val));
-        if (! rc.second) {
-            rc.first->second.value = val;
-            move_to_front(m_lru_list, rc.first->second.lru_it);
+        typename _lru_map_t::iterator it = m_cache.find(key);
+        if (it != m_cache.end()) {
+            it->second.value = val;
+            move_to_top(m_lru_list, it->second.lru_it);
             return;
         }
 
-        m_lru_list.emplace_front(key);
-        rc.first->second.lru_it = m_lru_list.begin();
-
-        if (m_size >= m_capacity) {
-            if (m_lru_list.empty()) {
-                return;
-            }
-            typename _lru_map_t::iterator it = m_cache.find(m_lru_list.back());
-            m_lru_list.pop_back();
-            if (it != m_cache.end()) {
-                m_cache.erase(it);
-            }
-        } else {
-            ++m_size;
-        }
+        insert_to_cache(key, val);
     }
 
     void update(const key_type& key, value_type&& val)
     {
-        std::pair<typename _lru_map_t::iterator, bool> rc =
-            m_cache.emplace(key, _map_value_t(val));
-        if (! rc.second) {
-            rc.first->second.value = std::move(val);
-            move_to_front(m_lru_list, rc.first->second.lru_it);
+        typename _lru_map_t::iterator it = m_cache.find(key);
+        if (it != m_cache.end()) {
+            it->second.value = std::move(val);
+            move_to_top(m_lru_list, it->second.lru_it);
             return;
         }
 
-        m_lru_list.emplace_front(key);
-        rc.first->second.lru_it = m_lru_list.begin();
-
-        if (m_size >= m_capacity) {
-            if (m_lru_list.empty()) {
-                return;
-            }
-            typename _lru_map_t::iterator it = m_cache.find(m_lru_list.back());
-            m_lru_list.pop_back();
-            if (it != m_cache.end()) {
-                m_cache.erase(it);
-            }
-        } else {
-            ++m_size;
-        }
+        insert_to_cache(key, std::move(val));
     }
 
 private:
     struct _map_value_t
     {
-        explicit _map_value_t(const value_type& v)
-            : value(v)
-        {}
-
-        explicit _map_value_t(value_type&& v)
-            : value(std::move(v))
-        {}
-
         template<typename... TArgs>
         explicit _map_value_t(TArgs&&... args)
             : value(std::forward<TArgs>(args)...)
@@ -248,11 +182,30 @@ private:
     using _lru_list_t = std::list<key_type>;
     using _lru_map_t = std::unordered_map<key_type, _map_value_t, hasher, key_equal>;
 
-private:    
-    template<typename TIterator>
-    inline static void move_to_front(_lru_list_t& list, TIterator& it)
+private:
+    template<typename... TArgs>
+    inline void insert_to_cache(const key_type& key, TArgs&&... args)
     {
-        list.splice(list.begin(), list, it);
+        if (m_size >= m_capacity) {
+            m_cache.erase(m_lru_list.front());
+            m_lru_list.front() = key;
+            std::pair<typename _lru_map_t::iterator, bool> rc =
+                m_cache.emplace(key, _map_value_t(std::forward<TArgs>(args)...));
+            rc.first->second.lru_it = m_lru_list.begin();
+            move_to_top(m_lru_list, rc.first->second.lru_it);
+        } else {
+            typename _lru_list_t::iterator it = m_lru_list.emplace(m_lru_list.end(), key);
+            std::pair<typename _lru_map_t::iterator, bool> rc =
+                m_cache.emplace(key, _map_value_t(std::forward<TArgs>(args)...));
+            rc.first->second.lru_it = it;
+            ++m_size;
+        }
+    }
+
+    template<typename TIterator>
+    inline static void move_to_top(_lru_list_t& list, TIterator& it)
+    {
+        list.splice(list.end(), list, it);
     }
 
 private:
