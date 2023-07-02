@@ -32,12 +32,6 @@
 namespace wstux {
 namespace lru {
 
-template<typename TList>
-void move_to_front(TList& list, typename TList::iterator& it)
-{
-    list.splice(list.begin(), list, it);
-}
-
 /// \todo   Add allocator as template parameter.
 template<typename TKey, typename TValue,
          class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>>
@@ -253,6 +247,13 @@ private:
     /// \todo   Remove key duplicate.
     using _lru_list_t = std::list<key_type>;
     using _lru_map_t = std::unordered_map<key_type, _map_value_t, hasher, key_equal>;
+
+private:    
+    template<typename TIterator>
+    inline static void move_to_front(_lru_list_t& list, TIterator& it)
+    {
+        list.splice(list.begin(), list, it);
+    }
 
 private:
     size_t m_capacity;
