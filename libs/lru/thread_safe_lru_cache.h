@@ -25,7 +25,6 @@
 #ifndef _LRU_CACHE_THREAD_SAFE_LRU_CACHE_H
 #define _LRU_CACHE_THREAD_SAFE_LRU_CACHE_H
 
-#include <atomic>
 #include <memory>
 #include <mutex>
 #include <type_traits>
@@ -33,63 +32,30 @@
 #include <utility>
 
 #include "lru/lru_cache.h"
+#include "lru/details/spinlock.h"
 
 namespace wstux {
 namespace lru {
-namespace details {
-
-/*
- *  The spinlock implementation described in the links is used:
- *  https://www.talkinghightech.com/en/implementing-a-spinlock-in-c/
- *  https://rigtorp.se/spinlock/
- */
-class spinlock
-{
-public:
-    void lock()
-    {
-        for (;;)
-        {
-            if (! m_lock.exchange(true, std::memory_order_acquire)) { return; }
-            while (m_lock.load(std::memory_order_relaxed)) {
-                __builtin_ia32_pause();
-            }
-        }
-    }
-
-    bool try_lock()
-    {
-      return (! m_lock.load(std::memory_order_relaxed)) &&
-             (! m_lock.exchange(true, std::memory_order_acquire));
-    }
-
-    void unlock() { m_lock.store(false, std::memory_order_release); }
-
-private:
-    std::atomic_bool m_lock = {false};
-};
-
-} // namespace details
 
 template<typename TKey, typename TValue,
-         template<typename THType> class THasher = std::hash,
-         template<typename TMKey, typename TMVal, typename TMHash> class TMap = std::unordered_map,
-         template<typename TLType> class TList = std::list,
-         class TLock = ::wstux::lru::details::spinlock>
+         class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>,
+         class TLock = details::spinlock>
 class thread_safe_lru_cache
 {
-    typedef lru_cache<TKey, TValue, THasher, TMap, TList>   _shard_type;
+    typedef lru_cache<TKey, TValue, THash, TKeyEqual>   _shard_type;
 
 public:
     typedef typename _shard_type::key_type          key_type;
     typedef typename _shard_type::value_type        value_type;
     typedef typename _shard_type::size_type         size_type;
     typedef typename _shard_type::hasher            hasher;
+    typedef typename _shard_type::key_equal         key_equal;
+    typedef TLock                                   lock_type;
     typedef typename _shard_type::reference         reference;
     typedef typename _shard_type::const_reference   const_reference;
     typedef typename _shard_type::pointer           pointer;
     typedef typename _shard_type::const_pointer     const_pointer;
-                                            
+
     explicit thread_safe_lru_cache(size_t capacity, size_t shards_count)
         : m_capacity(capacity)
         , m_shards((m_capacity > shards_count) ? shards_count : m_capacity)
@@ -210,7 +176,7 @@ private:
     struct _shard_guard
     {
         _shard_ptr_type first;
-        mutable TLock   second;
+        mutable lock_type second;
     };
 
 private:

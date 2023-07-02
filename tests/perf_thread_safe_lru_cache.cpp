@@ -426,8 +426,8 @@ PERF_TEST_F(cache_wait_fixture, request_hot)
 PERF_TEST_F(cache_wait_fixture, request_mutex_hot)
 {
     using lru_cache_mutex
-        = ::wstux::lru::thread_safe_lru_cache<size_t, size_t, std::hash,
-                                              std::unordered_map, std::list,
+        = ::wstux::lru::thread_safe_lru_cache<size_t, size_t,
+                                              std::hash<size_t>, std::equal_to<size_t>,
                                               std::mutex>;
 
     PERF_INIT_TIMER(request_mutex_hot);
