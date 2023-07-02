@@ -79,7 +79,7 @@ public:
     {
         typename _lru_map_t::iterator it = m_cache.find(key);
         if (it != m_cache.end()) {
-            move_to_front(m_lru_list, it->second.lru_it);
+            move_to_top(m_lru_list, it->second.lru_it);
             return true;
         }
         return false;
@@ -94,15 +94,14 @@ public:
             return false;
         }
 
-        m_lru_list.emplace_front(key);
-        rc.first->second.lru_it = m_lru_list.begin();
+        rc.first->second.lru_it = m_lru_list.emplace(m_lru_list.end(), key);
 
         if (m_size >= m_capacity) {
             if (m_lru_list.empty()) {
                 return false;
             }
-            typename _lru_map_t::iterator it = m_cache.find(m_lru_list.back());
-            m_lru_list.pop_back();
+            typename _lru_map_t::iterator it = m_cache.find(m_lru_list.front());
+            m_lru_list.pop_front();
             if (it != m_cache.end()) {
                 m_cache.erase(it);
             }
@@ -131,7 +130,7 @@ public:
             return false;
         }
 
-        move_to_front(m_lru_list, it->second.lru_it);
+        move_to_top(m_lru_list, it->second.lru_it);
         result = it->second.value;
         return true;
     }
@@ -144,15 +143,14 @@ public:
             return false;
         }
 
-        m_lru_list.emplace_front(key);
-        rc.first->second.lru_it = m_lru_list.begin();
+        rc.first->second.lru_it = m_lru_list.emplace(m_lru_list.end(), key);
 
         if (m_size >= m_capacity) {
             if (m_lru_list.empty()) {
                 return false;
             }
-            typename _lru_map_t::iterator it = m_cache.find(m_lru_list.back());
-            m_lru_list.pop_back();
+            typename _lru_map_t::iterator it = m_cache.find(m_lru_list.front());
+            m_lru_list.pop_front();
             if (it != m_cache.end()) {
                 m_cache.erase(it);
             }
@@ -176,19 +174,18 @@ public:
             m_cache.emplace(key, _map_value_t(val));
         if (! rc.second) {
             rc.first->second.value = val;
-            move_to_front(m_lru_list, rc.first->second.lru_it);
+            move_to_top(m_lru_list, rc.first->second.lru_it);
             return;
         }
 
-        m_lru_list.emplace_front(key);
-        rc.first->second.lru_it = m_lru_list.begin();
+        rc.first->second.lru_it = m_lru_list.emplace(m_lru_list.end(), key);
 
         if (m_size >= m_capacity) {
             if (m_lru_list.empty()) {
                 return;
             }
-            typename _lru_map_t::iterator it = m_cache.find(m_lru_list.back());
-            m_lru_list.pop_back();
+            typename _lru_map_t::iterator it = m_cache.find(m_lru_list.front());
+            m_lru_list.pop_front();
             if (it != m_cache.end()) {
                 m_cache.erase(it);
             }
@@ -203,19 +200,18 @@ public:
             m_cache.emplace(key, _map_value_t(val));
         if (! rc.second) {
             rc.first->second.value = std::move(val);
-            move_to_front(m_lru_list, rc.first->second.lru_it);
+            move_to_top(m_lru_list, rc.first->second.lru_it);
             return;
         }
 
-        m_lru_list.emplace_front(key);
-        rc.first->second.lru_it = m_lru_list.begin();
+        rc.first->second.lru_it = m_lru_list.emplace(m_lru_list.end(), key);
 
         if (m_size >= m_capacity) {
             if (m_lru_list.empty()) {
                 return;
             }
-            typename _lru_map_t::iterator it = m_cache.find(m_lru_list.back());
-            m_lru_list.pop_back();
+            typename _lru_map_t::iterator it = m_cache.find(m_lru_list.front());
+            m_lru_list.pop_front();
             if (it != m_cache.end()) {
                 m_cache.erase(it);
             }
@@ -250,9 +246,9 @@ private:
 
 private:    
     template<typename TIterator>
-    inline static void move_to_front(_lru_list_t& list, TIterator& it)
+    inline static void move_to_top(_lru_list_t& list, TIterator& it)
     {
-        list.splice(list.begin(), list, it);
+        list.splice(list.end(), list, it);
     }
 
 private:
