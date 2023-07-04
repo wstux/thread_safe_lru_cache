@@ -25,7 +25,7 @@
 #ifndef _LRU_CACHE_LRU_CACHE_H
 #define _LRU_CACHE_LRU_CACHE_H
 
-#include "lru/details/std_lru_cache.h"
+#include "lru/details/lru_cache_impl.h"
 
 #endif /* _LRU_CACHE_LRU_CACHE_H */
 
