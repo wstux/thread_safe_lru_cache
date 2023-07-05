@@ -121,12 +121,14 @@ private:
     void thread_main(std::function<void(size_t)> run_fn)
     {
         const test_data_vector& td = cache_env::test_data();
+        std::mt19937 gen(std::hash<std::thread::id>()(std::this_thread::get_id()));
+        std::uniform_int_distribution<size_t> rand(0, cache_env::count() - 1);
 
         --m_run_threads;
         while (! m_is_start) {}
 
-        for (size_t k : td) {
-            run_fn(k);
+        for (size_t i = 0; i < td.size(); ++i) {
+            run_fn(td[rand(gen)]);
             ++m_total_count;
         }
 
