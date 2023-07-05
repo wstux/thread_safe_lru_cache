@@ -27,7 +27,11 @@
 
 #include <functional>
 
-#include "lru/details/std_base_lru_cache.h"
+#if defined(LRU_CACHE_USE_BOOST_INTRUSIVE)
+    #include "lru/details/intrusive_base_lru_cache.h"
+#else
+    #include "lru/details/std_base_lru_cache.h"
+#endif
 
 namespace wstux {
 namespace lru {
