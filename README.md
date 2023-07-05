@@ -78,6 +78,24 @@ int main()
 }
 ```
 
+## Benchmark
+
+### lru_cache
+
+For performance measurements, 100000 iterations were performed. The table shows
+the execution time 100000 of the lru_cache lookup/insert.
+==========================================================================
+|                 | std containers, ms | boost::intrusive containers, ms |
+|-----------------|--------------------|---------------------------------|
+|      insert     |      6.96474       |             4.02347             |
+|-----------------|--------------------|---------------------------------|
+|       find      |      2.17074       |             2.09442             |
+|-----------------|--------------------|---------------------------------|
+| insert_overflow |      5.01054       |             2.63364             |
+==========================================================================
+
+### thread_safe_lru_cache
+
 ## License
 
 &copy; 2023 Chistyakov Alexander.

@@ -34,6 +34,11 @@ namespace wstux {
 namespace lru {
 namespace details {
 
+/**
+ *  @brief  Implementation of lru_cache based on intrusive containers.
+ *  @details    The idea of a cache based on intrusive containers is taken from
+ *              https://www.youtube.com/watch?v=60XhYzkXu1M&t=2358s
+ */
 template<typename TKey, typename TValue, class THash, class TKeyEqual>
 class base_lru_cache
 {
