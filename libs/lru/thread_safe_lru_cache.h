@@ -46,7 +46,7 @@ class thread_safe_lru_cache
 
 public:
     typedef typename _shard_type::key_type          key_type;
-    typedef typename _shard_type::value_type        value_type;
+    typedef typename _shard_type::mapped_type       mapped_type;
     typedef typename _shard_type::size_type         size_type;
     typedef typename _shard_type::hasher            hasher;
     typedef typename _shard_type::key_equal         key_equal;
@@ -116,18 +116,18 @@ public:
         wrapper(get_shard(key), &_shard_type::erase, key);
     }
 
-    bool find(const key_type& key, value_type& result)
+    bool find(const key_type& key, mapped_type& result)
     {
         return wrapper(get_shard(key), &_shard_type::find, key, result);
     }
 
-    bool insert(const key_type& key, const value_type& val)
+    bool insert(const key_type& key, const mapped_type& val)
     {
         return wrapper(get_shard(key), &_shard_type::insert, key, val);
     }
 
 #if defined(LRU_CACHE_ENABLE_STD_OPTIONAL)
-    std::optional<value_type> get(const key_type& key)
+    std::optional<mapped_type> get(const key_type& key)
     {
         return wrapper(get_shard(key), &_shard_type::get, key);
     }
@@ -159,21 +159,21 @@ public:
         return s;
     }
 
-    void update(const key_type& key, const value_type& val)
+    void update(const key_type& key, const mapped_type& val)
     {
         //wrapper(get_shard(key), &_shard_type::update, key, val);
         // Fixing error: no matching function for call to
         // 'wrapper(_safe_shard_type&, <unresolved overloaded function type>)'
-        constexpr void (_shard_type::*p_update)(const key_type&, const value_type&) = &_shard_type::update;
+        constexpr void (_shard_type::*p_update)(const key_type&, const mapped_type&) = &_shard_type::update;
         wrapper(get_shard(key), p_update, key, std::forward<decltype(val)>(val));
     }
 
-    void update(const key_type& key, value_type&& val)
+    void update(const key_type& key, mapped_type&& val)
     {
         //wrapper(get_shard(key), &_shard_type::update, key, val);
         // Fixing error: no matching function for call to
         // 'wrapper(_safe_shard_type&, <unresolved overloaded function type>)'
-        constexpr void (_shard_type::*p_update)(const key_type&, value_type&&) = &_shard_type::update;
+        constexpr void (_shard_type::*p_update)(const key_type&, mapped_type&&) = &_shard_type::update;
         wrapper(get_shard(key), p_update, key, std::forward<decltype(val)>(val));
     }
 

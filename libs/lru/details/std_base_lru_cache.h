@@ -37,14 +37,14 @@ class base_lru_cache
 {
 protected:
     typedef TKey                    key_type;
-    typedef TValue                  value_type;
+    typedef TValue                  mapped_type;
     typedef size_t                  size_type;
     typedef THash                   hasher;
     typedef TKeyEqual               key_equal;
-    typedef value_type&             reference;
-    typedef const value_type&       const_reference;
-    typedef value_type*             pointer;
-    typedef const value_type*       const_pointer;
+    typedef mapped_type&            reference;
+    typedef const mapped_type&      const_reference;
+    typedef mapped_type*            pointer;
+    typedef const mapped_type*      const_pointer;
 
     typedef std::list<key_type>     _lru_list_t;
 
@@ -55,7 +55,7 @@ protected:
             : value(std::forward<TArgs>(args)...)
         {}
 
-        value_type value;
+        mapped_type value;
         typename _lru_list_t::iterator lru_it;
     };
     typedef _hash_table_value       _table_value_t;
@@ -137,12 +137,12 @@ protected:
 
     size_type size() const { return m_size; }
 
-    static const value_type& load(const typename _hash_table_t::iterator& it)
+    static const mapped_type& load(const typename _hash_table_t::iterator& it)
     {
         return it->second.value;
     }
 
-    static void load(const typename _hash_table_t::iterator& it, value_type& res)
+    static void load(const typename _hash_table_t::iterator& it, mapped_type& res)
     {
         res = it->second.value;
     }
@@ -152,7 +152,7 @@ protected:
         list.splice(list.end(), list, it->second.lru_it);
     }
 
-    static void store(const typename _hash_table_t::iterator& it, value_type&& val)
+    static void store(const typename _hash_table_t::iterator& it, mapped_type&& val)
     {
         it->second.value = val;
     }

@@ -43,15 +43,15 @@ struct lru_node : public list_hook
                 , public hash_tbl_hook
 {
     typedef TKey        key_type;
-    typedef TValue      value_type;
+    typedef TValue      mapped_type;
 
-    lru_node(key_type&& k, value_type&& v)
+    lru_node(key_type&& k, mapped_type&& v)
         : key(std::move(k))
         , value(std::move(v))
     {}
 
     key_type key;
-    value_type value;
+    mapped_type value;
 };
 
 template<typename THash>
@@ -81,20 +81,20 @@ template<typename TKey, typename TValue, typename THash, typename TKeyEqual>
 struct intrusive_traits
 {
     typedef TKey                key_type;
-    typedef TValue              value_type;
-    typedef value_type&         reference;
-    typedef const value_type&   const_reference;
-    typedef value_type*         pointer;
-    typedef const value_type*   const_pointer;
+    typedef TValue              mapped_type;
+    typedef mapped_type&        reference;
+    typedef const mapped_type&  const_reference;
+    typedef mapped_type*        pointer;
+    typedef const mapped_type*  const_pointer;
 
     typedef size_t              size_type;
     typedef THash               hasher;
     typedef TKeyEqual           key_equal;
 
-    typedef lru_node<key_type, value_type>  _lru_node;
+    typedef lru_node<key_type, mapped_type>                     _lru_node;
     typedef bi::list<_lru_node, bi::constant_time_size<false>>  lru_list;
 
-    //typedef value_type          hash_table_value;
+    //typedef mapped_type          hash_table_value;
     typedef bi::constant_time_size<true>            _is_ct_size;
     typedef bi::hash<lru_node_hash<hasher>>         _intrusive_hash;
     typedef bi::equal<lru_node_equal<key_equal>>    _intrusive_key_equal;

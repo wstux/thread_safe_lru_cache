@@ -95,7 +95,7 @@ protected:
 
         for (size_t i = 0; i < 10 * td.size(); ++i) {
             const typename TCache::key_type& key = td[rand(gen)];
-            typename TCache::value_type val;
+            typename TCache::mapped_type val;
             if (! cache.find(key, val)) {
                 cache.insert(key, key);
             } else {
@@ -151,7 +151,7 @@ TYPED_TEST(cache_fixture, contains)
 
     lru_cache cache = cache_type::create();
 
-    typename lru_cache::value_type val;
+    typename lru_cache::mapped_type val;
     EXPECT_FALSE(cache.contains(0));
 
     EXPECT_TRUE(cache.emplace(0, 4, 'b'));
@@ -165,7 +165,7 @@ TYPED_TEST(cache_fixture, contains_touch)
 
     lru_cache cache = cache_type::create(4);
 
-    typename lru_cache::value_type val;
+    typename lru_cache::mapped_type val;
     EXPECT_FALSE(cache.contains(0));
 
     EXPECT_TRUE(cache.emplace(0, 4, 'b'));
@@ -186,7 +186,7 @@ TYPED_TEST(cache_fixture, emplace)
 
     lru_cache cache = cache_type::create();
 
-    typename lru_cache::value_type val;
+    typename lru_cache::mapped_type val;
     EXPECT_FALSE(cache.find(0, val));
 
     EXPECT_TRUE(cache.emplace(0, 4, 'b'));
@@ -201,7 +201,7 @@ TYPED_TEST(cache_fixture, insert)
 
     lru_cache cache = cache_type::create();
 
-    typename lru_cache::value_type val;
+    typename lru_cache::mapped_type val;
     EXPECT_FALSE(cache.find(0, val));
 
     EXPECT_TRUE(cache.insert(0, std::string(4, 'b')));
@@ -232,7 +232,7 @@ TYPED_TEST(cache_fixture, erase)
     EXPECT_TRUE(cache.insert(0, std::string(4, 'b')));
     EXPECT_FALSE(cache.empty());
 
-    typename lru_cache::value_type val;
+    typename lru_cache::mapped_type val;
     EXPECT_TRUE(cache.find(0, val));
 
     cache.erase(0);
@@ -248,7 +248,7 @@ TYPED_TEST(cache_fixture, get)
 
     lru_cache cache = cache_type::create();
 
-    std::optional<typename lru_cache::value_type> val;
+    std::optional<typename lru_cache::mapped_type> val;
     val = cache.get(0);
     EXPECT_FALSE(val.has_value());
 
@@ -307,7 +307,7 @@ TYPED_TEST(cache_fixture, update)
 
     lru_cache cache = cache_type::create();
 
-    typename lru_cache::value_type val;
+    typename lru_cache::mapped_type val;
     EXPECT_FALSE(cache.find(0, val));
     EXPECT_FALSE(cache.find(1, val));
 
@@ -340,7 +340,7 @@ TEST(lru_cache, hit)
     lru_cache cache(10);
     for (size_t i = 0; i < 10; ++i) {
         for (const lru_cache::key_type& key : td) {
-            lru_cache::value_type val;
+            lru_cache::mapped_type val;
             if (! cache.find(key, val)) {
                 EXPECT_TRUE(cache.insert(key, key)) << "failed to insert key '" << key << "'";
             } else {

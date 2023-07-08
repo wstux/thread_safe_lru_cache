@@ -51,7 +51,7 @@ private:
 
 public:
     typedef typename base::key_type          key_type;
-    typedef typename base::value_type        value_type;
+    typedef typename base::mapped_type       mapped_type;
     typedef typename base::size_type         size_type;
     typedef typename base::hasher            hasher;
     typedef typename base::key_equal         key_equal;
@@ -98,7 +98,7 @@ public:
 
     void erase(const key_type& key) { base::erase(key); }
 
-    bool find(const key_type& key, value_type& result)
+    bool find(const key_type& key, mapped_type& result)
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
@@ -110,7 +110,7 @@ public:
         return false;
     }
 
-    bool insert(const key_type& key, const value_type& val)
+    bool insert(const key_type& key, const mapped_type& val)
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
@@ -123,7 +123,7 @@ public:
     }
 
 #if defined(LRU_CACHE_ENABLE_STD_OPTIONAL)
-    std::optional<value_type> get(const key_type& key)
+    std::optional<mapped_type> get(const key_type& key)
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
@@ -139,11 +139,11 @@ public:
 
     size_type size() const { return base::size(); }
 
-    void update(const key_type& key, const value_type& val)
+    void update(const key_type& key, const mapped_type& val)
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
-            base::store(it, value_type(val));
+            base::store(it, mapped_type(val));
             base::move_to_top(it);
             return;
         }
@@ -151,7 +151,7 @@ public:
         base::insert(key, val);
     }
 
-    void update(const key_type& key, value_type&& val)
+    void update(const key_type& key, mapped_type&& val)
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {

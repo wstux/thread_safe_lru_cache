@@ -47,7 +47,7 @@ private:
 
 protected:
     typedef typename traits::key_type           key_type;
-    typedef typename traits::value_type         value_type;
+    typedef typename traits::mapped_type        mapped_type;
     typedef typename traits::size_type          size_type;
     typedef typename traits::hasher             hasher;
     typedef typename traits::key_equal          key_equal;
@@ -99,10 +99,10 @@ protected:
         if (m_size >= m_capacity) {
             _lru_node_ptr_t p_node = extract_node(m_lru_list.begin());
             p_node->key = key;
-            p_node->value = std::move(value_type(std::forward<TArgs>(args)...));
+            p_node->value = std::move(mapped_type(std::forward<TArgs>(args)...));
             insert_node(std::move(p_node));
         } else {
-            _lru_node_ptr_t p_node = std::make_unique<_lru_node_t>(key_type(key), value_type(std::forward<TArgs>(args)...));
+            _lru_node_ptr_t p_node = std::make_unique<_lru_node_t>(key_type(key), mapped_type(std::forward<TArgs>(args)...));
             insert_node(std::move(p_node));
             ++m_size;
         }
@@ -128,12 +128,12 @@ protected:
 
     size_type size() const { return m_size; }
 
-    static const value_type& load(const typename _hash_table_t::iterator& it)
+    static const mapped_type& load(const typename _hash_table_t::iterator& it)
     {
         return it->value;
     }
 
-    static void load(const typename _hash_table_t::iterator& it, value_type& res)
+    static void load(const typename _hash_table_t::iterator& it, mapped_type& res)
     {
         res = it->value;
     }
@@ -143,7 +143,7 @@ protected:
         list.splice(list.end(), list, list.iterator_to(*it));
     }
 
-    static void store(const typename _hash_table_t::iterator& it, value_type&& val)
+    static void store(const typename _hash_table_t::iterator& it, mapped_type&& val)
     {
         it->value = val;
     }

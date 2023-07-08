@@ -160,7 +160,7 @@ PERF_TEST_F(cache_fixture, find)
         cache.insert(k, k);
     }
 
-    lru_cache::value_type val;
+    lru_cache::mapped_type val;
     for (size_t k : td) {
         PERF_START_TIMER(find);
         cache.find(k, val);
