@@ -127,6 +127,11 @@ protected:
 
     size_type size() const { return m_size; }
 
+    static const value_type& load(const typename _hash_table_t::iterator& it)
+    {
+        return it->value;
+    }
+
     static void load(const typename _hash_table_t::iterator& it, value_type& res)
     {
         res = it->value;

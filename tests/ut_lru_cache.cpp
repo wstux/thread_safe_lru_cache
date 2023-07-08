@@ -240,6 +240,25 @@ TYPED_TEST(cache_fixture, erase)
     EXPECT_FALSE(cache.find(0, val));
 }
 
+#if defined(LRU_CACHE_ENABLE_STD_OPTIONAL)
+TYPED_TEST(cache_fixture, get)
+{
+    using cache_type = TypeParam;
+    using lru_cache = typename cache_type::cache;
+
+    lru_cache cache = cache_type::create();
+
+    std::optional<typename lru_cache::value_type> val;
+    val = cache.get(0);
+    EXPECT_FALSE(val.has_value());
+
+    EXPECT_TRUE(cache.insert(0, std::string(4, 'b')));
+    val = cache.get(0);
+    EXPECT_TRUE(val.has_value());
+    EXPECT_TRUE(*val == "bbbb") << *val;
+}
+#endif
+
 TYPED_TEST(cache_fixture, reserve)
 {
     using cache_type = TypeParam;

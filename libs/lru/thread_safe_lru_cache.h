@@ -126,6 +126,13 @@ public:
         return wrapper(get_shard(key), &_shard_type::insert, key, val);
     }
 
+#if defined(LRU_CACHE_ENABLE_STD_OPTIONAL)
+    std::optional<value_type> get(const key_type& key)
+    {
+        return wrapper(get_shard(key), &_shard_type::get, key);
+    }
+#endif
+
     void reserve(size_type new_capacity)
     {
         //m_capacity = new_capacity;
