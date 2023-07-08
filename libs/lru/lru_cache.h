@@ -27,6 +27,11 @@
 
 #include <functional>
 
+#include "lru/details/features.h"
+#if defined(LRU_CACHE_ENABLE_STD_OPTIONAL)
+    #include <optional>
+#endif
+
 #if defined(LRU_CACHE_USE_BOOST_INTRUSIVE)
     #include "lru/details/intrusive_base_lru_cache.h"
 #else
@@ -116,6 +121,19 @@ public:
         base::insert(key, val);
         return true;
     }
+
+#if defined(LRU_CACHE_ENABLE_STD_OPTIONAL)
+    std::optional<value_type> get(const key_type& key)
+    {
+        typename _hash_table_t::iterator it = base::find_in_tbl(key);
+        if (base::is_find(it)) {
+            base::move_to_top(it);
+            return base::load(it);
+        }
+
+        return std::nullopt;
+    }
+#endif
 
     void reserve(size_type new_capacity) { base::reserve(new_capacity); }
 
