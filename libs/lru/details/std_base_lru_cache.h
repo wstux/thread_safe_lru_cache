@@ -125,7 +125,8 @@ protected:
 
     void move_to_top(typename _hash_table_t::iterator& it)
     {
-        m_lru_list.splice(m_lru_list.end(), m_lru_list, it->second.lru_it);
+        //m_lru_list.splice(m_lru_list.end(), m_lru_list, it->second.lru_it);
+        move_to_top(m_lru_list, it);
     }
 
     void reserve(size_type new_capacity)
@@ -144,6 +145,11 @@ protected:
     static void load(const typename _hash_table_t::iterator& it, value_type& res)
     {
         res = it->second.value;
+    }
+
+    static void move_to_top(_lru_list_t& list, typename _hash_table_t::iterator& it)
+    {
+        list.splice(list.end(), list, it->second.lru_it);
     }
 
     static void store(const typename _hash_table_t::iterator& it, value_type&& val)
