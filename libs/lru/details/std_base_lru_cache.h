@@ -41,10 +41,6 @@ protected:
     typedef size_t                  size_type;
     typedef THash                   hasher;
     typedef TKeyEqual               key_equal;
-    typedef mapped_type&            reference;
-    typedef const mapped_type&      const_reference;
-    typedef mapped_type*            pointer;
-    typedef const mapped_type*      const_pointer;
 
     typedef std::list<key_type>     _lru_list_t;
 
@@ -60,6 +56,12 @@ protected:
     };
     typedef _hash_table_value       _table_value_t;
     typedef std::unordered_map<key_type, _table_value_t, hasher, key_equal> _hash_table_t;
+
+    typedef typename _hash_table_t::value_type      value_type;
+    typedef value_type&                             reference;
+    typedef const value_type&                       const_reference;
+    typedef value_type*                             pointer;
+    typedef const value_type*                       const_pointer;
 
     explicit base_lru_cache(size_type capacity)
         : m_capacity(capacity)

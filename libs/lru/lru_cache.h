@@ -52,6 +52,7 @@ private:
 public:
     typedef typename base::key_type          key_type;
     typedef typename base::mapped_type       mapped_type;
+    typedef typename base::value_type        value_type;
     typedef typename base::size_type         size_type;
     typedef typename base::hasher            hasher;
     typedef typename base::key_equal         key_equal;

@@ -82,11 +82,6 @@ struct intrusive_traits
 {
     typedef TKey                key_type;
     typedef TValue              mapped_type;
-    typedef mapped_type&        reference;
-    typedef const mapped_type&  const_reference;
-    typedef mapped_type*        pointer;
-    typedef const mapped_type*  const_pointer;
-
     typedef size_t              size_type;
     typedef THash               hasher;
     typedef TKeyEqual           key_equal;
@@ -94,7 +89,6 @@ struct intrusive_traits
     typedef lru_node<key_type, mapped_type>                     _lru_node;
     typedef bi::list<_lru_node, bi::constant_time_size<false>>  lru_list;
 
-    //typedef mapped_type          hash_table_value;
     typedef bi::constant_time_size<true>            _is_ct_size;
     typedef bi::hash<lru_node_hash<hasher>>         _intrusive_hash;
     typedef bi::equal<lru_node_equal<key_equal>>    _intrusive_key_equal;
@@ -102,6 +96,12 @@ struct intrusive_traits
 
     typedef typename hash_table::bucket_type    _bucket_type;
     typedef typename hash_table::bucket_traits  _bucket_traits;
+
+    typedef typename hash_table::value_type     value_type;
+    typedef value_type&                         reference;
+    typedef const value_type&                   const_reference;
+    typedef value_type*                         pointer;
+    typedef const value_type*                   const_pointer;
 };
 
 } // namespace details

@@ -48,6 +48,7 @@ private:
 protected:
     typedef typename traits::key_type           key_type;
     typedef typename traits::mapped_type        mapped_type;
+    typedef typename traits::value_type         value_type;
     typedef typename traits::size_type          size_type;
     typedef typename traits::hasher             hasher;
     typedef typename traits::key_equal          key_equal;

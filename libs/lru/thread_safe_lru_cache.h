@@ -47,6 +47,7 @@ class thread_safe_lru_cache
 public:
     typedef typename _shard_type::key_type          key_type;
     typedef typename _shard_type::mapped_type       mapped_type;
+    typedef typename _shard_type::value_type        value_type;
     typedef typename _shard_type::size_type         size_type;
     typedef typename _shard_type::hasher            hasher;
     typedef typename _shard_type::key_equal         key_equal;
