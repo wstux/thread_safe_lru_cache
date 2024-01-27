@@ -324,6 +324,24 @@ TYPED_TEST(cache_fixture, update)
     EXPECT_TRUE(val == "ccc") << val;
 }
 
+TEST(lru_cache, iterator)
+{
+    using lru_cache = ::wstux::lru::lru_cache<size_t, size_t>;
+
+    lru_cache cache(10);
+    EXPECT_TRUE(cache.begin() == cache.end());
+    EXPECT_FALSE(cache.begin() != cache.end());
+
+    lru_cache::iterator it = cache.begin();
+    EXPECT_TRUE(it == cache.end());
+
+    EXPECT_TRUE(cache.insert(0, 1));
+    it = cache.begin();
+    EXPECT_TRUE(it != cache.end());
+    EXPECT_TRUE(it->first == 0);
+    EXPECT_TRUE(it->second == 1u);
+}
+
 TEST(lru_cache, hit)
 {
     using lru_cache = ::wstux::lru::lru_cache<size_t, size_t>;

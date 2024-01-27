@@ -28,6 +28,8 @@
 #include <functional>
 
 #include "lru/details/features.h"
+#include "lru/details/iterator.h"
+
 #if defined(LRU_CACHE_ENABLE_STD_OPTIONAL)
     #include <optional>
 #endif
@@ -47,7 +49,10 @@ template<typename TKey, typename TValue,
 class lru_cache : protected details::base_lru_cache<TKey, TValue, THash, TKeyEqual>
 {
 private:
-    typedef details::base_lru_cache<TKey, TValue, THash, TKeyEqual>     base;
+    typedef details::base_lru_cache<TKey, TValue, THash, TKeyEqual> base;
+    typedef typename base::_lru_list_t                              _lru_list_t;
+    typedef typename base::_hash_table_t                            _hash_table_t;
+    typedef void (*move_top_fn)(typename _hash_table_t::iterator&);
 
 public:
     typedef typename base::key_type          key_type;
@@ -61,6 +66,11 @@ public:
     typedef typename base::pointer           pointer;
     typedef typename base::const_pointer     const_pointer;
 
+    //typedef details::iterator<key_type, mapped_type, _hash_table_t, move_top_fn>        iterator;
+    //typedef details::iterator<key_type, const mapped_type, _hash_table_t, move_top_fn>  const_iterator;
+    typedef details::iterator<key_type, mapped_type, _hash_table_t>         iterator;
+    typedef details::iterator<key_type, const mapped_type, _hash_table_t>   const_iterator;
+
     explicit lru_cache(size_type capacity)
         : base(capacity)
     {}
@@ -68,7 +78,40 @@ public:
     lru_cache(const lru_cache&) = delete;
     lru_cache& operator=(const lru_cache&) = delete;
 
+    iterator begin()
+    {
+        //constexpr void (base::*p_move_to_top)(typename _hash_table_t::iterator&) = &base::move_to_top;
+        //constexpr move_top_fn p_move_top = std::bind(p_move_to_top, this, std::placeholders::_1);
+        //constexpr move_top_fn p_move_top = std::mem_fn(std::bind(p_move_to_top, this, std::placeholders::_1));
+        //std::function<void(typename _hash_table_t::iterator&)> fn = std::bind(&base::move_to_top, this, std::placeholders::_1);
+        return iterator(base::begin_tbl(), [this](typename _hash_table_t::iterator& it) { base::move_to_top(it); });
+    }
+
+    const_iterator begin() const
+    {
+        //constexpr void (base::*p_move_to_top)(typename _hash_table_t::iterator&) = &base::move_to_top;
+        //constexpr move_top_fn p_move_to_top = &base::move_to_top;
+        //return const_iterator(base::begin_tbl(), std::bind(p_move_to_top, this, std::placeholders::_1));
+        return const_iterator(base::begin_tbl(), [this](typename _hash_table_t::iterator& it) { base::move_to_top(it); });
+    }
+
     size_type capacity() const { return base::capacity(); }
+
+    const_iterator cbegin() const
+    {
+        //constexpr void (base::*p_move_to_top)(typename _hash_table_t::iterator&) = &base::move_to_top;
+        //constexpr move_top_fn p_move_to_top = &base::move_to_top;
+        //return const_iterator(base::begin_tbl(), std::bind(p_move_to_top, this, std::placeholders::_1));
+        return const_iterator(base::begin_tbl(), [this](typename _hash_table_t::iterator& it) { base::move_to_top(it); });
+    }
+
+    const_iterator cend() const
+    {
+        //constexpr void (base::*p_move_to_top)(typename _hash_table_t::iterator&) = &base::move_to_top;
+        //constexpr move_top_fn p_move_to_top = &base::move_to_top;
+        //return const_iterator(base::end_tbl(), std::bind(&p_move_to_top, this, std::placeholders::_1));
+        return const_iterator(base::end_tbl(), [this](typename _hash_table_t::iterator& it) { base::move_to_top(it); });
+    }
 
     void clear() { base::clear(); }
 
@@ -96,6 +139,22 @@ public:
     }
 
     bool empty() const { return (base::size() == 0); }
+
+    iterator end()
+    {
+        //constexpr void (base::*p_move_to_top)(typename _hash_table_t::iterator&) = &base::move_to_top;
+        //constexpr move_top_fn p_move_to_top = &base::move_to_top;
+        //return iterator(base::end_tbl(), std::bind(&p_move_to_top, this, std::placeholders::_1));
+        return iterator(base::end_tbl(), [this](typename _hash_table_t::iterator& it) { base::move_to_top(it); });
+    }
+
+    const_iterator end() const
+    {
+        //constexpr void (base::*p_move_to_top)(typename _hash_table_t::iterator&) = &base::move_to_top;
+        //constexpr move_top_fn p_move_to_top = &base::move_to_top;
+        //return const_iterator(base::end_tbl(), std::bind(&p_move_to_top, this, std::placeholders::_1));
+        return const_iterator(base::end_tbl(), [this](typename _hash_table_t::iterator& it) { base::move_to_top(it); });
+    }
 
     void erase(const key_type& key) { base::erase(key); }
 
@@ -163,10 +222,6 @@ public:
 
         base::insert(key, std::move(val));
     }
-
-private:
-    typedef typename base::_lru_list_t          _lru_list_t;
-    typedef typename base::_hash_table_t        _hash_table_t;
 };
 
 } // namespace lru

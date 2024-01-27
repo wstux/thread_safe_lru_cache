@@ -80,6 +80,10 @@ protected:
 
     virtual ~base_lru_cache() {}
 
+    typename _hash_table_t::iterator begin_tbl() { return m_hash_tbl.begin(); }
+
+    typename _hash_table_t::const_iterator begin_tbl() const { return m_hash_tbl.begin(); }
+
     size_type capacity() const { return m_capacity; }
 
     void clear()
@@ -88,6 +92,10 @@ protected:
         m_hash_tbl.clear();
         m_lru_list.clear();
     }
+
+    typename _hash_table_t::iterator end_tbl() { return m_hash_tbl.end(); }
+
+    typename _hash_table_t::const_iterator end_tbl() const { return m_hash_tbl.end(); }
 
     void erase(const key_type& key)
     {
