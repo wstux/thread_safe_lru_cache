@@ -61,7 +61,6 @@ protected:
 
     explicit base_lru_cache(size_type capacity)
         : m_capacity(capacity)
-        , m_size(0)
         , m_buckets(m_capacity)
         , m_hash_tbl(_bucket_traits_t(m_buckets.data(), m_buckets.capacity()))
     {}
@@ -72,7 +71,6 @@ protected:
 
     void clear()
     {
-        m_size = 0;
         m_hash_tbl.clear();
         m_lru_list.clear();
     }
@@ -84,7 +82,6 @@ protected:
         if (it != m_hash_tbl.end()) {
             m_lru_list.erase(m_lru_list.iterator_to(*it));
             m_hash_tbl.erase(it);
-            --m_size;
         }
     }
 
@@ -96,7 +93,7 @@ protected:
     template<typename... TArgs>
     void insert(const key_type& key, TArgs&&... args)
     {
-        if (m_size >= m_capacity) {
+        if (size() >= m_capacity) {
             _lru_node_ptr_t p_node = extract_node(m_lru_list.begin());
             p_node->key = key;
             p_node->value = std::move(value_type(std::forward<TArgs>(args)...));
@@ -104,7 +101,6 @@ protected:
         } else {
             _lru_node_ptr_t p_node = std::make_unique<_lru_node_t>(key_type(key), value_type(std::forward<TArgs>(args)...));
             insert_node(std::move(p_node));
-            ++m_size;
         }
     }
 
@@ -115,17 +111,17 @@ protected:
         m_lru_list.splice(m_lru_list.end(), m_lru_list, m_lru_list.iterator_to(*it));
     }
 
-    void reserve(size_type new_capacity)
+    void reset(size_type new_capacity)
     {
+        clear();
+
         m_capacity = new_capacity;
-        
-        
         _buckets_list_t buckets(m_capacity);
         m_hash_tbl.rehash(_bucket_traits_t(buckets.data(), buckets.capacity()));
         m_buckets = std::move(buckets);
     }
 
-    size_type size() const { return m_size; }
+    inline size_type size() const { return m_hash_tbl.size(); }
 
     static const value_type& load(const typename _hash_table_t::iterator& it)
     {
@@ -167,7 +163,6 @@ private:
 private:
     size_t m_capacity;
 
-    size_t m_size;
     _buckets_list_t m_buckets;
     _hash_table_t m_hash_tbl;
     _lru_list_t m_lru_list;

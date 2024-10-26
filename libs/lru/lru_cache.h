@@ -135,7 +135,7 @@ public:
     }
 #endif
 
-    void reserve(size_type new_capacity) { base::reserve(new_capacity); }
+    void reset(size_type new_capacity) { base::reset(new_capacity); }
 
     size_type size() const { return base::size(); }
 

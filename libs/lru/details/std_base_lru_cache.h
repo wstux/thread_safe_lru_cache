@@ -63,7 +63,6 @@ protected:
 
     explicit base_lru_cache(size_type capacity)
         : m_capacity(capacity)
-        , m_size(0)
     {
         /*
          * In the update(...) function, the hash table is first inserted into
@@ -73,7 +72,8 @@ protected:
          * the table is reserved for (capacity + 1) elements to prevent
          * rehashing of the table hash.
          */
-        m_hash_tbl.reserve(capacity + 1);
+        //m_hash_tbl.reserve(capacity + 1);
+        m_hash_tbl.reserve(capacity);
     }
 
     virtual ~base_lru_cache() {}
@@ -82,7 +82,6 @@ protected:
 
     void clear()
     {
-        m_size = 0;
         m_hash_tbl.clear();
         m_lru_list.clear();
     }
@@ -93,7 +92,6 @@ protected:
         if (it != m_hash_tbl.end()) {
             m_lru_list.erase(it->second.lru_it);
             m_hash_tbl.erase(it);
-            --m_size;
         }
     }
 
@@ -105,7 +103,7 @@ protected:
     template<typename... TArgs>
     void insert(const key_type& key, TArgs&&... args)
     {
-        if (m_size >= m_capacity) {
+        if (size() >= m_capacity) {
             m_hash_tbl.erase(m_lru_list.front());
             m_lru_list.front() = key;
             std::pair<typename _hash_table_t::iterator, bool> rc =
@@ -117,7 +115,6 @@ protected:
             std::pair<typename _hash_table_t::iterator, bool> rc =
                 m_hash_tbl.emplace(key, _table_value_t(std::forward<TArgs>(args)...));
             rc.first->second.lru_it = it;
-            ++m_size;
         }
     }
 
@@ -128,13 +125,15 @@ protected:
         m_lru_list.splice(m_lru_list.end(), m_lru_list, it->second.lru_it);
     }
 
-    void reserve(size_type new_capacity)
+    void reset(size_type new_capacity)
     {
+        clear();
+
         m_capacity = new_capacity;
         m_hash_tbl.reserve(m_capacity);
     }
 
-    size_type size() const { return m_size; }
+    inline size_type size() const { return m_hash_tbl.size(); }
 
     static const value_type& load(const typename _hash_table_t::iterator& it)
     {
@@ -154,7 +153,6 @@ protected:
 private:
     size_t m_capacity;
 
-    size_t m_size;
     _hash_table_t m_hash_tbl;
     _lru_list_t m_lru_list;
 };

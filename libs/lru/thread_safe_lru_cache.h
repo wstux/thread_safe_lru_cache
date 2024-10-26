@@ -133,19 +133,16 @@ public:
     }
 #endif
 
-    void reserve(size_type new_capacity)
+    void reset(size_type new_capacity)
     {
-        //m_capacity = new_capacity;
-        //m_cache.reserve(m_capacity);
+        m_capacity = new_capacity;
         size_t shards_count = m_shards.size();
         for (size_t i = 0; i < shards_count; i++) {
             const size_t shard_capacity = (i != 0)
                 ? (new_capacity / shards_count)
                 : ((new_capacity / shards_count) + (new_capacity % shards_count));
-            //m_shards[i].first = std::make_shared<_shard_type>(shard_capacity);
-            wrapper(m_shards[i], &_shard_type::reserve, shard_capacity);
+            wrapper(m_shards[i], &_shard_type::reset, shard_capacity);
         }
-        m_capacity = new_capacity;
     }
 
     size_type shards_size() const { return m_shards.size(); }

@@ -27,6 +27,7 @@
 #endif
 
 #include <atomic>
+#include <limits>
 #include <random>
 #include <thread>
 
@@ -213,6 +214,27 @@ TYPED_TEST(cache_fixture, insert)
     EXPECT_TRUE(val == "bbbb") << val;
 }
 
+TYPED_TEST(cache_fixture, multi_insert)
+{
+    using cache_type = TypeParam;
+    using lru_cache = typename cache_type::cache;
+
+    lru_cache cache = cache_type::create(1);
+
+    typename lru_cache::value_type val;
+
+    for (size_t i = 0; i < std::numeric_limits<int16_t>::max(); ++i) {
+        EXPECT_TRUE(cache.insert(i, std::string(4, 'b')));
+    }
+
+    EXPECT_TRUE(cache.insert(std::numeric_limits<int32_t>::max(), std::string(4, 'b')));
+    for (size_t i = 0; i < std::numeric_limits<int16_t>::max(); ++i) {
+        EXPECT_FALSE(cache.find(i, val));
+    }
+    EXPECT_TRUE(cache.find(std::numeric_limits<int32_t>::max(), val));
+    EXPECT_TRUE(val == "bbbb") << val;
+}
+
 TYPED_TEST(cache_fixture, empty)
 {
     using cache_type = TypeParam;
@@ -263,7 +285,7 @@ TYPED_TEST(cache_fixture, get)
 }
 #endif
 
-TYPED_TEST(cache_fixture, reserve)
+TYPED_TEST(cache_fixture, reset)
 {
     using cache_type = TypeParam;
     using lru_cache = typename cache_type::cache;
@@ -280,14 +302,14 @@ TYPED_TEST(cache_fixture, reserve)
     EXPECT_TRUE(cache.contains(1));
     EXPECT_TRUE(cache.contains(2));
 
-    cache.reserve(4);
-    EXPECT_TRUE(cache.size() == 2) << cache.size();
+    cache.reset(4);
+    EXPECT_TRUE(cache.size() == 0) << cache.size();
     EXPECT_TRUE(cache.capacity() == 4) << cache.capacity();
 
     cache.emplace(0, 4, 'a');
     EXPECT_TRUE(cache.contains(0));
-    EXPECT_TRUE(cache.contains(1));
-    EXPECT_TRUE(cache.contains(2));
+    EXPECT_FALSE(cache.contains(1));
+    EXPECT_FALSE(cache.contains(2));
 }
 
 TYPED_TEST(cache_fixture, size)
