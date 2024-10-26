@@ -1,3 +1,5 @@
+include(find_boost.cmake PUBLIC)
+
 WrapperTarget(testing
     BUILDSYS    cmake
     SOURCE_DIR  testing
