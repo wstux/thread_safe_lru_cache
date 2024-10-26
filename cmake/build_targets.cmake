@@ -26,62 +26,40 @@ include(build_utils)
 # Keywords
 ################################################################################
 
-set(_COMMON_TARGET_KW   HEADERS     # headers list
-                        SOURCES     # sources list
-                        COMMENT     # message before build target
-                        LIBRARIES
-                        DEPENDS
-                        COMPILE_DEFINITIONS
+set(_COMMON_TARGET_VALUES_KW    COMMENT     # message before build target
+                                INCLUDE_DIR
+)
+set(_COMMON_TARGET_LISTS_KW     HEADERS     # headers list
+                                SOURCES     # sources list
+                                LIBRARIES
+                                DEPENDS
+                                COMPILE_DEFINITIONS
 )
 
-set(_CUSTOM_TARGET_KW   COMMAND
-                        DEPENDS
-)
+set(_EXEC_FLAGS_KW              )
+set(_EXEC_VALUES_KW             ${_COMMON_TARGET_VALUES_KW})
+set(_EXEC_LISTS_KW              ${_COMMON_TARGET_LISTS_KW})
 
-set(_EXEC_TARGET_KW     ${_COMMON_TARGET_KW}
+set(_LIB_FLAGS_KW               MODULE      # Dinamic module library type
+                                SHARED      # Dinamic library type
+                                STATIC      # Static library type
+                                INTERFACE
 )
-
-set(_LIB_TARGET_KW      ${_COMMON_TARGET_KW}
-                        MODULE      # Dinamic module library type
-                        SHARED      # Dinamic library type
-                        STATIC      # Static library type
-                        INTERFACE
-                        INCLUDE_DIR
-)
-
-set(_LIST_VALUES_KW     HEADERS
-                        SOURCES
-                        LIBRARIES
-                        COMMAND
-                        DEPENDS
-                        INCLUDE_DIR
-)
-
-set(_FLAG_KW            MODULE
-                        SHARED
-                        STATIC
-                        INTERFACE
-)
+set(_LIB_VALUES_KW              ${_COMMON_TARGET_VALUES_KW})
+set(_LIB_LISTS_KW               ${_COMMON_TARGET_LISTS_KW})
 
 ################################################################################
 # Targets
 ################################################################################
 
 macro(CustomTarget TARGET_NAME)
-#    _parse_target_args(${TARGET_NAME} _CUSTOM_TARGET_KW ${ARGN})
-
-#    foreach(key IN LISTS _CUSTOM_TARGET_KW)
-#        foreach(dep IN LISTS ${TARGET_NAME}_${key})
-#            list(APPEND ${TARGET_NAME}_BUILD_ARGS ${key} ${dep})
-#        endforeach()
-#    endforeach()
-
     add_custom_target(${TARGET_NAME} ${ARGN})
 endmacro()
 
 macro(LibTarget TARGET_NAME)
-    _parse_target_args(${TARGET_NAME} _LIB_TARGET_KW ${ARGN})
-    _validate_args(${TARGET_NAME} _LIB_TARGET_KW _FLAG_KW _LIST_VALUES_KW)
+    _parse_target_args(${TARGET_NAME}
+        _LIB_FLAGS_KW _LIB_VALUES_KW _LIB_LISTS_KW ${ARGN}
+    )
 
     if(${TARGET_NAME}_INTERFACE)
 #        message(INFO " Configure INTERFACE LIB target '${TARGET_NAME}'")
@@ -118,12 +96,23 @@ macro(LibTarget TARGET_NAME)
 
     _configure_target(${TARGET_NAME})
 
-    install(TARGETS ${TARGET_NAME} LIBRARY DESTINATION libs)
+    if (${TARGET_NAME}_SHARED)
+        set_target_properties(${TARGET_NAME}
+            PROPERTIES
+                LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+        )
+    elseif (${TARGET_NAME}_STATIC)
+        set_target_properties(${TARGET_NAME}
+            PROPERTIES
+                ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/arch"
+        )
+    endif()
 endmacro()
 
 macro(ExecTarget TARGET_NAME)
-    _parse_target_args(${TARGET_NAME} _EXEC_TARGET_KW ${ARGN})
-    _validate_args(${TARGET_NAME} _EXEC_TARGET_KW _FLAG_KW _LIST_VALUES_KW)
+    _parse_target_args(${TARGET_NAME}
+        _EXEC_FLAGS_KW _EXEC_VALUES_KW _EXEC_LISTS_KW ${ARGN}
+    )
 
 #    message(INFO " Configure EXEC target '${TARGET_NAME}'")
     add_executable(${TARGET_NAME} ${${TARGET_NAME}_HEADERS}
@@ -132,12 +121,18 @@ macro(ExecTarget TARGET_NAME)
 
     _configure_target(${TARGET_NAME})
 
-    install(TARGETS ${TARGET_NAME} RUNTIME DESTINATION bin)
+    set_target_properties(${TARGET_NAME}
+        PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    )
 endmacro()
 
 macro(TestTarget TARGET_NAME)
-    _parse_target_args(${TARGET_NAME} _EXEC_TARGET_KW ${ARGN})
-    _validate_args(${TARGET_NAME} _EXEC_TARGET_KW _FLAG_KW _LIST_VALUES_KW)
+    _parse_target_args(${TARGET_NAME}
+        _EXEC_FLAGS_KW _EXEC_VALUES_KW _EXEC_LISTS_KW ${ARGN}
+    )
+
+    set(_target_dir "${CMAKE_BINARY_DIR}/test")
 
 #    message(INFO " Configure TEST target '${TARGET_NAME}'")
     add_executable(${TARGET_NAME} ${${TARGET_NAME}_HEADERS}
@@ -151,11 +146,14 @@ macro(TestTarget TARGET_NAME)
     )
 
     CustomTarget(${TARGET_NAME}_run
-        COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}
+        COMMAND "${_target_dir}/${TARGET_NAME}"
         DEPENDS ${TARGET_NAME}
         VERBATIM
     )
 
-    install(TARGETS ${TARGET_NAME} RUNTIME DESTINATION tests)
+    set_target_properties(${TARGET_NAME}
+        PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY "${_target_dir}"
+    )
 endmacro()
 

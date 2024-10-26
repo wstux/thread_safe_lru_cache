@@ -1,4 +1,4 @@
-# thread-safe-lru-cache
+# Thread safe LRU cache
 
 LRU cache and thread safe LRU cache implementation in C++.
 

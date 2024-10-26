@@ -22,7 +22,12 @@
  * THE SOFTWARE.
  */
 
+#if defined(THREAD_SAFE_CACHE_DISABLE_BOOST)
+    #undef THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE
+#endif
+
 #include <atomic>
+#include <limits>
 #include <random>
 #include <thread>
 
@@ -128,14 +133,14 @@ struct lru_cache
 {
     using cache = ::wstux::lru::lru_cache<size_t, std::string>;
 
-    static cache create(size_t cap = 10) { return cache(cap); }
+    static cache create(size_t cap = 10, size_t shards = 0) { (void)shards; return cache(cap); }
 };
 
 struct thread_safe_lru_cache
 {
     using cache = ::wstux::lru::thread_safe_lru_cache<size_t, std::string>;
 
-    static cache create(size_t cap = 10) { return cache(cap, 2); }
+    static cache create(size_t cap = 10, size_t shards = 2) { return cache(cap, shards); }
 };
 
 using lru_types = testing::Types<lru_cache,
@@ -194,6 +199,20 @@ TYPED_TEST(cache_fixture, emplace)
     EXPECT_TRUE(val == "bbbb") << val;
 }
 
+TYPED_TEST(cache_fixture, DISABLED_zero_size)
+{
+    using cache_type = TypeParam;
+    using lru_cache = typename cache_type::cache;
+
+    lru_cache cache = cache_type::create(0, 0);
+
+    typename lru_cache::value_type val;
+    EXPECT_FALSE(cache.find(0, val));
+
+    EXPECT_TRUE(cache.emplace(0, 4, 'b'));
+    EXPECT_FALSE(cache.find(0, val)) << cache.size();;
+}
+
 TYPED_TEST(cache_fixture, insert)
 {
     using cache_type = TypeParam;
@@ -206,6 +225,27 @@ TYPED_TEST(cache_fixture, insert)
 
     EXPECT_TRUE(cache.insert(0, std::string(4, 'b')));
     EXPECT_TRUE(cache.find(0, val));
+    EXPECT_TRUE(val == "bbbb") << val;
+}
+
+TYPED_TEST(cache_fixture, multi_insert)
+{
+    using cache_type = TypeParam;
+    using lru_cache = typename cache_type::cache;
+
+    lru_cache cache = cache_type::create(1);
+
+    typename lru_cache::value_type val;
+
+    for (size_t i = 0; i < std::numeric_limits<int16_t>::max(); ++i) {
+        EXPECT_TRUE(cache.insert(i, std::string(4, 'b')));
+    }
+
+    EXPECT_TRUE(cache.insert(std::numeric_limits<int32_t>::max(), std::string(4, 'b')));
+    for (size_t i = 0; i < std::numeric_limits<int16_t>::max(); ++i) {
+        EXPECT_FALSE(cache.find(i, val));
+    }
+    EXPECT_TRUE(cache.find(std::numeric_limits<int32_t>::max(), val));
     EXPECT_TRUE(val == "bbbb") << val;
 }
 
@@ -240,7 +280,7 @@ TYPED_TEST(cache_fixture, erase)
     EXPECT_FALSE(cache.find(0, val));
 }
 
-#if defined(LRU_CACHE_ENABLE_STD_OPTIONAL)
+#if defined(_THREAD_SAFE_LRU_CACHE_ENABLE_OPTIONAL)
 TYPED_TEST(cache_fixture, get)
 {
     using cache_type = TypeParam;
@@ -259,7 +299,7 @@ TYPED_TEST(cache_fixture, get)
 }
 #endif
 
-TYPED_TEST(cache_fixture, reserve)
+TYPED_TEST(cache_fixture, reset)
 {
     using cache_type = TypeParam;
     using lru_cache = typename cache_type::cache;
@@ -276,14 +316,14 @@ TYPED_TEST(cache_fixture, reserve)
     EXPECT_TRUE(cache.contains(1));
     EXPECT_TRUE(cache.contains(2));
 
-    cache.reserve(4);
-    EXPECT_TRUE(cache.size() == 2);
-    EXPECT_TRUE(cache.capacity() == 4);
+    cache.reset(4);
+    EXPECT_TRUE(cache.size() == 0) << cache.size();
+    EXPECT_TRUE(cache.capacity() == 4) << cache.capacity();
 
     cache.emplace(0, 4, 'a');
     EXPECT_TRUE(cache.contains(0));
-    EXPECT_TRUE(cache.contains(1));
-    EXPECT_TRUE(cache.contains(2));
+    EXPECT_FALSE(cache.contains(1));
+    EXPECT_FALSE(cache.contains(2));
 }
 
 TYPED_TEST(cache_fixture, size)

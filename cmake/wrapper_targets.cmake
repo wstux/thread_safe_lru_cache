@@ -26,13 +26,15 @@ include(build_utils)
 # Keywords
 ################################################################################
 
-set(_WRAP_TARGET_KW  BUILD_CMD
-                     BUILDSYS
-                     CONFIGURE_CMD
-                     INCLUDE_DIR
-                     LIBRARIES
-                     SOURCE_DIR
-                     VERBATIM
+set(_WRAP_TARGET_FLAGS_KW   VERBATIM
+)
+set(_WRAP_TARGET_VALUES_KW  BUILD_CMD
+                            BUILDSYS
+                            CONFIGURE_CMD
+                            INCLUDE_DIR
+                            SOURCE_DIR
+)
+set(_WRAP_TARGET_LISTS_KW   LIBRARIES
 )
 
 ################################################################################
@@ -40,7 +42,9 @@ set(_WRAP_TARGET_KW  BUILD_CMD
 ################################################################################
 
 function(WrapperTarget TARGET_NAME)
-    _parse_target_args(${TARGET_NAME} _WRAP_TARGET_KW ${ARGN})
+    _parse_target_args(${TARGET_NAME}
+        _WRAP_TARGET_FLAGS_KW _WRAP_TARGET_VALUES_KW _WRAP_TARGET_LISTS_KW ${ARGN}
+    )
 
     set(_build_dir "")
     set(_source_dir "")
