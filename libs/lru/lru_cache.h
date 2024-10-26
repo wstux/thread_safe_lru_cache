@@ -44,7 +44,26 @@
 namespace wstux {
 namespace lru {
 
-/// \todo   Add allocator as template parameter.
+/**
+ *  \brief  LRU cache.
+ *  \tparam TKey - cache key.
+ *  \tparam TValue - cache value.
+ *  \tparam THash - function object for hashing the cache key.
+ *  \tparam TKeyEqual - function object for performing comparisons the cache key.
+ *
+ *  \todo   Add allocator as template parameter.
+ *
+ *  \details    LRU cache has two implementations - based on std::unordered_map
+ *          and based boost::intrusive::unordered_set_base_hook. Since a hash
+ *          table is used as a container, searching in it takes O(1) time.
+ *
+ *          When new elements are added, the hash table expands. Because the
+ *          hash table requires a continuous area of ​​memory, when the hash table
+ *          expands, the table itself is constantly copied (metadata is copied,
+ *          not data). This constant copying can be very expensive,so the
+ *          implementation of the cache storage reserves memory for the required
+ *          number of elements for each storage.
+ */
 template<typename TKey, typename TValue,
          class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>>
 class lru_cache : protected details::base_lru_cache<TKey, TValue, THash, TKeyEqual>
@@ -63,6 +82,9 @@ public:
     typedef typename base::pointer           pointer;
     typedef typename base::const_pointer     const_pointer;
 
+    /// \brief  Constructs a new container.
+    /// \param  capacity - number of elements for which space has been allocated
+    ///         in the container.
     explicit lru_cache(size_type capacity)
         : base(capacity)
     {}
@@ -70,10 +92,20 @@ public:
     lru_cache(const lru_cache&) = delete;
     lru_cache& operator=(const lru_cache&) = delete;
 
+    /// \brief  Return the number of items for which space has been allocated in
+    ///         the container.
+    /// \return The number of elements for which space has been allocated in the
+    ///         container.
     size_type capacity() const { return base::capacity(); }
 
+    /// \brief  Erases all elements from the container. After this call, size()
+    ///         returns zero.
     void clear() { base::clear(); }
 
+    /// \brief  Checks if there is an element with key equivalent to key in the
+    ///         container.
+    /// \param  key - key value of the element to search for.
+    /// \return true if there is such an element, otherwise false.
     bool contains(const key_type& key)
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
@@ -84,6 +116,12 @@ public:
         return false;
     }
 
+    /// \brief  Inserts a new element into the container constructed in-place
+    ///         with the given args, if there is no element with the key in the
+    ///         container.
+    /// \param  key - key value of the element.
+    /// \param  args - arguments to forward to the constructor of the element.
+    /// \return true if the insertion took place, otherwise false.
     template<typename... TArgs>
     bool emplace(const key_type& key, TArgs&&... args)
     {
@@ -97,10 +135,20 @@ public:
         return true;
     }
 
+    /// \brief  Checks if the container has no elements.
+    /// \return true if the container is empty, false otherwise.
     bool empty() const { return (base::size() == 0); }
 
+    /// \brief  Removes specified elements from the container. The order of the
+    ///         remaining elements is preserved.
+    /// \param  key - key value of the elements to remove.
     void erase(const key_type& key) { base::erase(key); }
 
+    /// \brief  Finds an element with key equivalent to key.
+    /// \param  key - key value of the element to search for.
+    /// \param  result - variable that will contain the requested element if
+    ///         such an element is found.
+    /// \return true if element has been found, otherwise false.
     bool find(const key_type& key, value_type& result)
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
@@ -113,6 +161,11 @@ public:
         return false;
     }
 
+    /// \brief  Inserts element into the container, if the container doesn't
+    ///         already contain an element with an equivalent key.
+    /// \param  key - key value of the element.
+    /// \param  val - element value to insert.
+    /// \return true if the insertion took place, otherwise false.
     bool insert(const key_type& key, const value_type& val)
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
@@ -126,6 +179,9 @@ public:
     }
 
 #if defined(_THREAD_SAFE_LRU_CACHE_ENABLE_OPTIONAL)
+    /// \brief  Gets an element with key equivalent to key.
+    /// \param  key - key value of the element to search for.
+    /// \return Element if element has been found, otherwise std::nullopt.
     std::optional<value_type> get(const key_type& key)
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
@@ -138,10 +194,19 @@ public:
     }
 #endif
 
+    /// \brief  Clear cache contents and change the capacity of the cache.
+    /// \param  new_capacity - new capacity of the cache, in number of elements.
     void reset(size_type new_capacity) { base::reset(new_capacity); }
 
+    /// \brief  Return the number of elements in the container.
+    /// \return The number of elements in the container.
     size_type size() const { return base::size(); }
 
+    /// \brief  Inserts element into the container, if the container doesn't
+    ///         already contain an element with an equivalent key, otherwise
+    //          updates value of the element.
+    /// \param  key - key value of the element.
+    /// \param  val - element value to update/insert.
     void update(const key_type& key, const value_type& val)
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
@@ -154,6 +219,11 @@ public:
         base::insert(key, val);
     }
 
+    /// \brief  Inserts element into the container, if the container doesn't
+    ///         already contain an element with an equivalent key, otherwise
+    //          updates value of the element.
+    /// \param  key - key value of the element.
+    /// \param  val - element value to update/insert.
     void update(const key_type& key, value_type&& val)
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
