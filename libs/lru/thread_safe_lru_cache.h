@@ -126,7 +126,7 @@ public:
         return wrapper(get_shard(key), &_shard_type::insert, key, val);
     }
 
-#if defined(LRU_CACHE_ENABLE_STD_OPTIONAL)
+#if defined(_THREAD_SAFE_LRU_CACHE_ENABLE_OPTIONAL)
     std::optional<value_type> get(const key_type& key)
     {
         return wrapper(get_shard(key), &_shard_type::get, key);

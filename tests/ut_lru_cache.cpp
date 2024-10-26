@@ -133,14 +133,14 @@ struct lru_cache
 {
     using cache = ::wstux::lru::lru_cache<size_t, std::string>;
 
-    static cache create(size_t cap = 10) { return cache(cap); }
+    static cache create(size_t cap = 10, size_t shards = 0) { (void)shards; return cache(cap); }
 };
 
 struct thread_safe_lru_cache
 {
     using cache = ::wstux::lru::thread_safe_lru_cache<size_t, std::string>;
 
-    static cache create(size_t cap = 10) { return cache(cap, 2); }
+    static cache create(size_t cap = 10, size_t shards = 2) { return cache(cap, shards); }
 };
 
 using lru_types = testing::Types<lru_cache,
@@ -197,6 +197,20 @@ TYPED_TEST(cache_fixture, emplace)
     EXPECT_TRUE(cache.emplace(0, 4, 'b'));
     EXPECT_TRUE(cache.find(0, val));
     EXPECT_TRUE(val == "bbbb") << val;
+}
+
+TYPED_TEST(cache_fixture, DISABLED_zero_size)
+{
+    using cache_type = TypeParam;
+    using lru_cache = typename cache_type::cache;
+
+    lru_cache cache = cache_type::create(0, 0);
+
+    typename lru_cache::value_type val;
+    EXPECT_FALSE(cache.find(0, val));
+
+    EXPECT_TRUE(cache.emplace(0, 4, 'b'));
+    EXPECT_FALSE(cache.find(0, val)) << cache.size();;
 }
 
 TYPED_TEST(cache_fixture, insert)
@@ -266,7 +280,7 @@ TYPED_TEST(cache_fixture, erase)
     EXPECT_FALSE(cache.find(0, val));
 }
 
-#if defined(LRU_CACHE_ENABLE_STD_OPTIONAL)
+#if defined(_THREAD_SAFE_LRU_CACHE_ENABLE_OPTIONAL)
 TYPED_TEST(cache_fixture, get)
 {
     using cache_type = TypeParam;

@@ -25,10 +25,13 @@
 #ifndef _LRU_CACHE_LRU_CACHE_H
 #define _LRU_CACHE_LRU_CACHE_H
 
+#if __cplusplus >= 201703
+    #define _THREAD_SAFE_LRU_CACHE_ENABLE_OPTIONAL
+#endif
+
 #include <functional>
 
-#include "lru/details/features.h"
-#if defined(LRU_CACHE_ENABLE_STD_OPTIONAL)
+#if defined(_THREAD_SAFE_LRU_CACHE_ENABLE_OPTIONAL)
     #include <optional>
 #endif
 
@@ -122,7 +125,7 @@ public:
         return true;
     }
 
-#if defined(LRU_CACHE_ENABLE_STD_OPTIONAL)
+#if defined(_THREAD_SAFE_LRU_CACHE_ENABLE_OPTIONAL)
     std::optional<value_type> get(const key_type& key)
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
