@@ -22,6 +22,10 @@
  * THE SOFTWARE.
  */
 
+#if defined(THREAD_SAFE_CACHE_DISABLE_BOOST)
+    #undef THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE
+#endif
+
 #include <atomic>
 #include <random>
 #include <thread>

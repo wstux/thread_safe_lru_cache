@@ -32,7 +32,7 @@
     #include <optional>
 #endif
 
-#if defined(LRU_CACHE_USE_BOOST_INTRUSIVE)
+#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
     #include "lru/details/intrusive_base_lru_cache.h"
 #else
     #include "lru/details/std_base_lru_cache.h"

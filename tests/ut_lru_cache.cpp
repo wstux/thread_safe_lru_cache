@@ -22,6 +22,10 @@
  * THE SOFTWARE.
  */
 
+#if defined(THREAD_SAFE_CACHE_DISABLE_BOOST)
+    #undef THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE
+#endif
+
 #include <atomic>
 #include <random>
 #include <thread>
@@ -277,8 +281,8 @@ TYPED_TEST(cache_fixture, reserve)
     EXPECT_TRUE(cache.contains(2));
 
     cache.reserve(4);
-    EXPECT_TRUE(cache.size() == 2);
-    EXPECT_TRUE(cache.capacity() == 4);
+    EXPECT_TRUE(cache.size() == 2) << cache.size();
+    EXPECT_TRUE(cache.capacity() == 4) << cache.capacity();
 
     cache.emplace(0, 4, 'a');
     EXPECT_TRUE(cache.contains(0));
