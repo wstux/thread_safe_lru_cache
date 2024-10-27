@@ -30,7 +30,7 @@ if (THREAD_SAFE_CACHE_USE_BOOST)
             testing
     )
 
-    TestTarget(ut_ttl_cache
+    TestTarget(ut_std_ttl_cache
         SOURCES
             ut_ttl_cache.cpp
         LIBRARIES

@@ -36,7 +36,7 @@
 #endif
 
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-//    #include "ttl/details/intrusive_base_ttl_cache.h"
+    #include "ttl/details/intrusive_base_ttl_cache.h"
 #else
     #include "ttl/details/std_base_ttl_cache.h"
 #endif
