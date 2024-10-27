@@ -1,4 +1,4 @@
-include(find_boost.cmake PUBLIC)
+include(find_boost.cmake)
 
 WrapperTarget(testing
     BUILDSYS    cmake

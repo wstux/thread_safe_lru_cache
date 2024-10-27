@@ -22,8 +22,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef _LRU_CACHE_STD_INTRUSIVE_LRU_CACHE_H
-#define _LRU_CACHE_STD_INTRUSIVE_LRU_CACHE_H
+#ifndef _LRU_CACHE_INTRUSIVE_BASE_LRU_CACHE_H
+#define _LRU_CACHE_INTRUSIVE_BASE_LRU_CACHE_H
 
 #include <memory>
 #include <vector>
@@ -245,5 +245,5 @@ private:
 } // namespace lru
 } // namespace wstux
 
-#endif /* _LRU_CACHE_STD_INTRUSIVE_LRU_CACHE_H */
+#endif /* _LRU_CACHE_INTRUSIVE_BASE_LRU_CACHE_H */
 

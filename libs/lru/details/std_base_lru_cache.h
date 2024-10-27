@@ -64,15 +64,6 @@ protected:
     explicit base_lru_cache(size_type capacity)
         : m_capacity(capacity)
     {
-        /*
-         * In the update(...) function, the hash table is first inserted into
-         * the hash table, after which the size is checked, so a situation may
-         * arise when the table stores (capacity + 1) elements. Because of this
-         * behavior, recalculation and reallocation of the table can occur, so
-         * the table is reserved for (capacity + 1) elements to prevent
-         * rehashing of the table hash.
-         */
-        //m_hash_tbl.reserve(capacity + 1);
         m_hash_tbl.reserve(capacity);
     }
 

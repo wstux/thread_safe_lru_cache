@@ -13,7 +13,7 @@ if(Boost_FOUND)
                               INCLUDE_DIRECTORIES "${Boost_INCLUDE_DIRS}"
     )
 
-    set(THREAD_SAFE_LRU_CACHE_USE_BOOST "THREAD_SAFE_LRU_CACHE_USE_BOOST_INTRUSIVE" PARENT_SCOPE)
+    set(THREAD_SAFE_CACHE_USE_BOOST "THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE" PARENT_SCOPE)
 else()
     message(STATUS "[INFO ] boost::intrusive has not been found")
 endif()
