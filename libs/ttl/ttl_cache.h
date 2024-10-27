@@ -83,6 +83,7 @@ public:
     typedef typename base::const_pointer     const_pointer;
 
     /// \brief  Constructs a new container.
+    /// \param  ttl_msecs - time to live milliseconds.
     /// \param  capacity - number of elements for which space has been allocated
     ///         in the container.
     explicit ttl_cache(size_type ttl_msecs, size_type capacity)
@@ -209,8 +210,12 @@ public:
 #endif
 
     /// \brief  Clear cache contents and change the capacity of the cache.
+    /// \param  ttl_msecs - time to live milliseconds.
     /// \param  new_capacity - new capacity of the cache, in number of elements.
-    void reset(size_type new_capacity) { base::reset(new_capacity); }
+    void reset(size_type ttl_msecs, size_type new_capacity)
+    {
+        base::reset(ttl_msecs, new_capacity);
+    }
 
     /// \brief  Return the number of elements in the container.
     /// \return The number of elements in the container.

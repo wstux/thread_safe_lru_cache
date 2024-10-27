@@ -136,11 +136,12 @@ protected:
         it->second.time_point = _clock_t::now();
     }
 
-    void reset(size_type new_capacity)
+    void reset(size_type ttl_msecs, size_type new_capacity)
     {
         clear();
 
         m_capacity = new_capacity;
+        m_time_to_live = std::chrono::milliseconds(ttl_msecs);
         m_hash_tbl.reserve(m_capacity);
     }
 
