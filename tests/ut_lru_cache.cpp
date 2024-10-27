@@ -143,8 +143,7 @@ struct thread_safe_lru_cache
     static cache create(size_t cap = 10, size_t shards = 2) { return cache(cap, shards); }
 };
 
-using lru_types = testing::Types<lru_cache,
-                                 thread_safe_lru_cache>;
+using lru_types = testing::Types<lru_cache, thread_safe_lru_cache>;
 TYPED_TEST_SUITE(cache_fixture, lru_types);
 
 } // <anonymous> namespace
