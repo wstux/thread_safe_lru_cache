@@ -32,7 +32,6 @@
 #include <utility>
 
 #include "lru/lru_cache.h"
-#include "lru/details/spinlock.h"
 
 namespace wstux {
 namespace lru {
