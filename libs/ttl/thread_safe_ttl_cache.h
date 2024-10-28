@@ -33,7 +33,6 @@
 #include <utility>
 
 #include "ttl/ttl_cache.h"
-#include "ttl/details/spinlock.h"
 
 namespace wstux {
 namespace ttl {

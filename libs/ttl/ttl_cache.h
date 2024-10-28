@@ -35,11 +35,7 @@
     #include <optional>
 #endif
 
-#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-    #include "ttl/details/intrusive_base_ttl_cache.h"
-#else
-    #include "ttl/details/std_base_ttl_cache.h"
-#endif
+#include "ttl/details/base_ttl_cache.h"
 
 namespace wstux {
 namespace ttl {
@@ -256,8 +252,7 @@ public:
     }
 
 private:
-    typedef typename base::_ttl_list_t          _ttl_list_t;
-    typedef typename base::_hash_table_t        _hash_table_t;
+    typedef typename base::_hash_table_t    _hash_table_t;
 };
 
 } // namespace ttl
