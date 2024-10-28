@@ -33,8 +33,8 @@
 
 #include <testing/testdefs.h>
 
-#include "lru/lru_cache.h"
-#include "lru/thread_safe_lru_cache.h"
+#include "ttl/ttl_cache.h"
+#include "ttl/thread_safe_ttl_cache.h"
 
 namespace {
 
@@ -125,51 +125,67 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 // class cache_fixture
 
-template<typename TLruCache>
+template<typename TTtlCache>
 class cache_fixture : public ::testing::Test
 {};
 
-struct lru_cache
+struct ttl_cache
 {
-    using cache = ::wstux::lru::lru_cache<size_t, std::string>;
+    using cache = ::wstux::ttl::ttl_cache<size_t, std::string>;
 
-    static cache create(size_t cap = 10, size_t shards = 0) { (void)shards; return cache(cap); }
+    static cache create(size_t cap = 10, size_t shards = 0) { (void)shards; return cache(900, cap); }
 };
 
-struct thread_safe_lru_cache
+struct thread_safe_ttl_cache
 {
-    using cache = ::wstux::lru::thread_safe_lru_cache<size_t, std::string>;
+    using cache = ::wstux::ttl::thread_safe_ttl_cache<size_t, std::string>;
 
-    static cache create(size_t cap = 10, size_t shards = 2) { return cache(cap, shards); }
+    static cache create(size_t cap = 10, size_t shards = 2) { return cache(900, cap, shards); }
 };
 
-using lru_types = testing::Types<lru_cache, thread_safe_lru_cache>;
-TYPED_TEST_SUITE(cache_fixture, lru_types);
+using ttl_types = testing::Types<ttl_cache, thread_safe_ttl_cache>;
+TYPED_TEST_SUITE(cache_fixture, ttl_types);
 
 } // <anonymous> namespace
 
 TYPED_TEST(cache_fixture, contains)
 {
     using cache_type = TypeParam;
-    using lru_cache = typename cache_type::cache;
+    using ttl_cache = typename cache_type::cache;
 
-    lru_cache cache = cache_type::create();
+    ttl_cache cache = cache_type::create();
 
-    typename lru_cache::value_type val;
+    typename ttl_cache::value_type val;
     EXPECT_FALSE(cache.contains(0));
 
     EXPECT_TRUE(cache.emplace(0, 4, 'b'));
     EXPECT_TRUE(cache.contains(0));
 }
 
+TYPED_TEST(cache_fixture, contains_expired)
+{
+    using cache_type = TypeParam;
+    using ttl_cache = typename cache_type::cache;
+
+    ttl_cache cache = cache_type::create();
+
+    typename ttl_cache::value_type val;
+    EXPECT_FALSE(cache.contains(0));
+
+    EXPECT_TRUE(cache.emplace(0, 4, 'b'));
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    EXPECT_FALSE(cache.contains(0));
+}
+
 TYPED_TEST(cache_fixture, contains_touch)
 {
     using cache_type = TypeParam;
-    using lru_cache = typename cache_type::cache;
+    using ttl_cache = typename cache_type::cache;
 
-    lru_cache cache = cache_type::create(4);
+    ttl_cache cache = cache_type::create(4);
 
-    typename lru_cache::value_type val;
+    typename ttl_cache::value_type val;
     EXPECT_FALSE(cache.contains(0));
 
     EXPECT_TRUE(cache.emplace(0, 4, 'b'));
@@ -183,14 +199,39 @@ TYPED_TEST(cache_fixture, contains_touch)
     EXPECT_FALSE(cache.contains(1));
 }
 
+TYPED_TEST(cache_fixture, contains_touch_expired)
+{
+    using cache_type = TypeParam;
+    using ttl_cache = typename cache_type::cache;
+
+    ttl_cache cache = cache_type::create(4);
+
+    typename ttl_cache::value_type val;
+    EXPECT_FALSE(cache.contains(0));
+
+    EXPECT_TRUE(cache.emplace(0, 4, 'b'));
+    EXPECT_TRUE(cache.emplace(1, 4, 'b'));
+    EXPECT_TRUE(cache.emplace(2, 4, 'b'));
+    EXPECT_TRUE(cache.emplace(3, 4, 'b'));
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    EXPECT_FALSE(cache.contains(0));
+
+    EXPECT_TRUE(cache.emplace(5, 4, 'b'));
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    EXPECT_FALSE(cache.contains(0));
+    EXPECT_FALSE(cache.contains(1));
+}
+
 TYPED_TEST(cache_fixture, emplace)
 {
     using cache_type = TypeParam;
-    using lru_cache = typename cache_type::cache;
+    using ttl_cache = typename cache_type::cache;
 
-    lru_cache cache = cache_type::create();
+    ttl_cache cache = cache_type::create();
 
-    typename lru_cache::value_type val;
+    typename ttl_cache::value_type val;
     EXPECT_FALSE(cache.find(0, val));
 
     EXPECT_TRUE(cache.emplace(0, 4, 'b'));
@@ -198,28 +239,29 @@ TYPED_TEST(cache_fixture, emplace)
     EXPECT_TRUE(val == "bbbb") << val;
 }
 
-TYPED_TEST(cache_fixture, DISABLED_zero_size)
+TYPED_TEST(cache_fixture, emplace_expired)
 {
     using cache_type = TypeParam;
-    using lru_cache = typename cache_type::cache;
+    using ttl_cache = typename cache_type::cache;
 
-    lru_cache cache = cache_type::create(0, 0);
+    ttl_cache cache = cache_type::create();
 
-    typename lru_cache::value_type val;
+    typename ttl_cache::value_type val;
     EXPECT_FALSE(cache.find(0, val));
 
     EXPECT_TRUE(cache.emplace(0, 4, 'b'));
-    EXPECT_FALSE(cache.find(0, val)) << cache.size();;
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    EXPECT_FALSE(cache.find(0, val));
 }
 
 TYPED_TEST(cache_fixture, insert)
 {
     using cache_type = TypeParam;
-    using lru_cache = typename cache_type::cache;
+    using ttl_cache = typename cache_type::cache;
 
-    lru_cache cache = cache_type::create();
+    ttl_cache cache = cache_type::create();
 
-    typename lru_cache::value_type val;
+    typename ttl_cache::value_type val;
     EXPECT_FALSE(cache.find(0, val));
 
     EXPECT_TRUE(cache.insert(0, std::string(4, 'b')));
@@ -227,14 +269,29 @@ TYPED_TEST(cache_fixture, insert)
     EXPECT_TRUE(val == "bbbb") << val;
 }
 
+TYPED_TEST(cache_fixture, insert_expired)
+{
+    using cache_type = TypeParam;
+    using ttl_cache = typename cache_type::cache;
+
+    ttl_cache cache = cache_type::create();
+
+    typename ttl_cache::value_type val;
+    EXPECT_FALSE(cache.find(0, val));
+
+    EXPECT_TRUE(cache.insert(0, std::string(4, 'b')));
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    EXPECT_FALSE(cache.find(0, val));
+}
+
 TYPED_TEST(cache_fixture, multi_insert)
 {
     using cache_type = TypeParam;
-    using lru_cache = typename cache_type::cache;
+    using ttl_cache = typename cache_type::cache;
 
-    lru_cache cache = cache_type::create(1);
+    ttl_cache cache = cache_type::create(1);
 
-    typename lru_cache::value_type val;
+    typename ttl_cache::value_type val;
 
     for (size_t i = 0; i < std::numeric_limits<int16_t>::max(); ++i) {
         EXPECT_TRUE(cache.insert(i, std::string(4, 'b')));
@@ -248,12 +305,34 @@ TYPED_TEST(cache_fixture, multi_insert)
     EXPECT_TRUE(val == "bbbb") << val;
 }
 
+TYPED_TEST(cache_fixture, multi_insert_expired)
+{
+    using cache_type = TypeParam;
+    using ttl_cache = typename cache_type::cache;
+
+    ttl_cache cache = cache_type::create(1);
+
+    typename ttl_cache::value_type val;
+
+    for (size_t i = 0; i < std::numeric_limits<int16_t>::max(); ++i) {
+        EXPECT_TRUE(cache.insert(i, std::string(4, 'b')));
+    }
+
+    EXPECT_TRUE(cache.insert(std::numeric_limits<int32_t>::max(), std::string(4, 'b')));
+    for (size_t i = 0; i < std::numeric_limits<int16_t>::max(); ++i) {
+        EXPECT_FALSE(cache.find(i, val));
+    }
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    EXPECT_FALSE(cache.find(std::numeric_limits<int32_t>::max(), val));
+}
+
 TYPED_TEST(cache_fixture, empty)
 {
     using cache_type = TypeParam;
-    using lru_cache = typename cache_type::cache;
+    using ttl_cache = typename cache_type::cache;
 
-    lru_cache cache = cache_type::create();
+    ttl_cache cache = cache_type::create();
 
     EXPECT_TRUE(cache.empty());
     cache.emplace(0, 4, 'b');
@@ -263,15 +342,15 @@ TYPED_TEST(cache_fixture, empty)
 TYPED_TEST(cache_fixture, erase)
 {
     using cache_type = TypeParam;
-    using lru_cache = typename cache_type::cache;
+    using ttl_cache = typename cache_type::cache;
 
-    lru_cache cache = cache_type::create();
+    ttl_cache cache = cache_type::create();
 
     EXPECT_TRUE(cache.empty());
     EXPECT_TRUE(cache.insert(0, std::string(4, 'b')));
     EXPECT_FALSE(cache.empty());
 
-    typename lru_cache::value_type val;
+    typename ttl_cache::value_type val;
     EXPECT_TRUE(cache.find(0, val));
 
     cache.erase(0);
@@ -279,15 +358,36 @@ TYPED_TEST(cache_fixture, erase)
     EXPECT_FALSE(cache.find(0, val));
 }
 
-#if defined(_THREAD_SAFE_LRU_CACHE_ENABLE_OPTIONAL)
+TYPED_TEST(cache_fixture, erase_expired)
+{
+    using cache_type = TypeParam;
+    using ttl_cache = typename cache_type::cache;
+
+    ttl_cache cache = cache_type::create();
+
+    EXPECT_TRUE(cache.empty());
+    EXPECT_TRUE(cache.insert(0, std::string(4, 'b')));
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    EXPECT_FALSE(cache.empty());
+
+    typename ttl_cache::value_type val;
+    EXPECT_FALSE(cache.find(0, val));
+
+    cache.erase(0);
+    EXPECT_TRUE(cache.empty());
+    EXPECT_FALSE(cache.find(0, val));
+}
+
+#if defined(_THREAD_SAFE_TTL_CACHE_ENABLE_OPTIONAL)
 TYPED_TEST(cache_fixture, get)
 {
     using cache_type = TypeParam;
-    using lru_cache = typename cache_type::cache;
+    using ttl_cache = typename cache_type::cache;
 
-    lru_cache cache = cache_type::create();
+    ttl_cache cache = cache_type::create();
 
-    std::optional<typename lru_cache::value_type> val;
+    std::optional<typename ttl_cache::value_type> val;
     val = cache.get(0);
     EXPECT_FALSE(val.has_value());
 
@@ -296,14 +396,32 @@ TYPED_TEST(cache_fixture, get)
     EXPECT_TRUE(val.has_value());
     EXPECT_TRUE(*val == "bbbb") << *val;
 }
+
+TYPED_TEST(cache_fixture, get_expired)
+{
+    using cache_type = TypeParam;
+    using ttl_cache = typename cache_type::cache;
+
+    ttl_cache cache = cache_type::create();
+
+    std::optional<typename ttl_cache::value_type> val;
+    val = cache.get(0);
+    EXPECT_FALSE(val.has_value());
+
+    EXPECT_TRUE(cache.insert(0, std::string(4, 'b')));
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    val = cache.get(0);
+    EXPECT_FALSE(val.has_value());
+}
 #endif
 
 TYPED_TEST(cache_fixture, reset)
 {
     using cache_type = TypeParam;
-    using lru_cache = typename cache_type::cache;
+    using ttl_cache = typename cache_type::cache;
 
-    lru_cache cache = cache_type::create(2);
+    ttl_cache cache = cache_type::create(2);
 
     EXPECT_TRUE(cache.size() == 0);
     EXPECT_TRUE(cache.capacity() == 2);
@@ -315,7 +433,7 @@ TYPED_TEST(cache_fixture, reset)
     EXPECT_TRUE(cache.contains(1));
     EXPECT_TRUE(cache.contains(2));
 
-    cache.reset(4);
+    cache.reset(900, 4);
     EXPECT_TRUE(cache.size() == 0) << cache.size();
     EXPECT_TRUE(cache.capacity() == 4) << cache.capacity();
 
@@ -328,9 +446,9 @@ TYPED_TEST(cache_fixture, reset)
 TYPED_TEST(cache_fixture, size)
 {
     using cache_type = TypeParam;
-    using lru_cache = typename cache_type::cache;
+    using ttl_cache = typename cache_type::cache;
 
-    lru_cache cache = cache_type::create();
+    ttl_cache cache = cache_type::create();
 
     EXPECT_TRUE(cache.size() == 0);
     cache.emplace(0, 4, 'b');
@@ -342,11 +460,11 @@ TYPED_TEST(cache_fixture, size)
 TYPED_TEST(cache_fixture, update)
 {
     using cache_type = TypeParam;
-    using lru_cache = typename cache_type::cache;
+    using ttl_cache = typename cache_type::cache;
 
-    lru_cache cache = cache_type::create();
+    ttl_cache cache = cache_type::create();
 
-    typename lru_cache::value_type val;
+    typename ttl_cache::value_type val;
     EXPECT_FALSE(cache.find(0, val));
     EXPECT_FALSE(cache.find(1, val));
 
@@ -363,10 +481,38 @@ TYPED_TEST(cache_fixture, update)
     EXPECT_TRUE(val == "ccc") << val;
 }
 
-TEST(lru_cache, hit)
+TYPED_TEST(cache_fixture, update_expired)
 {
-    using lru_cache = ::wstux::lru::lru_cache<size_t, size_t>;
-    using test_data_vector = std::vector<lru_cache::key_type>;
+    using cache_type = TypeParam;
+    using ttl_cache = typename cache_type::cache;
+
+    ttl_cache cache = cache_type::create();
+
+    typename ttl_cache::value_type val;
+    EXPECT_FALSE(cache.find(0, val));
+    EXPECT_FALSE(cache.find(1, val));
+
+    EXPECT_TRUE(cache.insert(0, std::string(4, 'b')));
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    EXPECT_FALSE(cache.find(0, val));
+
+    cache.update(0, std::string(3, 'a'));
+    EXPECT_TRUE(cache.find(0, val));
+
+    cache.update(0, std::string(3, 'd'));
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    EXPECT_FALSE(cache.find(0, val));
+
+    cache.update(1, std::string(3, 'c'));
+    EXPECT_TRUE(cache.find(1, val));
+    EXPECT_TRUE(val == "ccc") << val;
+}
+
+TEST(ttl_cache, hit)
+{
+    using ttl_cache = ::wstux::ttl::ttl_cache<size_t, size_t>;
+    using test_data_vector = std::vector<ttl_cache::key_type>;
 
     test_data_vector td(10);
     for (size_t i = 0; i < 10; ++i) {
@@ -376,10 +522,10 @@ TEST(lru_cache, hit)
     size_t hit_count = 0;
     size_t total_count = 0;
 
-    lru_cache cache(10);
+    ttl_cache cache(10, 10);
     for (size_t i = 0; i < 10; ++i) {
-        for (const lru_cache::key_type& key : td) {
-            lru_cache::value_type val;
+        for (const ttl_cache::key_type& key : td) {
+            ttl_cache::value_type val;
             if (! cache.find(key, val)) {
                 EXPECT_TRUE(cache.insert(key, key)) << "failed to insert key '" << key << "'";
             } else {
@@ -395,9 +541,9 @@ TEST(lru_cache, hit)
 
 TEST_F(thread_safe_cache_fixture, shards_leak)
 {
-    using lru_cache = ::wstux::lru::thread_safe_lru_cache<size_t, size_t>;
+    using ttl_cache = ::wstux::ttl::thread_safe_ttl_cache<size_t, size_t>;
 
-    lru_cache cache(1, 2);
+    ttl_cache cache(900, 1, 2);
     EXPECT_TRUE(cache.shards_size() == 1);
 
     EXPECT_TRUE(cache.insert(0, 3));
@@ -409,9 +555,9 @@ TEST_F(thread_safe_cache_fixture, shards_leak)
 
 TEST_F(thread_safe_cache_fixture, hit)
 {
-    using lru_cache = ::wstux::lru::thread_safe_lru_cache<size_t, size_t>;
+    using ttl_cache = ::wstux::ttl::thread_safe_ttl_cache<size_t, size_t>;
 
-    lru_cache cache(30, threads_count());
+    ttl_cache cache(900, 30, threads_count());
     init_threads(cache);
 
     // Waiting until all threads have started.

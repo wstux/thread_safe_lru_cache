@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2023 Chistyakov Alexander.
+ * Copyright 2024 Chistyakov Alexander.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,22 +22,23 @@
  * THE SOFTWARE.
  */
 
-#ifndef _LRU_CACHE_THREAD_SAFE_LRU_CACHE_H
-#define _LRU_CACHE_THREAD_SAFE_LRU_CACHE_H
+#ifndef _TTL_CACHE_THREAD_SAFE_TTL_CACHE_H
+#define _TTL_CACHE_THREAD_SAFE_TTL_CACHE_H
 
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <type_traits>
 #include <vector>
 #include <utility>
 
-#include "lru/lru_cache.h"
+#include "ttl/ttl_cache.h"
 
 namespace wstux {
-namespace lru {
+namespace ttl {
 
 /**
- *  \brief  Thread safe LRU cache.
+ *  \brief  Thread safe TTL cache.
  *  \tparam TKey - cache key.
  *  \tparam TValue - cache value.
  *  \tparam THash - function object for hashing the cache key.
@@ -48,8 +49,8 @@ namespace lru {
  *  \details    The cache is implemented through a thread-safe wrapper, so no
  *          locks or synchronizations are required in the calling code.
  *
- *          Thread safe LRU cache is implemented using sharding. Thread safe LRU
- *          cache creates several LRU shards inside itself to store data. When
+ *          Thread safe TTL cache is implemented using sharding. Thread safe TTL
+ *          cache creates several TTL shards inside itself to store data. When
  *          inserting and searching in the cache, the container is selected based
  *          on the key hash. This approach allows for less frequent blocking of
  *          shared data (the container in which the cache data is stored) when
@@ -57,7 +58,7 @@ namespace lru {
  *          be placed in the same container.
  *
  *                     ┌─────────────────────────────────────┐
- *                     │        thread_safe_lru_cache        │
+ *                     │        thread_safe_ttl_cache        │
  *                     ├─────────────────────────────────────┤
  *                     ||========|========|========|========||
  *                     || Shrd_1 | Shrd_2 | Shrd_3 | Shrd_4 ||
@@ -121,9 +122,9 @@ namespace lru {
 template<typename TKey, typename TValue,
          class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>,
          class TLock = details::spinlock>
-class thread_safe_lru_cache
+class thread_safe_ttl_cache
 {
-    typedef lru_cache<TKey, TValue, THash, TKeyEqual>   _shard_type;
+    typedef ttl_cache<TKey, TValue, THash, TKeyEqual>   _shard_type;
 
 public:
     typedef typename _shard_type::key_type          key_type;
@@ -138,10 +139,11 @@ public:
     typedef typename _shard_type::const_pointer     const_pointer;
 
     /// \brief  Constructs a new container.
+    /// \param  ttl_msecs - time to live milliseconds.
     /// \param  capacity - number of elements for which space has been allocated
     ///         in the container.
     /// \param  shards_count - shards count.
-    explicit thread_safe_lru_cache(size_t capacity, size_t shards_count)
+    explicit thread_safe_ttl_cache(size_type ttl_msecs, size_t capacity, size_t shards_count)
         : m_capacity(capacity)
         , m_shards((m_capacity > shards_count) ? shards_count : m_capacity)
     {
@@ -150,12 +152,12 @@ public:
             const size_t shard_capacity = (i != 0)
                 ? (m_capacity / shards_count)
                 : ((m_capacity / shards_count) + (m_capacity % shards_count));
-            m_shards[i].first = std::make_shared<_shard_type>(shard_capacity);
+            m_shards[i].first = std::make_shared<_shard_type>(ttl_msecs, shard_capacity);
         }
     }
 
-    thread_safe_lru_cache(const thread_safe_lru_cache&) = delete;
-    thread_safe_lru_cache& operator=(const thread_safe_lru_cache&) = delete;
+    thread_safe_ttl_cache(const thread_safe_ttl_cache&) = delete;
+    thread_safe_ttl_cache& operator=(const thread_safe_ttl_cache&) = delete;
 
     /// \brief  Return the number of items for which space has been allocated in
     ///         the container.
@@ -239,7 +241,7 @@ public:
         return wrapper(get_shard(key), &_shard_type::insert, key, val);
     }
 
-#if defined(_THREAD_SAFE_LRU_CACHE_ENABLE_OPTIONAL)
+#if defined(_THREAD_SAFE_TTL_CACHE_ENABLE_OPTIONAL)
     /// \brief  Gets an element with key equivalent to key.
     /// \param  key - key value of the element to search for.
     /// \return Element if element has been found, otherwise std::nullopt.
@@ -250,8 +252,9 @@ public:
 #endif
 
     /// \brief  Clear cache contents and change the capacity of the cache.
+    /// \param  ttl_msecs - time to live milliseconds.
     /// \param  new_capacity - new capacity of the cache, in number of elements.
-    void reset(size_type new_capacity)
+    void reset(size_type ttl_msecs, size_type new_capacity)
     {
         m_capacity = new_capacity;
         size_t shards_count = m_shards.size();
@@ -259,7 +262,7 @@ public:
             const size_t shard_capacity = (i != 0)
                 ? (new_capacity / shards_count)
                 : ((new_capacity / shards_count) + (new_capacity % shards_count));
-            wrapper(m_shards[i], &_shard_type::reset, shard_capacity);
+            wrapper(m_shards[i], &_shard_type::reset, ttl_msecs, shard_capacity);
         }
     }
 
@@ -342,8 +345,8 @@ private:
     std::vector<_shard_guard> m_shards;
 };
 
-} // namespace lru
+} // namespace ttl
 } // namespace wstux
 
-#endif /* _LRU_CACHE_THREAD_SAFE_LRU_CACHE_H */
+#endif /* _TTL_CACHE_THREAD_SAFE_TTL_CACHE_H */
 
