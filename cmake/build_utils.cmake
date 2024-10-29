@@ -69,7 +69,7 @@ function(_configure_target TARGET_NAME)
 
         get_target_property(_target_type ${_lib} TYPE)
         if(_target_type STREQUAL "INTERFACE_LIBRARY")
-            get_property(_include_dirs DIRECTORY PROPERTY ${_lib}_INCLUDE_DIR)
+            get_property(_include_dirs TARGET ${_lib} PROPERTY ${_lib}_INCLUDE_DIR)
             if (_include_dirs)
                 target_include_directories(${TARGET_NAME} PRIVATE ${_include_dirs})
             endif()
