@@ -27,6 +27,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <iostream>
 
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
     #include <memory>
@@ -135,6 +136,7 @@ struct hash_table_value
     template<typename... TArgs>
     explicit hash_table_value(TArgs&&... args)
         : value(std::forward<TArgs>(args)...)
+        , time_point(_clock_t::now())
     {}
 
     value_type value;
