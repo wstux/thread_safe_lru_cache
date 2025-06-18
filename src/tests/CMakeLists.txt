@@ -18,7 +18,7 @@ TestTarget(ut_ttl_cache
         testing
 )
 
-if (THREAD_SAFE_CACHE_USE_BOOST)
+if (USE_BOOST_INTRUSIVE)
     TestTarget(ut_std_lru_cache
         SOURCES
             ut_lru_cache.cpp
@@ -62,7 +62,7 @@ TestTarget(perf_thread_safe_lru_cache
         testing
 )
 
-if (THREAD_SAFE_CACHE_USE_BOOST)
+if (USE_BOOST_INTRUSIVE)
     TestTarget(perf_std_lru_cache
         SOURCES
             perf_lru_cache.cpp
