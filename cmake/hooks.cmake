@@ -1,6 +1,6 @@
 # The MIT License
 #
-# Copyright (c) 2022 wstux
+# Copyright (c) 2025 wstux
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,10 +20,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-enable_testing()
+function(InstallHook HOOK_NAME)
+    if (NOT GIT_FOUND)
+        find_package(Git QUIET)
+    endif()
 
-include(docs)
-include(sanitizers)
-include(static_analysis)
-include(utils)
+    if (GIT_FOUND AND EXISTS ${PROJECT_SOURCE_DIR}/.git)
+        if (NOT EXISTS ${PROJECT_SOURCE_DIR}/.git/hooks/${HOOK_NAME})
+            configure_file(
+                ${PROJECT_SOURCE_DIR}/cmake/hooks/${HOOK_NAME}.in
+                ${PROJECT_SOURCE_DIR}/.git/hooks/${HOOK_NAME}
+                @ONLY
+            )
+        endif()
+    endif()
+endfunction()
 

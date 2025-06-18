@@ -20,10 +20,37 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-enable_testing()
+function(EnableSanitizers ADDRESS LEAK UNDEFINED_BEHAVIOR THREAD)
+    set(_sanitizers "")
 
-include(docs)
-include(sanitizers)
-include(static_analysis)
-include(utils)
+    if (ADDRESS)
+        message(INFO "Building project with address sanitizer")
+        list(APPEND _sanitizers "address")
+    endif()
+
+    if (LEAK)
+    message(INFO "Building project with leak sanitizer")
+        list(APPEND _sanitizers "leak")
+    endif()
+
+    if (UNDEFINED_BEHAVIOR)
+        message(INFO "Building project with behavior sanitizer")
+        list(APPEND _sanitizers "undefined")
+    endif()
+
+    if (THREAD)
+        if (ADDRESS OR LEAK)
+            message(WARNING "Thread sanitizer does not work with address and leak sanitizer")
+        else()
+            message(INFO "Building project with thread sanitizer")
+            list(APPEND _sanitizers "thread")
+        endif()
+    endif()
+
+    list(JOIN _sanitizers "," _sanitizers)
+    if (_sanitizers)
+        add_compile_options(-fsanitize=${_sanitizers})
+        add_link_options(-fsanitize=${_sanitizers})
+    endif()
+endfunction()
 

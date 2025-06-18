@@ -45,18 +45,15 @@ endif()
 # Definitions
 ################################################################################
 
-message(STATUS "[INFO ] CMAKE_BINARY_DIR: '${CMAKE_BINARY_DIR}'")
-# Common options
-# To write if need.
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  "${CMAKE_BINARY_DIR}/bin")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY  "${CMAKE_BINARY_DIR}/lib")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY  "${CMAKE_BINARY_DIR}/lib")
+set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY} ${CMAKE_LIBRARY_PATH})
+file(MAKE_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+file(MAKE_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+file(MAKE_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 
-# Build options
-option(USE_ADDR_SANITIZER   "Try to use the address sanitizer" OFF)
-option(USE_COVERAGE         "Try to use coverage flag" OFF)
-option(USE_FAST_MATH        "Tell the compiler to use fast math" OFF)
-option(USE_LTO              "Use link-time optimization for release builds" ON)
-option(USE_PEDANTIC         "Tell the compiler to be pedantic" ON)
-option(USE_PTHREAD          "Use pthread library" OFF)
-option(USE_WERROR           "Tell the compiler to make the build fail when warnings are present" ON)
+message(STATUS "[INFO ] CMAKE_BINARY_DIR: '${CMAKE_BINARY_DIR}'")
 
 ################################################################################
 # Configuration options
@@ -66,28 +63,29 @@ include(CMakeDependentOption)
 
 include(build_flags)
 
+set(PROJECT_BUILD_TYPE "${CMAKE_BUILD_TYPE}")
 if(CMAKE_C_COMPILER)
     message(STATUS "[INFO ] C compiler flags: '${CMAKE_C_FLAGS}'")
-    if(CMAKE_BUILD_TYPE STREQUAL "debug")
+    if(PROJECT_BUILD_TYPE STREQUAL "debug")
         message(STATUS "[INFO ] C debug compiler flags: '${CMAKE_C_FLAGS_DEBUG}'")
-    elseif(CMAKE_BUILD_TYPE STREQUAL "release")
+    elseif(PROJECT_BUILD_TYPE STREQUAL "release")
         message(STATUS "[INFO ] C release compiler flags: '${CMAKE_C_FLAGS_RELEASE}'")
-#    elseif(CMAKE_BUILD_TYPE STREQUAL "relwithdebinfo")
+#    elseif(PROJECT_BUILD_TYPE STREQUAL "relwithdebinfo")
 #        message(STATUS "[INFO ] C rel_with_deb_info compiler flags: '${CMAKE_C_FLAGS_RELWITHDEBINFO}'")
-#    elseif(CMAKE_BUILD_TYPE STREQUAL "minsizerel")
+#    elseif(PROJECT_BUILD_TYPE STREQUAL "minsizerel")
 #        message(STATUS "[INFO ] C min_size_rel compiler flags: '${CMAKE_C_FLAGS_MINSIZEREL}'")
     endif()
     message(STATUS "[INFO ] C link executable: ${CMAKE_C_LINK_EXECUTABLE}")
 endif()
 if(CMAKE_CXX_COMPILER)
     message(STATUS "[INFO ] C++ compiler flags: '${CMAKE_CXX_FLAGS}'")
-    if(CMAKE_BUILD_TYPE STREQUAL "debug")
+    if(PROJECT_BUILD_TYPE STREQUAL "debug")
         message(STATUS "[INFO ] C++ debug compiler flags: '${CMAKE_CXX_FLAGS_DEBUG}'")
-    elseif(CMAKE_BUILD_TYPE STREQUAL "release")
+    elseif(PROJECT_BUILD_TYPE STREQUAL "release")
         message(STATUS "[INFO ] C++ release compiler flags: '${CMAKE_CXX_FLAGS_RELEASE}'")
-#    elseif(CMAKE_BUILD_TYPE STREQUAL "relwithdebinfo")
+#    elseif(PROJECT_BUILD_TYPE STREQUAL "relwithdebinfo")
 #        message(STATUS "[INFO ] C++ rel_with_deb_info compiler flags: '${CMAKE_CXX_FLAGS_RELWITHDEBINFO}'")
-#    elseif(CMAKE_BUILD_TYPE STREQUAL "minsizerel")
+#    elseif(PROJECT_BUILD_TYPE STREQUAL "minsizerel")
 #        message(STATUS "[INFO ] C++ min_size_rel compiler flags: '${CMAKE_CXX_FLAGS_MINSIZEREL}'")
     endif()
     message(STATUS "[INFO ] C++ link executable: ${CMAKE_CXX_LINK_EXECUTABLE}")
@@ -98,9 +96,21 @@ message(STATUS "[INFO ] Module linker flags: ${CMAKE_MODULE_LINKER_FLAGS}")
 message(STATUS "[INFO ] Shared linker flags: ${CMAKE_SHARED_LINKER_FLAGS}")
 
 ################################################################################
+# Configure git repository
+################################################################################
+
+include(hooks)
+
+InstallHook(pre-commit)
+InstallHook(commit-msg)
+
+################################################################################
 # Include targets functions
 ################################################################################
 
 include(build_targets)
+include(custom_targets)
+include(driver_targets)
+include(external_targets)
 include(wrapper_targets)
 
