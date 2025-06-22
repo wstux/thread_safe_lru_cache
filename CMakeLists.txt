@@ -29,6 +29,7 @@ option(BUILD_BOOST          "Build boost" ON)
 
 option(BUILD_EXAMPLES       "Build examples" ON)
 option(BUILD_TESTS          "Build perftests and unittests" ON)
+option(BUILD_EXT_LRU        "Build externals lru caches" OFF)
 
 ################################################################################
 # Init cmake modules path

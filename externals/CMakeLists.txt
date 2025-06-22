@@ -22,13 +22,43 @@ if (BUILD_TESTS)
         #URL_MD5
         #    fe33be48eeb6de4dc2fefe60a3834c1f
         CONFIGURE_COMMAND
-            cmake --install-prefix ${EXTERNALS_PREFIX}/testing/install  ./
+            cmake --install-prefix ${EXTERNALS_PREFIX}/testing/install ./
         BUILD_COMMAND
-            cmake --build ./ && cmake --install ./
+            cmake --build ./
+        INSTALL_COMMAND
+            cmake --install ./
         INCLUDE_DIR
             ${EXTERNALS_PREFIX}/testing/install/include
         INSTALL_DIR
             ${EXTERNALS_PREFIX}/testing/install
     )
+
+    if (BUILD_EXT_LRU)
+        ExternalTarget(tbb
+            URL
+                https://github.com/uxlfoundation/oneTBB/archive/refs/tags/v2022.1.0.tar.gz
+            CONFIGURE_COMMAND
+                cmake --install-prefix ${EXTERNALS_PREFIX}/tbb/install -DTBB_TEST=OFF -DTBB_EXAMPLES=OFF -DTBBMALLOC_BUILD=OFF -DTBB_FILE_TRIM=OFF ./
+            BUILD_COMMAND
+                cmake --build ./
+            INSTALL_COMMAND
+                cmake --install ./
+            INCLUDE_DIR
+                ${EXTERNALS_PREFIX}/tbb/install/include
+            INSTALL_DIR
+                ${EXTERNALS_PREFIX}/tbb/install
+            LIBRARIES
+                libtbb.so
+        )
+
+        ExternalTarget(tstarling_thread_safe_lru
+            URL
+                https://github.com/tstarling/thread-safe-lru/archive/refs/heads/master.zip
+            INCLUDE_DIR
+                ${EXTERNALS_PREFIX}/tstarling_thread_safe_lru/src/tstarling_thread_safe_lru
+            DEPENDS
+                tbb
+        )
+    endif()
 endif()
 
