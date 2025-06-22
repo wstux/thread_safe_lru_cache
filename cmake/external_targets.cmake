@@ -127,6 +127,20 @@ function(ExternalTarget EXT_TARGET_NAME)
         )
     endif()
 
+    foreach (_dep IN LISTS _depends)
+        if (TARGET ${_dep})
+            get_target_property(_dep_include_dirs ${_dep} INCLUDE_DIRECTORIES)
+            if (_dep_include_dirs)
+                include_directories(${_dep_include_dirs})
+            endif()
+
+            #get_target_property(_dep_libraries ${_dep} LIBRARIES)
+            #if (_dep_libraries)
+            #    target_link_libraries(${EXT_TARGET_NAME} ${_dep_libraries})
+            #endif()
+        endif()
+    endforeach()
+
     set_target_properties(${EXT_TARGET_NAME} PROPERTIES
         INCLUDE_DIRECTORIES "${_include_dir}"
         IMPORTED_LOCATION   "${_libraries}"
