@@ -280,7 +280,7 @@ protected:
     inline bool is_find(typename _hash_table_t::iterator& it) const
     {
         return (it != m_hash_tbl.end());
-    } 
+    }
 
     inline void move_to_top(typename _hash_table_t::iterator& it)
     {

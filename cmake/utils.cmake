@@ -34,7 +34,7 @@ function(_is_supported_platform PLATFORM RESULT)
     if (NOT DEFINED _supported_platform_list)
         return()
     endif()
-    
+
     list(FIND _supported_platform_list "${PLATFORM}" IS_FIND)
     if (NOT IS_FIND EQUAL -1)
         set(${RESULT} 1 PARENT_SCOPE)

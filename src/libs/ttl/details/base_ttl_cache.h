@@ -312,12 +312,12 @@ protected:
             std::chrono::duration_cast<std::chrono::milliseconds>(_clock_t::now() - it->second.time_point);
 #endif
         return (exp_secs.count() > m_time_to_live.count());
-    } 
+    }
 
     inline bool is_find(typename _hash_table_t::iterator& it) const
     {
         return (it != m_hash_tbl.end());
-    } 
+    }
 
     void move_to_top(typename _hash_table_t::iterator& it)
     {

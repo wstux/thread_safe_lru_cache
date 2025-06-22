@@ -89,7 +89,7 @@ public:
     virtual void TearDown() override
     {
         base::TearDown();
-        
+
         for (std::thread& t : m_threads) {
             t.join();
         }
@@ -165,7 +165,7 @@ public:
     virtual void TearDown() override
     {
         base::TearDown();
-        
+
         for (std::thread& t : m_threads) {
             t.join();
         }
