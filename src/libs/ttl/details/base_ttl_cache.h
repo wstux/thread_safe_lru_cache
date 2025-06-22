@@ -22,8 +22,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef _TTL_CACHE_BASE_TTL_CACHE_H
-#define _TTL_CACHE_BASE_TTL_CACHE_H
+#ifndef _LIBS_TTL_BASE_TTL_CACHE_H_
+#define _LIBS_TTL_BASE_TTL_CACHE_H_
 
 #include <atomic>
 #include <chrono>
@@ -410,5 +410,5 @@ private:
 } // namespace ttl
 } // namespace wstux
 
-#endif /* _TTL_CACHE_BASE_TTL_CACHE_H */
+#endif /* _LIBS_TTL_BASE_TTL_CACHE_H_ */
 

@@ -22,8 +22,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef _TTL_CACHE_THREAD_SAFE_TTL_CACHE_H
-#define _TTL_CACHE_THREAD_SAFE_TTL_CACHE_H
+#ifndef _LIBS_TTL_THREAD_SAFE_TTL_CACHE_H_
+#define _LIBS_TTL_THREAD_SAFE_TTL_CACHE_H_
 
 #include <atomic>
 #include <memory>
@@ -121,7 +121,7 @@ namespace ttl {
  */
 template<typename TKey, typename TValue,
          class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>,
-         class TLock = details::spinlock>
+         class TLock = std::mutex>
 class thread_safe_ttl_cache
 {
     typedef ttl_cache<TKey, TValue, THash, TKeyEqual>   _shard_type;
@@ -348,5 +348,5 @@ private:
 } // namespace ttl
 } // namespace wstux
 
-#endif /* _TTL_CACHE_THREAD_SAFE_TTL_CACHE_H */
+#endif /* _LIBS_TTL_THREAD_SAFE_TTL_CACHE_H_ */
 

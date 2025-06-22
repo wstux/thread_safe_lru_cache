@@ -22,8 +22,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef _LRU_CACHE_BASE_LRU_CACHE_H
-#define _LRU_CACHE_BASE_LRU_CACHE_H
+#ifndef _LIBS_LRU_BASE_LRU_CACHE_H_
+#define _LIBS_LRU_BASE_LRU_CACHE_H_
 
 #include <atomic>
 
@@ -371,5 +371,5 @@ private:
 } // namespace lru
 } // namespace wstux
 
-#endif /* _LRU_CACHE_BASE_LRU_CACHE_H */
+#endif /* _LIBS_LRU_BASE_LRU_CACHE_H_ */
 

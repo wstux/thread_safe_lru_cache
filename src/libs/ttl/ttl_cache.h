@@ -22,8 +22,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef _TTL_CACHE_TTL_CACHE_H
-#define _TTL_CACHE_TTL_CACHE_H
+#ifndef _LIBS_TTL_TTL_CACHE_H_
+#define _LIBS_TTL_TTL_CACHE_H_
 
 #if __cplusplus >= 201703
     #define _THREAD_SAFE_CACHE_ENABLE_OPTIONAL
@@ -258,5 +258,5 @@ private:
 } // namespace ttl
 } // namespace wstux
 
-#endif /* _TTL_CACHE_TTL_CACHE_H */
+#endif /* _LIBS_TTL_TTL_CACHE_H_ */
 
