@@ -65,6 +65,7 @@ function(ExternalTarget EXT_TARGET_NAME)
     )
     set(_lists_kw   DEPENDS
                     LIBRARIES
+                    PATCHES
     )
     _parse_target_args_strings(${EXT_TARGET_NAME}
         _flags_kw _values_kw _lists_kw ${ARGN}
@@ -85,6 +86,15 @@ function(ExternalTarget EXT_TARGET_NAME)
 
     set(_depends "${${EXT_TARGET_NAME}_DEPENDS}")
 
+    set(_patch_cmd "true")
+    if (${EXT_TARGET_NAME}_PATCHES)
+        foreach (_patch IN LISTS ${EXT_TARGET_NAME}_PATCHES)
+            set(_patch_command  "bash -c \"patch -p1 --dry-run < ${_patch}\"\n")
+            file(APPEND ${_target_dir}/${_target_name}-prefix/patch_target.sh "${_patch_command}")
+        endforeach()
+        set(_patch_cmd bash ${_target_dir}/${_target_name}-prefix/patch_target.sh)
+    endif()
+
     ExternalProject_Add(${_target_name}
         PREFIX              ${_target_dir}
         STAMP_DIR           ${_target_dir}/stamp
@@ -96,6 +106,7 @@ function(ExternalTarget EXT_TARGET_NAME)
         INSTALL_COMMAND     ${_install_command}
         INSTALL_DIR         ${_install_dir}
         BUILD_COMMAND       ${_build_cmd}
+        PATCH_COMMAND       ${_patch_cmd}
         DEPENDS ${_depends}
     )
 

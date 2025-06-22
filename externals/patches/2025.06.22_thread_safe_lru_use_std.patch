@@ -1,0 +1,290 @@
+diff --git a/thread-safe-lru/lru-cache.h b/thread-safe-lru/lru-cache.h
+index d8d1abf..53cff5b 100644
+--- a/thread-safe-lru/lru-cache.h
++++ b/thread-safe-lru/lru-cache.h
+@@ -22,7 +22,7 @@
+ #include <new>
+ #include <thread>
+ #include <vector>
+-#include <tbb/concurrent_hash_map.h>
++#include <unordered_map>
+ 
+ namespace tstarling {
+ 
+@@ -31,33 +31,26 @@ namespace tstarling {
+  * it is full, insert() evicts the least recently used item from the cache.
+  *
+  * The find() operation fills a ConstAccessor object, which is a smart pointer
+- * similar to TBB's const_accessor. After eviction, destruction of the value is
++ * similar to std::unordered_map's const_iterator. After eviction, destruction of the value is
+  * deferred until all ConstAccessor objects are destroyed.
+  *
+  * The implementation is generally conservative, relying on the documented
+- * behaviour of tbb::concurrent_hash_map. LRU list transactions are protected
++ * behaviour of std::unordered_map. LRU unordered_map and list transactions are protected
+  * with a single mutex. Having our own doubly-linked list implementation helps
+  * to ensure that list transactions are sufficiently brief, consisting of only
+  * a few loads and stores. User code is not executed while the lock is held.
+  *
+- * The acquisition of the list mutex during find() is non-blocking (try_lock),
+- * so under heavy lookup load, the container will not stall, instead some LRU
+- * update operations will be omitted.
+  *
+  * Insert performance was observed to degrade rapidly when there is a heavy
+  * concurrent insert/evict load, mostly due to locks in the underlying
+- * TBB::CHM. So if that is a possibility for your workload,
++ * std::unordered_map. So if that is a possibility for your workload,
+  * ThreadSafeScalableCache is recommended instead.
+  */
+-template <class TKey, class TValue, class THash = tbb::tbb_hash_compare<TKey>>
++template <class TKey, class TValue, class THash = std::hash<TKey>>
+ class ThreadSafeLRUCache {
+   /**
+    * The LRU list node.
+    *
+-   * We make a copy of the key in the list node, allowing us to find the
+-   * TBB::CHM element from the list node. TBB::CHM invalidates iterators
+-   * on most operations, even find(), ruling out more efficient
+-   * implementations.
+    */
+   struct ListNode {
+     ListNode()
+@@ -96,15 +89,15 @@ class ThreadSafeLRUCache {
+     ListNode* m_listNode;
+   };
+ 
+-  typedef tbb::concurrent_hash_map<TKey, HashMapValue, THash> HashMap;
+-  typedef typename HashMap::const_accessor HashMapConstAccessor;
+-  typedef typename HashMap::accessor HashMapAccessor;
++  typedef std::unordered_map<TKey, HashMapValue, THash> HashMap;
++  typedef typename HashMap::const_iterator HashMapConstAccessor;
++  typedef typename HashMap::iterator HashMapAccessor;
+   typedef typename HashMap::value_type HashMapValuePair;
+   typedef std::pair<const TKey, TValue> SnapshotValue;
+ 
+ public:
+   /**
+-   * The proxy object for TBB::CHM::const_accessor. Provides direct access to
++   * The proxy object for std::unordered_map::const_iterator. Provides direct access to
+    * the user's value by dereferencing, thus hiding our implementation
+    * details.
+    */
+@@ -150,7 +143,7 @@ public:
+    * otherwise. Updates the eviction list, making the element the
+    * most-recently used.
+    */
+-  bool find(ConstAccessor& ac, const TKey& key);
++  bool find(TValue& result, const TKey& key);
+ 
+   /**
+    * Insert a value into the container. Both the key and value will be copied.
+@@ -164,8 +157,7 @@ public:
+   bool insert(const TKey& key, const TValue& value);
+ 
+   /**
+-   * Clear the container. NOT THREAD SAFE -- do not use while other threads
+-   * are accessing the container.
++   * Clear the container. This function does its own locking.
+    */
+   void clear();
+ 
+@@ -216,8 +208,8 @@ private:
+    */
+   std::atomic<size_t> m_size;
+ 
+-  /** 
+-   * The underlying TBB hash map.
++  /**
++   * The underlying std::unordered_map.
+    */
+   HashMap m_map;
+ 
+@@ -239,35 +231,32 @@ ThreadSafeLRUCache<TKey, TValue, THash>::OutOfListMarker = (ListNode*)-1;
+ template <class TKey, class TValue, class THash>
+ ThreadSafeLRUCache<TKey, TValue, THash>::
+ ThreadSafeLRUCache(size_t maxSize)
+-  : m_maxSize(maxSize), m_size(0),
+-  m_map(std::thread::hardware_concurrency() * 4) // it will automatically grow
++  : m_maxSize(maxSize), m_size(0)
+ {
+   m_head.m_prev = nullptr;
+   m_head.m_next = &m_tail;
+   m_tail.m_prev = &m_head;
++  m_map.reserve(m_maxSize + 1);
+ }
+ 
+ template <class TKey, class TValue, class THash>
+ bool ThreadSafeLRUCache<TKey, TValue, THash>::
+-find(ConstAccessor& ac, const TKey& key) {
+-  HashMapConstAccessor& hashAccessor = ac.m_hashAccessor;
+-  if (!m_map.find(hashAccessor, key)) {
++find(TValue& result, const TKey& key) {
++  std::unique_lock<ListMutex> lock(m_listMutex);
++  ConstAccessor ac;
++  ac.m_hashAccessor = m_map.find(key);
++  if (ac.m_hashAccessor == m_map.end()) {
+     return false;
+   }
+-
+-  // Acquire the lock, but don't block if it is already held
+-  std::unique_lock<ListMutex> lock(m_listMutex, std::try_to_lock);
+-  if (lock) {
+-    ListNode* node = hashAccessor->second.m_listNode;
+-    // The list node may be out of the list if it is in the process of being
+-    // inserted or evicted. Doing this check allows us to lock the list for
+-    // shorter periods of time.
+-    if (node->isInList()) {
+-      delink(node);
+-      pushFront(node);
+-    }
+-    lock.unlock();
++  ListNode* node = ac.m_hashAccessor->second.m_listNode;
++  // The list node may be out of the list if it is in the process of being
++  // inserted or evicted. Doing this check allows us to lock the list for
++  // shorter periods of time.
++  if (node->isInList()) {
++    delink(node);
++    pushFront(node);
+   }
++  result = *ac;
+   return true;
+ }
+ 
+@@ -276,14 +265,13 @@ bool ThreadSafeLRUCache<TKey, TValue, THash>::
+ insert(const TKey& key, const TValue& value) {
+   // Insert into the CHM
+   ListNode* node = new ListNode(key);
+-  HashMapAccessor hashAccessor;
+   HashMapValuePair hashMapValue(key, HashMapValue(value, node));
+-  if (!m_map.insert(hashAccessor, hashMapValue)) {
++  std::unique_lock<ListMutex> lock1(m_listMutex);
++  if (!m_map.insert(hashMapValue).second) {
+     delete node;
+     return false;
+   }
+-  hashAccessor.release();
+-
++  lock1.unlock();
+   // Evict if necessary, now that we know the hashmap insertion was successful.
+   size_t size = m_size.load();
+   bool evictionDone = false;
+@@ -325,17 +313,22 @@ insert(const TKey& key, const TValue& value) {
+ template <class TKey, class TValue, class THash>
+ void ThreadSafeLRUCache<TKey, TValue, THash>::
+ clear() {
+-  m_map.clear();
+-  ListNode* node = m_head.m_next;
+-  ListNode* next;
+-  while (node != &m_tail) {
+-    next = node->m_next;
+-    delete node;
+-    node = next;
++  std::unique_lock<ListMutex> lock(m_listMutex);
++  if (!m_map.empty()) {
++    m_map.clear();
++  }
++  if (m_size != 0) {
++    ListNode* node = m_head.m_next;
++    ListNode* next;
++    while (node != &m_tail) {
++      next = node->m_next;
++      delete node;
++      node = next;
++    }
++    m_head.m_next = &m_tail;
++    m_tail.m_prev = &m_head;
++    m_size = 0;
+   }
+-  m_head.m_next = &m_tail;
+-  m_tail.m_prev = &m_head;
+-  m_size = 0;
+ }
+ 
+ template <class TKey, class TValue, class THash>
+@@ -378,10 +371,9 @@ evict() {
+     return;
+   }
+   delink(moribund);
+-  lock.unlock();
+ 
+-  HashMapAccessor hashAccessor;
+-  if (!m_map.find(hashAccessor, moribund->m_key)) {
++  HashMapAccessor hashAccessor = m_map.find(moribund->m_key);
++  if (hashAccessor == m_map.end()) {
+     // Presumably unreachable
+     return;
+   }
+diff --git a/thread-safe-lru/scalable-cache.h b/thread-safe-lru/scalable-cache.h
+index b359d8a..c87140f 100644
+--- a/thread-safe-lru/scalable-cache.h
++++ b/thread-safe-lru/scalable-cache.h
+@@ -30,14 +30,14 @@ namespace tstarling {
+  * used item.
+  *
+  * The find() operation fills a ConstAccessor object, which is a smart pointer
+- * similar to TBB's const_accessor. After eviction, destruction of the value is
++ * similar to std::unordered_map's const_iterator. After eviction, destruction of the value is
+  * deferred until all ConstAccessor objects are destroyed.
+  * 
+  * Since the hash value of each key is requested multiple times, you should use
+  * a key with a memoized hash function. ThreadSafeStringKey is provided for
+  * this purpose.
+  */
+-template <class TKey, class TValue, class THash = tbb::tbb_hash_compare<TKey>>
++template <class TKey, class TValue, class THash = std::hash<TKey>>
+ struct ThreadSafeScalableCache {
+   using Shard = ThreadSafeLRUCache<TKey, TValue, THash>;
+   typedef typename Shard::ConstAccessor ConstAccessor;
+@@ -60,7 +60,7 @@ struct ThreadSafeScalableCache {
+    * otherwise. Updates the eviction list, making the element the
+    * most-recently used.
+    */
+-  bool find(ConstAccessor& ac, const TKey& key);
++  bool find(TValue& result, const TKey& key);
+ 
+   /**
+    * Insert a value into the container. Both the key and value will be copied.
+@@ -74,8 +74,7 @@ struct ThreadSafeScalableCache {
+   bool insert(const TKey& key, const TValue& value);
+ 
+   /**
+-   * Clear the container. NOT THREAD SAFE -- do not use while other threads
+-   * are accessing the container.
++   * Clear the container.
+    */
+   void clear();
+ 
+@@ -148,8 +147,8 @@ getShard(const TKey& key) {
+ 
+ template <class TKey, class TValue, class THash>
+ bool ThreadSafeScalableCache<TKey, TValue, THash>::
+-find(ConstAccessor& ac, const TKey& key) {
+-  return getShard(key).find(ac, key);
++find(TValue& result, const TKey& key) {
++  return getShard(key).find(result, key);
+ }
+ 
+ template <class TKey, class TValue, class THash>
+@@ -177,7 +176,7 @@ snapshotKeys(std::vector<TKey>& keys) {
+ template <class TKey, class TValue, class THash>
+ size_t ThreadSafeScalableCache<TKey, TValue, THash>::
+ size() const {
+-  size_t size;
++  size_t size = 0;
+   for (size_t i = 0; i < m_numShards; i++) {
+     size += m_shards[i]->size();
+   }
+diff --git a/thread-safe-lru/string-key.h b/thread-safe-lru/string-key.h
+index 014369b..ce55bce 100644
+--- a/thread-safe-lru/string-key.h
++++ b/thread-safe-lru/string-key.h
+@@ -62,6 +62,9 @@ struct ThreadSafeStringKey {
+     size_t hash(const ThreadSafeStringKey& k) const {
+       return k.hash();
+     }
++    size_t operator()(const ThreadSafeStringKey& k) const {
++      return hash(k);
++    }
+   };
+ 
+ private:

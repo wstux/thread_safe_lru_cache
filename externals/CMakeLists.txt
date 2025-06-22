@@ -56,6 +56,8 @@ if (BUILD_TESTS)
                 https://github.com/tstarling/thread-safe-lru/archive/refs/heads/master.zip
             INCLUDE_DIR
                 ${EXTERNALS_PREFIX}/tstarling_thread_safe_lru/src/tstarling_thread_safe_lru
+            #PATCHES
+            #    ${CMAKE_SOURCE_DIR}/externals/patches/2025.06.22_thread_safe_lru_use_std.patch
             DEPENDS
                 tbb
         )
