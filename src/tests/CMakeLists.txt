@@ -62,6 +62,19 @@ TestTarget(perf_thread_safe_lru_cache
         testing
 )
 
+if (BUILD_EXT_LRU)
+    TestTarget(perf_compare
+        SOURCES
+            perf_compare.cpp
+        LIBRARIES
+            lru_cache
+        DEPENDS
+            testing
+            tbb
+            tstarling_thread_safe_lru
+    )
+endif()
+
 if (USE_BOOST_INTRUSIVE)
     TestTarget(perf_std_lru_cache
         SOURCES
@@ -84,4 +97,19 @@ if (USE_BOOST_INTRUSIVE)
         DEPENDS
             testing
     )
+
+    if (BUILD_EXT_LRU)
+        TestTarget(perf_std_compare
+            SOURCES
+                perf_compare.cpp
+            COMPILE_DEFINITIONS
+                THREAD_SAFE_CACHE_DISABLE_BOOST
+            LIBRARIES
+                lru_cache
+            DEPENDS
+                testing
+                tbb
+                tstarling_thread_safe_lru
+        )
+    endif()
 endif()

@@ -328,7 +328,7 @@ PERF_TEST_F(cache_fixture, find)
 
     lru_cache cache(2 * cache_env::count(), cache_env::threads_count());
     std::function<void(size_t)> run_fn = [&cache](size_t k) -> void {
-        lru_cache::value_type val;
+        lru_cache::value_type val = 0;
         cache.find(k, val);
     };
 
@@ -381,7 +381,7 @@ PERF_TEST_F(cache_wait_fixture, request)
 
     lru_cache cache(cache_env::count(), cache_env::threads_count());
     std::function<void(size_t)> run_fn = [&cache](size_t k) -> void {
-        lru_cache::value_type val;
+        lru_cache::value_type val = 0;
         if (! cache.find(k, val)) {
             cache.insert(k, k);
         }
@@ -406,7 +406,7 @@ PERF_TEST_F(cache_wait_fixture, request_hot)
 
     lru_cache cache(cache_env::count(), cache_env::threads_count());
     std::function<void(size_t)> run_fn = [&cache](size_t k) -> void {
-        lru_cache::value_type val;
+        lru_cache::value_type val = 0;
         if (! cache.find(k, val)) {
             cache.insert(k, k);
         }
@@ -435,7 +435,7 @@ PERF_TEST_F(cache_wait_fixture, many_shards)
 
     lru_cache cache(cache_env::count(), 3 * cache_env::threads_count());
     std::function<void(size_t)> run_fn = [&cache](size_t k) -> void {
-        lru_cache::value_type val;
+        lru_cache::value_type val = 0;
         if (! cache.find(k, val)) {
             cache.insert(k, k);
         }
