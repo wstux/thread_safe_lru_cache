@@ -22,10 +22,11 @@
  * THE SOFTWARE.
  */
 
-#ifndef _TTL_CACHE_THREAD_SAFE_TTL_CACHE_H
-#define _TTL_CACHE_THREAD_SAFE_TTL_CACHE_H
+#ifndef _LIBS_TTL_THREAD_SAFE_TTL_CACHE_H_
+#define _LIBS_TTL_THREAD_SAFE_TTL_CACHE_H_
 
 #include <atomic>
+#include <limits>
 #include <memory>
 #include <mutex>
 #include <type_traits>
@@ -121,7 +122,7 @@ namespace ttl {
  */
 template<typename TKey, typename TValue,
          class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>,
-         class TLock = details::spinlock>
+         class TLock = std::mutex>
 class thread_safe_ttl_cache
 {
     typedef ttl_cache<TKey, TValue, THash, TKeyEqual>   _shard_type;
@@ -316,12 +317,16 @@ private:
 private:
     inline const _shard_guard& get_shard(const TKey& key) const
     {
-        return m_shards[(hasher{}(key)) % m_shards.size()];
+        //return m_shards[(hasher{}(key)) % m_shards.size()];
+        constexpr int shift = std::numeric_limits<size_t>::digits - 16;
+        return m_shards[((hasher{}(key)) >> shift) % m_shards.size()];
     }
 
     inline _shard_guard& get_shard(const TKey& key)
     {
-        return m_shards[(hasher{}(key)) % m_shards.size()];
+        //return m_shards[(hasher{}(key)) % m_shards.size()];
+        constexpr int shift = std::numeric_limits<size_t>::digits - 16;
+        return m_shards[((hasher{}(key)) >> shift) % m_shards.size()];
     }
 
     template<typename T, typename TFn, typename... TArgs>
@@ -348,5 +353,5 @@ private:
 } // namespace ttl
 } // namespace wstux
 
-#endif /* _TTL_CACHE_THREAD_SAFE_TTL_CACHE_H */
+#endif /* _LIBS_TTL_THREAD_SAFE_TTL_CACHE_H_ */
 

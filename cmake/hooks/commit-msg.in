@@ -1,6 +1,7 @@
+#!/bin/sh
 # The MIT License
 #
-# Copyright (c) 2022 wstux
+# Copyright (c) 2025 Chistyakov Alexander
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,24 +21,33 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-function(AddPlatform PLATFORM)
-    get_property(_supported_platform_list GLOBAL PROPERTY supported_platform_list)
+unset GREP_OPTIONS
 
-    list(APPEND _supported_platform_list "${PLATFORM}")
-    set_property(GLOBAL PROPERTY supported_platform_list "${_supported_platform_list}")
-endfunction()
+# Redirect output to stderr.
+exec 1>&2
 
-function(_is_supported_platform PLATFORM RESULT)
-    set(${RESULT} 0 PARENT_SCOPE)
-    get_property(_supported_platform_list GLOBAL PROPERTY supported_platform_list)
+MSG="$1"
+first_line="$(sed -n '1p' ${MSG})"
+second_line="$(sed -n '2p' ${MSG})"
 
-    if (NOT DEFINED _supported_platform_list)
-        return()
-    endif()
+if ! echo "${first_line}" |
+      grep -Eq "[-+=*] [^#]+[^[:space:]]: .+[^[:space:]];\$"; then
+    cat <<\EOF
+Error: First line of commit message is incorrect.
 
-    list(FIND _supported_platform_list "${PLATFORM}" IS_FIND)
-    if (NOT IS_FIND EQUAL -1)
-        set(${RESULT} 1 PARENT_SCOPE)
-    endif()
-endfunction()
+Commit message format is '[-+=*] place: Message;'
+
+Incorrect commit message.
+EOF
+    exit 1
+fi
+
+if ! echo "${second_line}" | grep -Eq "[\n]?\$"; then
+    cat <<\EOF
+Error: Second line in commit message must be empty.
+
+Incorrect commit message.
+EOF
+    exit 1
+fi
 

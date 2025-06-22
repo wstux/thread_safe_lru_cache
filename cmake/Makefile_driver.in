@@ -1,0 +1,34 @@
+# Common
+MODULE_NAME = @MODULE_NAME@
+CC = gcc -Wall
+INC = -I/usr/src/linux-headers-$(shell uname -r)/include
+KERNEL_SRC := /lib/modules/$(shell uname -r)/build
+SRC_DIR := @MODULE_SRC_ROOT_DIR@
+BUILD_DIR := @MODULE_BUILD_DIR@
+
+@MODULE_INCLUDE_DIRS@
+@MODULE_EXTRA_CFLAGS@
+@MODULE_EXTRA_LDFLAGS@
+@MODULE_COMPILE_DIFS@
+
+# Get sources from src directory
+SOURCES := @MODULE_SOURCE_FILES@
+$(MODULE_NAME)-objs = $(SOURCES:.c=.o)
+
+obj-m := $(MODULE_NAME).o
+
+all: PREPARE
+	$(MAKE) -C $(KERNEL_SRC) M=$(BUILD_DIR) src=$(SRC_DIR) modules
+
+clean:
+	$(MAKE) -C $(KERNEL_SRC) M=$(BUILD_DIR) src=$(SRC_DIR) clean
+	rm -rf $(BUILD_DIR)
+
+install:
+	$(MAKE) -C $(KERNEL_SRC) M=$(BUILD_DIR) src=$(SRC_DIR) modules_install
+
+PREPARE: $(SOURCES)
+	mkdir -p "$(BUILD_DIR)"
+	@MODULE_MAKE_SUB_DIRS@
+	touch $(BUILD_DIR)/Makefile
+

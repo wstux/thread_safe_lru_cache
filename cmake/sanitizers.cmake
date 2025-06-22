@@ -1,6 +1,6 @@
 # The MIT License
 #
-# Copyright (c) 2023 Chistyakov Alexander
+# Copyright (c) 2022 wstux
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,14 +20,37 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-cmake_minimum_required (VERSION 3.10)
+function(EnableSanitizers ADDRESS LEAK UNDEFINED_BEHAVIOR THREAD)
+    set(_sanitizers "")
 
-set(TARGET_NAME "testing")
+    if (ADDRESS)
+        message(INFO "Building project with address sanitizer")
+        list(APPEND _sanitizers "address")
+    endif()
 
-add_library(${TARGET_NAME} INTERFACE)
-target_include_directories(
-    ${TARGET_NAME} INTERFACE
-        "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/libs>"
-        "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
-)
+    if (LEAK)
+    message(INFO "Building project with leak sanitizer")
+        list(APPEND _sanitizers "leak")
+    endif()
+
+    if (UNDEFINED_BEHAVIOR)
+        message(INFO "Building project with behavior sanitizer")
+        list(APPEND _sanitizers "undefined")
+    endif()
+
+    if (THREAD)
+        if (ADDRESS OR LEAK)
+            message(WARNING "Thread sanitizer does not work with address and leak sanitizer")
+        else()
+            message(INFO "Building project with thread sanitizer")
+            list(APPEND _sanitizers "thread")
+        endif()
+    endif()
+
+    list(JOIN _sanitizers "," _sanitizers)
+    if (_sanitizers)
+        add_compile_options(-fsanitize=${_sanitizers})
+        add_link_options(-fsanitize=${_sanitizers})
+    endif()
+endfunction()
 

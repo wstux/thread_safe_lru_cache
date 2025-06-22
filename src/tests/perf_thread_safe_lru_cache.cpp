@@ -89,7 +89,7 @@ public:
     virtual void TearDown() override
     {
         base::TearDown();
-        
+
         for (std::thread& t : m_threads) {
             t.join();
         }
@@ -165,7 +165,7 @@ public:
     virtual void TearDown() override
     {
         base::TearDown();
-        
+
         for (std::thread& t : m_threads) {
             t.join();
         }
@@ -328,7 +328,7 @@ PERF_TEST_F(cache_fixture, find)
 
     lru_cache cache(2 * cache_env::count(), cache_env::threads_count());
     std::function<void(size_t)> run_fn = [&cache](size_t k) -> void {
-        lru_cache::value_type val;
+        lru_cache::value_type val = 0;
         cache.find(k, val);
     };
 
@@ -381,7 +381,7 @@ PERF_TEST_F(cache_wait_fixture, request)
 
     lru_cache cache(cache_env::count(), cache_env::threads_count());
     std::function<void(size_t)> run_fn = [&cache](size_t k) -> void {
-        lru_cache::value_type val;
+        lru_cache::value_type val = 0;
         if (! cache.find(k, val)) {
             cache.insert(k, k);
         }
@@ -406,7 +406,7 @@ PERF_TEST_F(cache_wait_fixture, request_hot)
 
     lru_cache cache(cache_env::count(), cache_env::threads_count());
     std::function<void(size_t)> run_fn = [&cache](size_t k) -> void {
-        lru_cache::value_type val;
+        lru_cache::value_type val = 0;
         if (! cache.find(k, val)) {
             cache.insert(k, k);
         }
@@ -429,47 +429,13 @@ PERF_TEST_F(cache_wait_fixture, request_hot)
     PERF_MESSAGE() << "speed = " << ((double)td_size / ms) << " insert/ms";
 }
 
-PERF_TEST_F(cache_wait_fixture, request_mutex_hot)
-{
-    using lru_cache_mutex
-        = ::wstux::lru::thread_safe_lru_cache<size_t, size_t,
-                                              std::hash<size_t>, std::equal_to<size_t>,
-                                              std::mutex>;
-
-    PERF_INIT_TIMER(request_mutex_hot);
-
-    lru_cache_mutex cache(cache_env::count(), cache_env::threads_count());
-    std::function<void(size_t)> run_fn = [&cache](size_t k) -> void {
-        lru_cache::value_type val;
-        if (! cache.find(k, val)) {
-            cache.insert(k, k);
-        }
-    };
-
-    for (size_t k : cache_env::test_data()) {
-        cache.insert(k, k);
-    }
-
-    run_threads(run_fn);
-
-    PERF_START_TIMER(request_mutex_hot);
-    wait_finish();
-    PERF_PAUSE_TIMER(request_mutex_hot);
-
-    const double ms = PERF_TIMER_MSECS(request_mutex_hot);
-    const size_t td_size = request_count();
-    PERF_MESSAGE() << "insert time: total = " << ms << " ms; "
-                   << "one element = " << to_ns(ms / (double)td_size) << " ns";
-    PERF_MESSAGE() << "speed = " << ((double)td_size / ms) << " insert/ms";
-}
-
 PERF_TEST_F(cache_wait_fixture, many_shards)
 {
     PERF_INIT_TIMER(request);
 
     lru_cache cache(cache_env::count(), 3 * cache_env::threads_count());
     std::function<void(size_t)> run_fn = [&cache](size_t k) -> void {
-        lru_cache::value_type val;
+        lru_cache::value_type val = 0;
         if (! cache.find(k, val)) {
             cache.insert(k, k);
         }

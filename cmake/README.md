@@ -11,32 +11,29 @@ The *cmake_cpp_project_template* assumes you want to setup a project using
 
 ## Contents
 
+* [Description](#description)
 * [Usage](#usage)
 * [Targets](#targets)
   * [Libraries](#libraries)
   * [Executables](#executables)
   * [Tests](#tests)
-  * [Custom targets](#custom-targets)
   * [Drivers](#drivers)
   * [Externals](#externals)
+  * [Custom targets](#custom-targets)
 * [Build](#build)
 * [License](#license)
 
+## Description
+
+The template sets up hooks for Git. In particular, a check for the presence of
+last whitespace characters in lines is added. This can lead to errors due to
+empty lines at the end of the file. To fix this error, you need to run the
+command:
+```
+git config --global core.whitespace -blank-at-eof
+```
+
 ## Usage
-
-### Install template
-
-Template usage:
-* add a template to the project as a submodule/copy to a subdirectory of the
-  project root directory;
-* copy the files `CMakeLists.txt.in` and `Makefile.in` to the root directory
-  of the project;
-* rename `CMakeLists.txt.in` -> `CMakeLists.txt` and replace `@project_name@`
-  with the name of the project being developed, `@common_cmake_dir@` replace
-  with the path to the directory with template files relative to the root
-  directory of the project;
-* rename `Makefile.in` -> `Makefile` and replace `@common_cmake_dir@` with the
-  path to the template directory relative to the project root directory.
 
 ### Build project
 
@@ -56,20 +53,23 @@ The library supports targets:
 * [LibTarget](#libraries) - building libraries;
 * [ExecTarget](#executables) - building executable files;
 * [TestTarget](#tests) - building tests;
-* [CustomTarget](#custom-targets) - adding custom target;
 * [DriverTarget](#drivers) - building kernel modules;
-* [ExternalTarget and WrapperTarget](#externals) - building external modules.
+* [ExternalTarget and WrapperTarget](#externals) - building external modules;
+* [CustomTarget](#custom-targets) - custom targets.
 
 ### Libraries
 
 `LibTarget` declares the library as the target of the build. `LibTarget`
 supports keywords:
 * library type `SHARED`, `STATIC` or `INTERFACE`;
-* `HEADERS` - list of header files included in the target (this parameter
-  is optional);
+* `HEADERS` - list of public header files. If this parameter is not specified,
+  all header files in the directory containing the target's source code will be used;
 * `SOURCES` - list of files with target source code;
 * `INCLUDE_DIR` - directory relative to which the target's header files will
   be searched;
+* `LINKER_LANGUAGE` - specifies language whose compiler will invoke the linker
+  (supports only 'C' or 'CXX');
+* `COMPILE_DEFINITIONS` - preprocessor definitions for compiling a target's sources;
 * `LIBRARIES` - list of libraries the target depends on;
 * `DEPENDS` - list of the target's dependencies.
 
@@ -82,7 +82,10 @@ Library build target template:
 LibTarget(<lib_name> <lib_type>
     HEADERS     <list_of_headers>
     SOURCES     <list_of_source_files>
-    INCLUDE_DIR <directory>
+    INCLUDE_DIR     <directory>
+    LINKER_LANGUAGE <lang>
+    COMPILE_DEFINITIONS
+        <preprocessor_definitions>
     LIBRARIES   <list_of_libraries_target_depends_on>
     DEPENDS     <list_of_target_dependencies>
 )
@@ -97,8 +100,10 @@ LibTarget(shared_lib SHARED
     SOURCES
         details/shared_lib.cpp
         details/shared_lib_impl.cpp
-    INCLUDE_DIR
-        libs
+    INCLUDE_DIR     libs
+    LINKER_LANGUAGE CXX
+    COMPILE_DEFINITIONS
+        BOOST_LOG_DYN_LINK
     LIBRARIES
         interface_lib
         shared_lib_2
@@ -117,6 +122,11 @@ supports keywords:
 * `HEADERS` - list of header files included in the target (this parameter
   is optional);
 * `SOURCES` - list of files with target source code;
+* `INCLUDE_DIR` - directory relative to which the target's header files will
+  be searched;
+* `LINKER_LANGUAGE` - specifies language whose compiler will invoke the linker
+  (supports only 'C' or 'CXX');
+* `COMPILE_DEFINITIONS` - preprocessor definitions for compiling a target's sources;
 * `LIBRARIES` - list of libraries the target depends on;
 * `DEPENDS` - list of the target's dependencies.
 
@@ -129,6 +139,10 @@ Executable file build target template:
 ExecTarget(<exec_name>
     HEADERS     <list_of_headers>
     SOURCES     <list_of_source_files>
+    INCLUDE_DIR     <directory>
+    LINKER_LANGUAGE <lang>
+    COMPILE_DEFINITIONS
+        <preprocessor_definitions>
     LIBRARIES   <list_of_libraries_target_depends_on>
     DEPENDS     <list_of_target_dependencies>
 )
@@ -161,8 +175,14 @@ supports keywords:
 * `HEADERS` - list of header files included in the target (this parameter
   is optional);
 * `SOURCES` - list of files with target source code;
+* `INCLUDE_DIR` - directory relative to which the target's header files will
+  be searched;
+* `LINKER_LANGUAGE` - specifies language whose compiler will invoke the linker
+  (supports only 'C' or 'CXX');
+* `COMPILE_DEFINITIONS` - preprocessor definitions for compiling a target's sources;
 * `LIBRARIES` - list of libraries the target depends on;
-* `DEPENDS` - list of the target's dependencies.
+* `DEPENDS` - list of the target's dependencies;
+* `DISABLE` - disable autorun test with `make test` command.
 
 The `LIBRARIES` field specifies the list of libraries (targets) included in the
 project, the `DEPENDS` field specifies the system/third-party libraries (targets)
@@ -173,8 +193,13 @@ Test build target template:
 TestTarget(<test_name>
     HEADERS     <list_of_headers>
     SOURCES     <list_of_source_files>
+    INCLUDE_DIR     <directory>
+    LINKER_LANGUAGE <lang>
+    COMPILE_DEFINITIONS
+        <preprocessor_definitions>
     LIBRARIES   <list_of_libraries_target_depends_on>
     DEPENDS     <list_of_target_dependencies>
+    DISABLE
 )
 ```
 
@@ -193,13 +218,9 @@ TestTarget(ut_test
         boost
         ext1
         ext2
+    DISABLE
 )
 ```
-
-### Custom targets
-
-`CustomTarget` is a delineation of the `cmake` `add_custom_target` function.
-Documentation on `add_custom_target` can be requested from the official [website](https://cmake.org/cmake/help/latest/command/add_custom_target.html).
 
 ### Drivers
 
@@ -210,7 +231,7 @@ supports keywords:
 * `SOURCES` - list of files with target source code;
 * `EXTRA_CFLAGS` - list of additional target compilation flags;
 * `EXTRA_LDFLAGS` - list of additional target linking flags;
-* `DEFINES` - list of compile definitions.
+* `COMPILE_DEFINITIONS` - preprocessor definitions for compiling a target's sources.
 
 The assembly of driders is somewhat unique, so it takes place in several stages:
 1. in the build directory, a subdirectory of driver build source codes
@@ -228,7 +249,8 @@ DriverTarget(<driver_name>
     SOURCES         <list_of_source_files>
     EXTRA_CFLAGS    <list_of_c_compile_flags>
     EXTRA_LDFLAGS   <list_of_ld_flags>
-    DEFINES         <list_of_compile_definitions>
+    COMPILE_DEFINITIONS
+        <list_of_compile_definitions>
 )
 ```
 
@@ -256,7 +278,103 @@ DriverTarget(hello_module
 
 #### Externals
 
+`ExternalTarget` creates a custom target to drive download, update/patch,
+configure, build, install and test steps of an external project. `ExternalTarget`
+supports keywords:
+* `CONFIGURE_COMMAND` - configure command for target;
+* `BUILD_COMMAND` - build command for target;
+* `INSTALL_COMMAND` - build command for target;
+* `INCLUDE_DIR` - directory relative to which the target's header files will
+  be searched;
+* `INSTALL_DIR` - installation directory. This directory will be searched for
+  header files and libraries of the compiled target;
+* `URL` - internet address or path to the archive with the target's source files;
+* `LIBRARIES` - list of libraries provided by the target;
+* `DEPENDS` - list of the target's dependencies.
+
+External project build target template:
+```
+ExternalTarget(<ext_name>
+    URL
+    CONFIGURE_COMMAND   <command>
+    BUILD_COMMAND       <command>
+    INSTALL_COMMAND     <command>
+    INSTALL_DIR     <directory>
+    INCLUDE_DIR     <directory>
+    LIBRARIES   <list_of_libraries>
+    DEPENDS     <list_of_target_dependencies>
+)
+```
+
+Usage example:
+```
+ExternalTarget(testing
+    URL
+        https://github.com/wstux/testing_template/archive/refs/heads/master.zip
+    CONFIGURE_COMMAND
+        cmake --install-prefix ${EXTERNALS_PREFIX}/testing/install  ./
+    BUILD_COMMAND
+        cmake --build ./
+    INSTALL_COMMAND
+        cmake --install ./
+    INCLUDE_DIR
+        ${EXTERNALS_PREFIX}/testing/install/include
+    INSTALL_DIR
+        ${EXTERNALS_PREFIX}/testing/install
+)
+```
+
 #### Wrappers
+
+### Custom targets
+
+#### Custom commands
+
+`CustomCommand` is a delineation of the `cmake` `add_custom_command` function.
+Documentation on `add_custom_command` can be requested from the official
+[website](https://cmake.org/cmake/help/latest/command/add_custom_command.html).
+
+#### Custom targets
+
+`CustomTarget` is a delineation of the `cmake` `add_custom_target` function.
+Documentation on `add_custom_target` can be requested from the official
+[website](https://cmake.org/cmake/help/latest/command/add_custom_target.html).
+
+#### Custom test targets
+
+`CustomTestTarget` declares a custom test build target that is not an executable
+file. `cmake` supports a `test` metatarget that runs all declared tests,
+`CustomTestTarget` is essentially a script file and is needed to use the `cmake`
+build system testing framework. `CustomTestTarget` supports keywords:
+* `INTERPRETER` - interpreter for running the script;
+* `SOURCE` - script file with target source code;
+* `ARGUMENTS` - command line arguments to run the script;
+* `DEPENDS` - list of the target's dependencies;
+* `DISABLE` - disable autorun test with `make test` command.
+
+Custom test build target template:
+```
+CustomTestTarget(<test_name>
+    INTERPRETER <interpreter>
+    SOURCE      <source_file>
+    ARGUMENTS   <list_of_arguments>
+    DEPENDS     <list_of_target_dependencies>
+    DISABLE
+)
+```
+
+Usage example:
+```
+CustomTestTarget(ut_custom_test_target_with_args
+    SOURCE
+        ut_custom_test_target_with_args.sh
+    INTERPRETER
+        /bin/bash
+    ARGUMENTS
+        ${CMAKE_BINARY_DIR}
+    DISABLE
+)
+```
 
 ## Build
 
@@ -266,7 +384,7 @@ To do:
 * for `LibTarget` add the ability to specify several types of libraries for one
   target (`SHARED` and `STATIC`);
 * for `LibTarget` change `HEADERS` or `INCLUDE_DIR` to specify the public
-  interface, and make the rest private, [example](https://pabloariasal.github.io/2018/02/19/its-time-to- do-cmake-right/).
+  interface, and make the rest private, [example](https://pabloariasal.github.io/2018/02/19/its-time-to-do-cmake-right/).
 
 ## License
 

@@ -22,8 +22,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef _LRU_CACHE_LRU_CACHE_H
-#define _LRU_CACHE_LRU_CACHE_H
+#ifndef _LIBS_LRU_LRU_CACHE_H_
+#define _LIBS_LRU_LRU_CACHE_H_
 
 #if __cplusplus >= 201703
     #define _THREAD_SAFE_LRU_CACHE_ENABLE_OPTIONAL
@@ -239,5 +239,5 @@ private:
 } // namespace lru
 } // namespace wstux
 
-#endif /* _LRU_CACHE_LRU_CACHE_H */
+#endif /* _LIBS_LRU_LRU_CACHE_H_ */
 

@@ -118,7 +118,6 @@ and/or BUILD_CMD is required")
         ${_configure_cmd}
         ${${TARGET_NAME}_VERBATIM}
     )
-    
 
     add_custom_command(
         OUTPUT ${TARGET_NAME}_build

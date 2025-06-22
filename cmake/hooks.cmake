@@ -1,6 +1,6 @@
 # The MIT License
 #
-# Copyright (c) 2023 Chistyakov Alexander
+# Copyright (c) 2025 wstux
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,19 +20,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-cmake_minimum_required (VERSION 3.10)
+function(InstallHook HOOK_NAME)
+    if (NOT GIT_FOUND)
+        find_package(Git QUIET)
+    endif()
 
-# Unit tests for testing library
-set(_ut_testing "ut_testing")
-add_executable(${_ut_testing} "ut_testing.cpp")
-target_link_libraries(${_ut_testing} testing)
-add_test(${_ut_testing} ${_ut_testing})
-
-# Unit tests for performance testing library
-set(_ut_perf_testing "ut_perf_testing")
-add_executable(${_ut_perf_testing} "ut_perf_testing.cpp")
-target_link_libraries(${_ut_perf_testing} testing)
-add_test(${_ut_perf_testing} ${_ut_perf_testing})
-
-enable_testing()
+    if (GIT_FOUND AND EXISTS ${PROJECT_SOURCE_DIR}/.git)
+        if (NOT EXISTS ${PROJECT_SOURCE_DIR}/.git/hooks/${HOOK_NAME})
+            configure_file(
+                ${PROJECT_SOURCE_DIR}/cmake/hooks/${HOOK_NAME}.in
+                ${PROJECT_SOURCE_DIR}/.git/hooks/${HOOK_NAME}
+                @ONLY
+            )
+        endif()
+    endif()
+endfunction()
 
