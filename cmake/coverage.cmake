@@ -54,7 +54,7 @@ if (COVERAGE_BUILD)
 
     file(MAKE_DIRECTORY "${_coverage_dir}")
 
-    set(_lcov_ignore_errors "deprecated,inconsistent,mismatch")
+    set(_lcov_ignore_errors "deprecated,inconsistent,mismatch,negative")
     set(_lcov_args      --follow --ignore-errors ${_lcov_ignore_errors} --rc lcov_branch_coverage=1)
     CustomTarget(coverage
         # Cleanup lcov

@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 3.10)
 # Project definition
 ################################################################################
 
-project(lru_cache
+project(thread_safe_cache
         VERSION 1.1.0
         LANGUAGES CXX)
 
