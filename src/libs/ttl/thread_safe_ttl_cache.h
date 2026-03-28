@@ -317,16 +317,16 @@ private:
 private:
     inline const _shard_guard& get_shard(const TKey& key) const
     {
-        //return m_shards[(hasher{}(key)) % m_shards.size()];
-        constexpr int shift = std::numeric_limits<size_t>::digits - 16;
-        return m_shards[((hasher{}(key)) >> shift) % m_shards.size()];
+        return m_shards[(hasher{}(key)) % m_shards.size()];
+        //constexpr int shift = std::numeric_limits<size_t>::digits - 16;
+        //return m_shards[((hasher{}(key)) >> shift) % m_shards.size()];
     }
 
     inline _shard_guard& get_shard(const TKey& key)
     {
-        //return m_shards[(hasher{}(key)) % m_shards.size()];
-        constexpr int shift = std::numeric_limits<size_t>::digits - 16;
-        return m_shards[((hasher{}(key)) >> shift) % m_shards.size()];
+        return m_shards[(hasher{}(key)) % m_shards.size()];
+        //constexpr int shift = std::numeric_limits<size_t>::digits - 16;
+        //return m_shards[((hasher{}(key)) >> shift) % m_shards.size()];
     }
 
     template<typename T, typename TFn, typename... TArgs>
