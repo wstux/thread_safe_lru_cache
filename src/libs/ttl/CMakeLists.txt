@@ -1,7 +1,11 @@
+if (USE_BOOST_INTRUSIVE)
+    set(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE "THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE")
+    set(boost "boost")
+endif()
+
 LibTarget(ttl_cache INTERFACE
     COMPILE_DEFINITIONS
         ${THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE}
     DEPENDS
         ${boost}
 )
-

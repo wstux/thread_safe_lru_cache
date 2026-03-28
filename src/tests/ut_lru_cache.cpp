@@ -31,7 +31,7 @@
 #include <random>
 #include <thread>
 
-#include <testing/testdefs.h>
+#include <gtest/gtest.h>
 
 #include "lru/lru_cache.h"
 #include "lru/thread_safe_lru_cache.h"
@@ -427,8 +427,8 @@ TEST_F(thread_safe_cache_fixture, hit)
     EXPECT_TRUE(hit_count() < total_count()) << "hit_count = " << hit_count();
 }
 
-int main(int /*argc*/, char** /*argv*/)
+int main(int argc, char** argv)
 {
+    testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
-
