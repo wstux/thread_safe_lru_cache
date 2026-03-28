@@ -35,7 +35,7 @@ if (CPPCHECK_EXE)
     set(_cppcheck_report_dir            "${_cppcheck_dir}/report")
     set(_cppcheck_report_error_path     "${_cppcheck_dir}/cppcheck_err.xml")
 
-    CustomTarget(cppcheck
+    CustomTarget(stat_cppcheck
         COMMAND bash -c "mkdir -p ${_cppcheck_dir}"
         COMMAND bash -c "mkdir -p ${_cppcheck_report_dir}"
         COMMAND cppcheck

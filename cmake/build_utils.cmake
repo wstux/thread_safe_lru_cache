@@ -25,7 +25,7 @@
 ################################################################################
 
 function(_get_qualifier TARGET_NAME RESULT)
-    set(${RESULT} PRIVATE PARENT_SCOPE)
+    set(${RESULT} PUBLIC PARENT_SCOPE)
     get_target_property(_type ${TARGET_NAME} TYPE)
     if (_type STREQUAL "INTERFACE_LIBRARY")
         set(${RESULT} INTERFACE PARENT_SCOPE)
@@ -47,9 +47,11 @@ function(_configure_target TARGET_NAME)
     # Setting of default include directories.
     _get_default_include_dirs(${TARGET_NAME}    _dfl_include_dirs)
     _get_qualifier(${TARGET_NAME}               _qualifier)
-    target_include_directories(${TARGET_NAME}
-        ${_qualifier} ${_dfl_include_dirs}
-    )
+    if (NOT ${TARGET_NAME}_INCLUDE_DIR)
+        target_include_directories(${TARGET_NAME}
+            ${_qualifier} ${_dfl_include_dirs}
+        )
+    endif()
 
     if (${TARGET_NAME}_COMPILE_DEFINITIONS)
         foreach (_def IN LISTS ${TARGET_NAME}_COMPILE_DEFINITIONS)

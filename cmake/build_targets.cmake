@@ -26,6 +26,24 @@ include(build_utils)
 # Targets
 ################################################################################
 
+# Defines a target for building library with all dependencies.
+#
+# LibTarget(_target_name TYPE
+#   SOURCES     <list_of_source_files>
+#   INCLUDE_DIR <include_directory>     # the directory relative to which the
+#                                       # search for includes will be performed
+#   LINKER_LANGUAGE     <lang>
+#   COMPILE_DEFINITIONS <list_of_compile_defs>
+#   LIBRARIES   <list_of_libraries>
+#   DEPENDS     <list_of_dependencies>
+# )
+#
+# TYPE - target type (MODULE, SHARED, STATIC or INTERFACE).
+# SOURCES
+# INCLUDE_DIR - the directory relative to which the search for includes will be
+#   performed.
+# LINKER_LANGUAGE
+# COMPILE_DEFINITIONS
 macro(LibTarget TARGET_NAME)
     set(_flags_kw   MODULE SHARED STATIC INTERFACE)
     set(_values_kw  COMMENT INCLUDE_DIR LINKER_LANGUAGE)
@@ -35,7 +53,7 @@ macro(LibTarget TARGET_NAME)
     )
 
     set(_include_dir "")
-    if(${TARGET_NAME}_INCLUDE_DIR)
+    if (${TARGET_NAME}_INCLUDE_DIR)
         set(_include_dir "${PROJECT_SOURCE_DIR}/${${TARGET_NAME}_INCLUDE_DIR}")
     else()
         _get_default_include_dirs(${TARGET_NAME} _include_dir)
@@ -105,6 +123,19 @@ macro(LibTarget TARGET_NAME)
     )
 endmacro()
 
+# Defines a target for building execution with all dependencies.
+#
+# ExecTarget(_target_name
+#   SOURCES     <list_of_source_files>
+#   LINKER_LANGUAGE     <lang>
+#   COMPILE_DEFINITIONS <list_of_compile_defs>
+#   LIBRARIES   <list_of_libraries>
+#   DEPENDS     <list_of_dependencies>
+# )
+#
+# SOURCES
+# LINKER_LANGUAGE
+# COMPILE_DEFINITIONS
 macro(ExecTarget TARGET_NAME)
     set(_flags_kw   )
     set(_values_kw  COMMENT INCLUDE_DIR LINKER_LANGUAGE)
@@ -123,6 +154,8 @@ macro(ExecTarget TARGET_NAME)
         )
     endif()
 
+    #target_compile_options(${TARGET_NAME} PRIVATE ${COVERAGE_FLAGS})
+
     _configure_target(${TARGET_NAME})
 
     set_target_properties(${TARGET_NAME} PROPERTIES
@@ -130,7 +163,26 @@ macro(ExecTarget TARGET_NAME)
     )
 endmacro()
 
+# Defines a target for building test execution with all dependencies.
+#
+# TestTarget(_target_name
+#   DISABLE
+#   SOURCES     <list_of_source_files>
+#   LINKER_LANGUAGE     <lang>
+#   COMPILE_DEFINITIONS <list_of_compile_defs>
+#   LIBRARIES   <list_of_libraries>
+#   DEPENDS     <list_of_dependencies>
+# )
+#
+# DISABLE
+# SOURCES
+# LINKER_LANGUAGE
+# COMPILE_DEFINITIONS
 macro(TestTarget TARGET_NAME)
+    if (NOT BUILD_TESTS)
+        return()
+    endif()
+
     set(_flags_kw   DISABLE)
     set(_values_kw  COMMENT INCLUDE_DIR LINKER_LANGUAGE)
     set(_lists_kw   HEADERS SOURCES LIBRARIES DEPENDS COMPILE_DEFINITIONS)
@@ -172,4 +224,3 @@ macro(TestTarget TARGET_NAME)
         RUNTIME_OUTPUT_DIRECTORY "${_target_dir}"
     )
 endmacro()
-
