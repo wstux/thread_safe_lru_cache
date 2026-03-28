@@ -22,8 +22,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef _LIBS_LRU_THREAD_SAFE_LRU_CACHE_H_
-#define _LIBS_LRU_THREAD_SAFE_LRU_CACHE_H_
+#ifndef _THREAD_SAFE_CACHE_LIBS_CACHE_THREAD_SAFE_LRU_CACHE_H_
+#define _THREAD_SAFE_CACHE_LIBS_CACHE_THREAD_SAFE_LRU_CACHE_H_
 
 #include <limits>
 #include <memory>
@@ -32,7 +32,7 @@
 #include <vector>
 #include <utility>
 
-#include "lru/lru_cache.h"
+#include "cache/lru_cache.h"
 
 namespace wstux {
 namespace lru {
@@ -314,16 +314,16 @@ private:
 private:
     inline const _shard_guard& get_shard(const TKey& key) const
     {
-        //return m_shards[(hasher{}(key)) % m_shards.size()];
-        constexpr int shift = std::numeric_limits<size_t>::digits - 16;
-        return m_shards[((hasher{}(key)) >> shift) % m_shards.size()];
+        return m_shards[(hasher{}(key)) % m_shards.size()];
+        //constexpr int shift = std::numeric_limits<size_t>::digits - 16;
+        //return m_shards[((hasher{}(key)) >> shift) % m_shards.size()];
     }
 
     inline _shard_guard& get_shard(const TKey& key)
     {
-        //return m_shards[(hasher{}(key)) % m_shards.size()];
-        constexpr int shift = std::numeric_limits<size_t>::digits - 16;
-        return m_shards[((hasher{}(key)) >> shift) % m_shards.size()];
+        return m_shards[(hasher{}(key)) % m_shards.size()];
+        //constexpr int shift = std::numeric_limits<size_t>::digits - 16;
+        //return m_shards[((hasher{}(key)) >> shift) % m_shards.size()];
     }
 
     template<typename T, typename TFn, typename... TArgs>
@@ -350,5 +350,4 @@ private:
 } // namespace lru
 } // namespace wstux
 
-#endif /* _LIBS_LRU_THREAD_SAFE_LRU_CACHE_H_ */
-
+#endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_THREAD_SAFE_LRU_CACHE_H_ */

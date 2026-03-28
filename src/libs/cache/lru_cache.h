@@ -22,20 +22,13 @@
  * THE SOFTWARE.
  */
 
-#ifndef _LIBS_LRU_LRU_CACHE_H_
-#define _LIBS_LRU_LRU_CACHE_H_
-
-#if __cplusplus >= 201703
-    #define _THREAD_SAFE_LRU_CACHE_ENABLE_OPTIONAL
-#endif
+#ifndef _THREAD_SAFE_CACHE_LIBS_CACHE_LRU_CACHE_H_
+#define _THREAD_SAFE_CACHE_LIBS_CACHE_LRU_CACHE_H_
 
 #include <functional>
+#include <optional>
 
-#if defined(_THREAD_SAFE_LRU_CACHE_ENABLE_OPTIONAL)
-    #include <optional>
-#endif
-
-#include "lru/details/base_lru_cache.h"
+#include "cache/details/base_lru_cache.h"
 
 namespace wstux {
 namespace lru {
@@ -62,7 +55,7 @@ namespace lru {
  */
 template<typename TKey, typename TValue,
          class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>>
-class lru_cache : protected details::base_lru_cache<TKey, TValue, THash, TKeyEqual>
+class lru_cache final : protected details::base_lru_cache<TKey, TValue, THash, TKeyEqual>
 {
 private:
     typedef details::base_lru_cache<TKey, TValue, THash, TKeyEqual>     base;
@@ -174,7 +167,6 @@ public:
         return true;
     }
 
-#if defined(_THREAD_SAFE_LRU_CACHE_ENABLE_OPTIONAL)
     /// \brief  Gets an element with key equivalent to key.
     /// \param  key - key value of the element to search for.
     /// \return Element if element has been found, otherwise std::nullopt.
@@ -188,7 +180,6 @@ public:
 
         return std::nullopt;
     }
-#endif
 
     /// \brief  Clear cache contents and change the capacity of the cache.
     /// \param  new_capacity - new capacity of the cache, in number of elements.
@@ -239,5 +230,4 @@ private:
 } // namespace lru
 } // namespace wstux
 
-#endif /* _LIBS_LRU_LRU_CACHE_H_ */
-
+#endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_LRU_CACHE_H_ */

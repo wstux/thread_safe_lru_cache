@@ -3,7 +3,7 @@ if (USE_BOOST_INTRUSIVE)
     set(boost "boost")
 endif()
 
-LibTarget(lru_cache INTERFACE
+LibTarget(thread_safe_cache INTERFACE
     COMPILE_DEFINITIONS
         ${THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE}
     DEPENDS

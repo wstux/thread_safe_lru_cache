@@ -33,8 +33,8 @@
 
 #include <gtest/gtest.h>
 
-#include "lru/lru_cache.h"
-#include "lru/thread_safe_lru_cache.h"
+#include "cache/lru_cache.h"
+#include "cache/thread_safe_lru_cache.h"
 
 namespace {
 

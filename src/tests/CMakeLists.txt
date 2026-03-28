@@ -4,7 +4,7 @@ TestTarget(ut_lru_cache
     SOURCES
         ut_lru_cache.cpp
     LIBRARIES
-        lru_cache
+        thread_safe_cache
     DEPENDS
         googletest
 )
@@ -23,7 +23,7 @@ if (USE_BOOST_INTRUSIVE)
         SOURCES
             ut_lru_cache.cpp
         LIBRARIES
-            lru_cache
+            thread_safe_cache
         COMPILE_DEFINITIONS
             THREAD_SAFE_CACHE_DISABLE_BOOST
         DEPENDS
@@ -48,7 +48,7 @@ endif()
 #    SOURCES
 #        perf_lru_cache.cpp
 #    LIBRARIES
-#        lru_cache
+#        thread_safe_cache
 #    DEPENDS
 #        testing
 #)
@@ -57,7 +57,7 @@ endif()
 #    SOURCES
 #        perf_thread_safe_lru_cache.cpp
 #    LIBRARIES
-#        lru_cache
+#        thread_safe_cache
 #    DEPENDS
 #        testing
 #)
@@ -67,7 +67,7 @@ if (USE_BOOST_INTRUSIVE)
 #        SOURCES
 #            perf_lru_cache.cpp
 #        LIBRARIES
-#            lru_cache
+#            thread_safe_cache
 #        COMPILE_DEFINITIONS
 #            THREAD_SAFE_CACHE_DISABLE_BOOST
 #        DEPENDS
@@ -78,7 +78,7 @@ if (USE_BOOST_INTRUSIVE)
 #        SOURCES
 #            perf_thread_safe_lru_cache.cpp
 #        LIBRARIES
-#            lru_cache
+#            thread_safe_cache
 #        COMPILE_DEFINITIONS
 #            THREAD_SAFE_CACHE_DISABLE_BOOST
 #        DEPENDS
