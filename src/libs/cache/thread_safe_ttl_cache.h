@@ -22,8 +22,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef _LIBS_TTL_THREAD_SAFE_TTL_CACHE_H_
-#define _LIBS_TTL_THREAD_SAFE_TTL_CACHE_H_
+#ifndef _THREAD_SAFE_CACHE_LIBS_CACHE_THREAD_SAFE_TTL_CACHE_H_
+#define _THREAD_SAFE_CACHE_LIBS_CACHE_THREAD_SAFE_TTL_CACHE_H_
 
 #include <atomic>
 #include <limits>
@@ -33,7 +33,7 @@
 #include <vector>
 #include <utility>
 
-#include "ttl/ttl_cache.h"
+#include "cache/ttl_cache.h"
 
 namespace wstux {
 namespace ttl {
@@ -353,5 +353,5 @@ private:
 } // namespace ttl
 } // namespace wstux
 
-#endif /* _LIBS_TTL_THREAD_SAFE_TTL_CACHE_H_ */
+#endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_THREAD_SAFE_TTL_CACHE_H_ */
 

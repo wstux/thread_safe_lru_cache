@@ -13,7 +13,7 @@ TestTarget(ut_ttl_cache
     SOURCES
         ut_ttl_cache.cpp
     LIBRARIES
-        ttl_cache
+        thread_safe_cache
     DEPENDS
         googletest
 )
@@ -34,7 +34,7 @@ if (USE_BOOST_INTRUSIVE)
         SOURCES
             ut_ttl_cache.cpp
         LIBRARIES
-            ttl_cache
+            thread_safe_cache
         COMPILE_DEFINITIONS
             THREAD_SAFE_CACHE_DISABLE_BOOST
         DEPENDS

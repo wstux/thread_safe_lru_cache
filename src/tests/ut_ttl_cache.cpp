@@ -33,8 +33,8 @@
 
 #include <gtest/gtest.h>
 
-#include "ttl/ttl_cache.h"
-#include "ttl/thread_safe_ttl_cache.h"
+#include "cache/ttl_cache.h"
+#include "cache/thread_safe_ttl_cache.h"
 
 namespace {
 
