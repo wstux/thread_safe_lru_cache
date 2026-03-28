@@ -240,7 +240,6 @@ public:
         return wrapper(get_shard(key), &_shard_type::insert, key, val);
     }
 
-#if defined(_THREAD_SAFE_LRU_CACHE_ENABLE_OPTIONAL)
     /// \brief  Gets an element with key equivalent to key.
     /// \param  key - key value of the element to search for.
     /// \return Element if element has been found, otherwise std::nullopt.
@@ -248,7 +247,6 @@ public:
     {
         return wrapper(get_shard(key), &_shard_type::get, key);
     }
-#endif
 
     /// \brief  Clear cache contents and change the capacity of the cache.
     /// \param  new_capacity - new capacity of the cache, in number of elements.
