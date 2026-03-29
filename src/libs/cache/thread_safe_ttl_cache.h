@@ -22,8 +22,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef _LIBS_TTL_THREAD_SAFE_TTL_CACHE_H_
-#define _LIBS_TTL_THREAD_SAFE_TTL_CACHE_H_
+#ifndef _THREAD_SAFE_CACHE_LIBS_CACHE_THREAD_SAFE_TTL_CACHE_H_
+#define _THREAD_SAFE_CACHE_LIBS_CACHE_THREAD_SAFE_TTL_CACHE_H_
 
 #include <atomic>
 #include <limits>
@@ -33,7 +33,7 @@
 #include <vector>
 #include <utility>
 
-#include "ttl/ttl_cache.h"
+#include "cache/ttl_cache.h"
 
 namespace wstux {
 namespace ttl {
@@ -242,7 +242,6 @@ public:
         return wrapper(get_shard(key), &_shard_type::insert, key, val);
     }
 
-#if defined(_THREAD_SAFE_TTL_CACHE_ENABLE_OPTIONAL)
     /// \brief  Gets an element with key equivalent to key.
     /// \param  key - key value of the element to search for.
     /// \return Element if element has been found, otherwise std::nullopt.
@@ -250,7 +249,6 @@ public:
     {
         return wrapper(get_shard(key), &_shard_type::get, key);
     }
-#endif
 
     /// \brief  Clear cache contents and change the capacity of the cache.
     /// \param  ttl_msecs - time to live milliseconds.
@@ -317,16 +315,16 @@ private:
 private:
     inline const _shard_guard& get_shard(const TKey& key) const
     {
-        //return m_shards[(hasher{}(key)) % m_shards.size()];
-        constexpr int shift = std::numeric_limits<size_t>::digits - 16;
-        return m_shards[((hasher{}(key)) >> shift) % m_shards.size()];
+        return m_shards[(hasher{}(key)) % m_shards.size()];
+        //constexpr int shift = std::numeric_limits<size_t>::digits - 16;
+        //return m_shards[((hasher{}(key)) >> shift) % m_shards.size()];
     }
 
     inline _shard_guard& get_shard(const TKey& key)
     {
-        //return m_shards[(hasher{}(key)) % m_shards.size()];
-        constexpr int shift = std::numeric_limits<size_t>::digits - 16;
-        return m_shards[((hasher{}(key)) >> shift) % m_shards.size()];
+        return m_shards[(hasher{}(key)) % m_shards.size()];
+        //constexpr int shift = std::numeric_limits<size_t>::digits - 16;
+        //return m_shards[((hasher{}(key)) >> shift) % m_shards.size()];
     }
 
     template<typename T, typename TFn, typename... TArgs>
@@ -353,5 +351,5 @@ private:
 } // namespace ttl
 } // namespace wstux
 
-#endif /* _LIBS_TTL_THREAD_SAFE_TTL_CACHE_H_ */
+#endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_THREAD_SAFE_TTL_CACHE_H_ */
 

@@ -1,85 +1,91 @@
-add_subdirectory(benchmark)
+# Performance tests
 
-# Unit tests
-
-TestTarget(ut_cache
+TestTarget(perf_cache
     SOURCES
-        ut_cache.cpp
+        perf_cache.cpp
     LIBRARIES
         thread_safe_cache
     DEPENDS
-        googletest
+        googlebenchmark
+    DISABLE
 )
 
-TestTarget(ut_thread_safe_cache
+TestTarget(perf_thread_safe_cache
     SOURCES
-        ut_thread_safe_cache.cpp
+        perf_thread_safe_cache.cpp
     LIBRARIES
         thread_safe_cache
     DEPENDS
-        googletest
+        googlebenchmark
+    DISABLE
 )
 
-TestTarget(ut_lru_cache
+TestTarget(perf_lru_cache
     SOURCES
-        ut_lru_cache.cpp
+        perf_lru_cache.cpp
     LIBRARIES
         thread_safe_cache
     DEPENDS
-        googletest
+        testing
+    DISABLE
 )
 
-TestTarget(ut_ttl_cache
+TestTarget(perf_thread_safe_lru_cache
     SOURCES
-        ut_ttl_cache.cpp
+        perf_thread_safe_lru_cache.cpp
     LIBRARIES
         thread_safe_cache
     DEPENDS
-        googletest
+        testing
+    DISABLE
 )
 
 if (USE_BOOST_INTRUSIVE)
-    TestTarget(ut_cache_std
+    TestTarget(perf_cache_std
         SOURCES
-            ut_cache.cpp
+            perf_cache.cpp
         LIBRARIES
             thread_safe_cache
         COMPILE_DEFINITIONS
             THREAD_SAFE_CACHE_DISABLE_BOOST
         DEPENDS
-            googletest
+            googlebenchmark
+        DISABLE
     )
 
-    TestTarget(ut_thread_safe_cache_std
+    TestTarget(perf_thread_safe_cache_std
         SOURCES
-            ut_thread_safe_cache.cpp
+            perf_thread_safe_cache.cpp
         LIBRARIES
             thread_safe_cache
         COMPILE_DEFINITIONS
             THREAD_SAFE_CACHE_DISABLE_BOOST
         DEPENDS
-            googletest
+            googlebenchmark
+        DISABLE
     )
 
-    TestTarget(ut_lru_cache_std
+    TestTarget(perf_lru_cache_std
         SOURCES
-            ut_lru_cache.cpp
+            perf_lru_cache.cpp
         LIBRARIES
             thread_safe_cache
         COMPILE_DEFINITIONS
             THREAD_SAFE_CACHE_DISABLE_BOOST
         DEPENDS
-            googletest
+            testing
+        DISABLE
     )
 
-    TestTarget(ut_ttl_cache_std
+    TestTarget(perf_thread_safe_lru_cache_std
         SOURCES
-            ut_ttl_cache.cpp
+            perf_thread_safe_lru_cache.cpp
         LIBRARIES
             thread_safe_cache
         COMPILE_DEFINITIONS
             THREAD_SAFE_CACHE_DISABLE_BOOST
         DEPENDS
-            googletest
+            testing
+        DISABLE
     )
 endif()

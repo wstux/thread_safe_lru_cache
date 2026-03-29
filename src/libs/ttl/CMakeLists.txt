@@ -1,7 +1,0 @@
-LibTarget(ttl_cache INTERFACE
-    COMPILE_DEFINITIONS
-        ${THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE}
-    DEPENDS
-        ${boost}
-)
-

@@ -22,8 +22,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef _LIBS_LRU_THREAD_SAFE_LRU_CACHE_H_
-#define _LIBS_LRU_THREAD_SAFE_LRU_CACHE_H_
+#ifndef _THREAD_SAFE_CACHE_LIBS_CACHE_THREAD_SAFE_LRU_CACHE_H_
+#define _THREAD_SAFE_CACHE_LIBS_CACHE_THREAD_SAFE_LRU_CACHE_H_
 
 #include <limits>
 #include <memory>
@@ -32,7 +32,7 @@
 #include <vector>
 #include <utility>
 
-#include "lru/lru_cache.h"
+#include "cache/lru_cache.h"
 
 namespace wstux {
 namespace lru {
@@ -240,7 +240,6 @@ public:
         return wrapper(get_shard(key), &_shard_type::insert, key, val);
     }
 
-#if defined(_THREAD_SAFE_LRU_CACHE_ENABLE_OPTIONAL)
     /// \brief  Gets an element with key equivalent to key.
     /// \param  key - key value of the element to search for.
     /// \return Element if element has been found, otherwise std::nullopt.
@@ -248,7 +247,6 @@ public:
     {
         return wrapper(get_shard(key), &_shard_type::get, key);
     }
-#endif
 
     /// \brief  Clear cache contents and change the capacity of the cache.
     /// \param  new_capacity - new capacity of the cache, in number of elements.
@@ -314,16 +312,16 @@ private:
 private:
     inline const _shard_guard& get_shard(const TKey& key) const
     {
-        //return m_shards[(hasher{}(key)) % m_shards.size()];
-        constexpr int shift = std::numeric_limits<size_t>::digits - 16;
-        return m_shards[((hasher{}(key)) >> shift) % m_shards.size()];
+        return m_shards[(hasher{}(key)) % m_shards.size()];
+        //constexpr int shift = std::numeric_limits<size_t>::digits - 16;
+        //return m_shards[((hasher{}(key)) >> shift) % m_shards.size()];
     }
 
     inline _shard_guard& get_shard(const TKey& key)
     {
-        //return m_shards[(hasher{}(key)) % m_shards.size()];
-        constexpr int shift = std::numeric_limits<size_t>::digits - 16;
-        return m_shards[((hasher{}(key)) >> shift) % m_shards.size()];
+        return m_shards[(hasher{}(key)) % m_shards.size()];
+        //constexpr int shift = std::numeric_limits<size_t>::digits - 16;
+        //return m_shards[((hasher{}(key)) >> shift) % m_shards.size()];
     }
 
     template<typename T, typename TFn, typename... TArgs>
@@ -350,5 +348,4 @@ private:
 } // namespace lru
 } // namespace wstux
 
-#endif /* _LIBS_LRU_THREAD_SAFE_LRU_CACHE_H_ */
-
+#endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_THREAD_SAFE_LRU_CACHE_H_ */

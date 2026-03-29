@@ -22,6 +22,7 @@
 
 enable_testing()
 
+include(coverage)
 include(docs)
 include(sanitizers)
 include(static_analysis)

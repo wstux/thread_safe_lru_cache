@@ -22,10 +22,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef _LIBS_LRU_BASE_LRU_CACHE_H_
-#define _LIBS_LRU_BASE_LRU_CACHE_H_
-
-#include <atomic>
+#ifndef _THREAD_SAFE_CACHE_LIBS_CACHE_BASE_LRU_CACHE_H_
+#define _THREAD_SAFE_CACHE_LIBS_CACHE_BASE_LRU_CACHE_H_
 
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
     #include <memory>
@@ -43,40 +41,12 @@ namespace lru {
 namespace details {
 
 ////////////////////////////////////////////////////////////////////////////////
-// class spinlock
-//
-// The spinlock implementation described in the links is used:
-// https://www.talkinghightech.com/en/implementing-a-spinlock-in-c/
-// https://rigtorp.se/spinlock/
-class spinlock
-{
-public:
-    void lock()
-    {
-        for (;;) {
-            if (! m_lock.exchange(true, std::memory_order_acquire)) { return; }
-            while (m_lock.load(std::memory_order_relaxed)) {
-                __builtin_ia32_pause();
-            }
-        }
-    }
-
-    bool try_lock()
-    {
-      return (! m_lock.load(std::memory_order_relaxed)) &&
-             (! m_lock.exchange(true, std::memory_order_acquire));
-    }
-
-    void unlock() { m_lock.store(false, std::memory_order_release); }
-
-private:
-    std::atomic_bool m_lock = {false};
-};
-
-////////////////////////////////////////////////////////////////////////////////
 // Specifics of cache implementation
 
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
+/**
+ *  \brief  Implementations based on boost intrusive.
+ */
 namespace bi = boost::intrusive;
 
 template<typename TKey, typename TValue>
@@ -118,6 +88,9 @@ struct lru_node_equal
     bool operator()(const T1& l, const T2& r) const { return TKeyEqual{}(_key(l), _key(r)); }
 };
 #else
+/**
+ *  \brief  Implementations based on standard library.
+ */
 template<typename TKey, typename TValue>
 struct hash_table_value
 {
@@ -222,20 +195,11 @@ protected:
 
     void erase(const key_type& key)
     {
-#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-        typename _hash_table_t::iterator it =
-            m_hash_tbl.find(key, m_hash_tbl.hash_function(), m_hash_tbl.key_eq());
+        typename _hash_table_t::iterator it = find_in_tbl(key);
         if (it != m_hash_tbl.end()) {
-            m_lru_list.erase(m_lru_list.iterator_to(*it));
+            m_lru_list.erase(list_iterator(it));
             m_hash_tbl.erase(it);
         }
-#else
-        typename _hash_table_t::iterator it = m_hash_tbl.find(key);
-        if (it != m_hash_tbl.end()) {
-            m_lru_list.erase(it->second.lru_it);
-            m_hash_tbl.erase(it);
-        }
-#endif
     }
 
     inline typename _hash_table_t::iterator find_in_tbl(const key_type& key)
@@ -262,12 +226,21 @@ protected:
         }
 #else
         if (size() >= m_capacity) {
+    #if __cplusplus >= 201703
+            typename _hash_table_t::node_type node = m_hash_tbl.extract(m_lru_list.front());
+            node.key() = key;
+            typename _hash_table_t::insert_return_type rc = m_hash_tbl.insert(std::move(node));
+            rc.position->second.value = value_type(std::forward<TArgs>(args)...);
+            m_lru_list.front() = key;
+            move_to_top(rc.position);
+    #else
             m_hash_tbl.erase(m_lru_list.front());
             m_lru_list.front() = key;
             std::pair<typename _hash_table_t::iterator, bool> rc =
                 m_hash_tbl.emplace(key, typename _traits_t::_table_value_t(std::forward<TArgs>(args)...));
             rc.first->second.lru_it = m_lru_list.begin();
             move_to_top(rc.first);
+    #endif
         } else {
             typename _lru_list_t::iterator it = m_lru_list.emplace(m_lru_list.end(), key);
             std::pair<typename _hash_table_t::iterator, bool> rc =
@@ -284,10 +257,15 @@ protected:
 
     inline void move_to_top(typename _hash_table_t::iterator& it)
     {
+        m_lru_list.splice(m_lru_list.end(), m_lru_list, list_iterator(it));
+    }
+
+    inline typename _lru_list_t::iterator list_iterator(typename _hash_table_t::iterator& it)
+    {
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-        m_lru_list.splice(m_lru_list.end(), m_lru_list, m_lru_list.iterator_to(*it));
+        return m_lru_list.iterator_to(*it);
 #else
-        m_lru_list.splice(m_lru_list.end(), m_lru_list, it->second.lru_it);
+        return it->second.lru_it;
 #endif
     }
 
@@ -371,5 +349,4 @@ private:
 } // namespace lru
 } // namespace wstux
 
-#endif /* _LIBS_LRU_BASE_LRU_CACHE_H_ */
-
+#endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_BASE_LRU_CACHE_H_ */

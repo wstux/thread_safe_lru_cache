@@ -22,20 +22,13 @@
  * THE SOFTWARE.
  */
 
-#ifndef _LIBS_TTL_TTL_CACHE_H_
-#define _LIBS_TTL_TTL_CACHE_H_
-
-#if __cplusplus >= 201703
-    #define _THREAD_SAFE_CACHE_ENABLE_OPTIONAL
-#endif
+#ifndef _THREAD_SAFE_CACHE_LIBS_CACHE_TTL_CACHE_H_
+#define _THREAD_SAFE_CACHE_LIBS_CACHE_TTL_CACHE_H_
 
 #include <functional>
+#include <optional>
 
-#if defined(_THREAD_SAFE_CACHE_ENABLE_OPTIONAL)
-    #include <optional>
-#endif
-
-#include "ttl/details/base_ttl_cache.h"
+#include "cache/details/base_ttl_cache.h"
 
 namespace wstux {
 namespace ttl {
@@ -189,7 +182,6 @@ public:
         return true;
     }
 
-#if defined(_THREAD_SAFE_CACHE_ENABLE_OPTIONAL)
     /// \brief  Gets an element with key equivalent to key.
     /// \param  key - key value of the element to search for.
     /// \return Element if element has been found, otherwise std::nullopt.
@@ -203,7 +195,6 @@ public:
 
         return std::nullopt;
     }
-#endif
 
     /// \brief  Clear cache contents and change the capacity of the cache.
     /// \param  ttl_msecs - time to live milliseconds.
@@ -258,5 +249,5 @@ private:
 } // namespace ttl
 } // namespace wstux
 
-#endif /* _LIBS_TTL_TTL_CACHE_H_ */
+#endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_TTL_CACHE_H_ */
 

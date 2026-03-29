@@ -20,24 +20,42 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-function(AddPlatform PLATFORM)
+function(AddPlatform PLATFORM_NAME)
     get_property(_supported_platform_list GLOBAL PROPERTY supported_platform_list)
 
-    list(APPEND _supported_platform_list "${PLATFORM}")
+    list(APPEND _supported_platform_list "${PLATFORM_NAME}")
     set_property(GLOBAL PROPERTY supported_platform_list "${_supported_platform_list}")
 endfunction()
 
-function(_is_supported_platform PLATFORM RESULT)
-    set(${RESULT} 0 PARENT_SCOPE)
+function(_is_supported_platform PLATFORM_NAME RESULT_VAL)
+    set(${RESULT_VAL} 0 PARENT_SCOPE)
     get_property(_supported_platform_list GLOBAL PROPERTY supported_platform_list)
 
     if (NOT DEFINED _supported_platform_list)
         return()
     endif()
 
-    list(FIND _supported_platform_list "${PLATFORM}" IS_FIND)
+    list(FIND _supported_platform_list "${PLATFORM_NAME}" IS_FIND)
     if (NOT IS_FIND EQUAL -1)
-        set(${RESULT} 1 PARENT_SCOPE)
+        set(${RESULT_VAL} 1 PARENT_SCOPE)
+    endif()
+endfunction()
+
+################################################################################
+# Adding value at the end of list.
+# LIST_OF_VALUES - list of values ​​where a new value should be added.
+# VALUE          - a new value to add to the end of the list.
+#
+# Example:
+#   foreach (_val IN LISTS values)
+#       _append_to_list(_new_list "${_val}")
+#   endforeach()
+################################################################################
+function(_append_to_list LIST_OF_VALUES VALUE)
+    if (${LIST_OF_VALUES})
+        set(${LIST_OF_VALUES} "${${LIST_OF_VALUES}}" "${VALUE}" PARENT_SCOPE)
+    else()
+        set(${LIST_OF_VALUES} "${VALUE}" PARENT_SCOPE)
     endif()
 endfunction()
 

@@ -31,7 +31,7 @@ int fibonacci(int n, lru_cache& cache)
 
     int value;
     if (cache.find(n, value)) {
-        return val;
+        return value;
     }
 
     value = fibonacci(n - 1, cache) + fibonacci(n - 2, cache);
@@ -61,7 +61,7 @@ int fibonacci(int n, lru_cache& cache)
 
     int value;
     if (cache.find(n, value)) {
-        return val;
+        return value;
     }
 
     value = fibonacci(n - 1, cache) + fibonacci(n - 2, cache);
