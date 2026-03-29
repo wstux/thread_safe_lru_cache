@@ -32,7 +32,7 @@
 
 #include <testing/perfdefs.h>
 
-#include "lru/lru_cache.h"
+#include "cache/lru_cache.h"
 
 namespace {
 

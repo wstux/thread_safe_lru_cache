@@ -16,15 +16,34 @@ if (BUILD_BOOST)
 endif()
 
 if (BUILD_TESTS)
+    ExternalTarget(testing
+        VERSION "1.0.0"
+        URL
+            https://github.com/wstux/testing_template/archive/refs/tags/v1.0.0.tar.gz
+        #URL_MD5
+        #    fe33be48eeb6de4dc2fefe60a3834c1f
+        CONFIGURE_COMMAND
+            cmake --install-prefix ${EXTERNALS_PREFIX}/testing/install  ./
+        BUILD_COMMAND
+            cmake --build ./
+        INSTALL_COMMAND
+            cmake --install ./
+        INCLUDE_DIR
+            ${EXTERNALS_PREFIX}/testing/install/include
+        INSTALL_DIR
+            ${EXTERNALS_PREFIX}/testing/install
+    )
+
     ExternalTarget(googlebenchmark
         VERSION "1.9.5"
         URL     https://github.com/google/benchmark/archive/refs/tags/v1.9.5.tar.gz
         CONFIGURE_COMMAND
             cmake -DBENCHMARK_ENABLE_GTEST_TESTS=OFF
                 -DBENCHMARK_DOWNLOAD_DEPENDENCIES=OFF
+                -DCMAKE_BUILD_TYPE=Release
                 --install-prefix ${EXTERNALS_PREFIX}/googlebenchmark/install ./
         BUILD_COMMAND
-            cmake --build ./ && cmake --install ./
+            cmake --build ./ --config Release && cmake --install ./
         INCLUDE_DIR
             ${EXTERNALS_PREFIX}/googlebenchmark/install/include
         INSTALL_DIR
