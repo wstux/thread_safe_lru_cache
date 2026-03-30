@@ -31,6 +31,7 @@
 #include <benchmark/benchmark.h>
 
 #include "cache/lru_cache.h"
+#include "cache/rr_cache.h"
 #include "cache/ttl_cache.h"
 
 namespace {
@@ -42,7 +43,13 @@ struct lru_cache
     using cache = ::wstux::lru::lru_cache<size_t, size_t>;
 
     static cache create(size_t cap = 10) { return cache(cap); }
-    //static void reset(cache& c, size_t cap) { c.reset(cap); }
+};
+
+struct rr_cache
+{
+    using cache = ::wstux::rr::rr_cache<size_t, size_t>;
+
+    static cache create(size_t cap = 10) { return cache(cap); }
 };
 
 struct ttl_cache
@@ -50,7 +57,6 @@ struct ttl_cache
     using cache = ::wstux::ttl::ttl_cache<size_t, size_t>;
 
     static cache create(size_t cap = 10) { return cache(900, cap); }
-    //static void reset(cache& c, size_t cap) { c.reset(900, cap); }
 };
 
 template<typename TParam>
@@ -167,6 +173,7 @@ static void insert_overflow(::benchmark::State& state)
     BENCHMARK_TEMPLATE(insert_overflow, cache_type)
 
 DECLARE_TYPED_BENCHMARKS(lru_cache);
+DECLARE_TYPED_BENCHMARKS(rr_cache);
 DECLARE_TYPED_BENCHMARKS(ttl_cache);
 
 BENCHMARK_MAIN();

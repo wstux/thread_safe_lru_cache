@@ -34,6 +34,7 @@
 #include <gtest/gtest.h>
 
 #include "cache/thread_safe_lru_cache.h"
+#include "cache/thread_safe_rr_cache.h"
 #include "cache/thread_safe_ttl_cache.h"
 
 namespace {
@@ -129,6 +130,13 @@ struct thread_safe_lru_cache
     static cache create(size_t cap = 10, size_t shards = 2) { return cache(cap, shards); }
 };
 
+struct thread_safe_rr_cache
+{
+    using cache = ::wstux::rr::thread_safe_rr_cache<size_t, size_t>;
+
+    static cache create(size_t cap = 10, size_t shards = 2) { return cache(cap, shards); }
+};
+
 struct thread_safe_ttl_cache
 {
     using cache = ::wstux::ttl::thread_safe_ttl_cache<size_t, size_t>;
@@ -136,7 +144,7 @@ struct thread_safe_ttl_cache
     static cache create(size_t cap = 10, size_t shards = 2) { return cache(900, cap, shards); }
 };
 
-using cache_types = testing::Types<thread_safe_lru_cache, thread_safe_ttl_cache>;
+using cache_types = testing::Types<thread_safe_lru_cache, thread_safe_rr_cache, thread_safe_ttl_cache>;
 TYPED_TEST_SUITE(thread_safe_cache_fixture, cache_types);
 
 } // <anonymous> namespace
