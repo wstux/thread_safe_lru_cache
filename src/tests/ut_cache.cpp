@@ -29,8 +29,10 @@
 #include <gtest/gtest.h>
 
 #include "cache/lru_cache.h"
+#include "cache/rr_cache.h"
 #include "cache/ttl_cache.h"
 #include "cache/thread_safe_lru_cache.h"
+#include "cache/thread_safe_rr_cache.h"
 #include "cache/thread_safe_ttl_cache.h"
 
 namespace {
@@ -46,6 +48,18 @@ struct lru_cache
 {
     using cache = ::wstux::lru::lru_cache<size_t, std::string>;
 
+    static constexpr bool is_lru_base = true;
+
+    static cache create(size_t cap = 10) { return cache(cap); }
+    static void reset(cache& c, size_t cap) { c.reset(cap); }
+};
+
+struct rr_cache
+{
+    using cache = ::wstux::rr::rr_cache<size_t, std::string>;
+
+    static constexpr bool is_lru_base = false;
+
     static cache create(size_t cap = 10) { return cache(cap); }
     static void reset(cache& c, size_t cap) { c.reset(cap); }
 };
@@ -53,6 +67,8 @@ struct lru_cache
 struct ttl_cache
 {
     using cache = ::wstux::ttl::ttl_cache<size_t, std::string>;
+
+    static constexpr bool is_lru_base = true;
 
     static cache create(size_t cap = 10) { return cache(900, cap); }
     static void reset(cache& c, size_t cap) { c.reset(900, cap); }
@@ -62,6 +78,18 @@ struct thread_safe_lru_cache
 {
     using cache = ::wstux::lru::thread_safe_lru_cache<size_t, std::string>;
 
+    static constexpr bool is_lru_base = true;
+
+    static cache create(size_t cap = 10) { return cache(cap, 2); }
+    static void reset(cache& c, size_t cap) { c.reset(cap); }
+};
+
+struct thread_safe_rr_cache
+{
+    using cache = ::wstux::rr::thread_safe_rr_cache<size_t, std::string>;
+
+    static constexpr bool is_lru_base = false;
+
     static cache create(size_t cap = 10) { return cache(cap, 2); }
     static void reset(cache& c, size_t cap) { c.reset(cap); }
 };
@@ -70,11 +98,14 @@ struct thread_safe_ttl_cache
 {
     using cache = ::wstux::ttl::thread_safe_ttl_cache<size_t, std::string>;
 
+    static constexpr bool is_lru_base = true;
+
     static cache create(size_t cap = 10) { return cache(900, cap, 2); }
     static void reset(cache& c, size_t cap) { c.reset(900, cap); }
 };
 
-using cache_types = testing::Types<lru_cache, ttl_cache, thread_safe_lru_cache, thread_safe_ttl_cache>;
+using cache_types = testing::Types<lru_cache, rr_cache, ttl_cache,
+                                   thread_safe_lru_cache, thread_safe_rr_cache, thread_safe_ttl_cache>;
 TYPED_TEST_SUITE(cache_fixture, cache_types);
 
 } // <anonymous> namespace
@@ -108,8 +139,11 @@ TYPED_TEST(cache_fixture, contains_touch)
     EXPECT_TRUE(cache.contains(0));
 
     EXPECT_TRUE(cache.emplace(5, 4, 'b'));
-    EXPECT_TRUE(cache.contains(0));
-    EXPECT_FALSE(cache.contains(1));
+    EXPECT_TRUE(cache.size() == 4);
+    if (param_type::is_lru_base) {
+        EXPECT_TRUE(cache.contains(0));
+        EXPECT_FALSE(cache.contains(1));
+    }
 }
 
 TYPED_TEST(cache_fixture, emplace)
@@ -238,8 +272,10 @@ TYPED_TEST(cache_fixture, reset)
     cache.emplace(1, 4, 'b');
     cache.emplace(2, 4, 'c');
     EXPECT_TRUE(cache.size() == 2) << cache.size();
-    EXPECT_FALSE(cache.contains(0));
-    EXPECT_TRUE(cache.contains(1));
+    if (param_type::is_lru_base) {
+        EXPECT_FALSE(cache.contains(0));
+        EXPECT_TRUE(cache.contains(1));
+    }
     EXPECT_TRUE(cache.contains(2));
 
     param_type::reset(cache, 4);

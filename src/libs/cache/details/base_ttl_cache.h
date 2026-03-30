@@ -256,7 +256,7 @@ protected:
             typename _hash_table_t::node_type node = m_hash_tbl.extract(m_ttl_list.front());
             node.key() = key;
             typename _hash_table_t::insert_return_type rc = m_hash_tbl.insert(std::move(node));
-            rc.position->second.value = value_type(std::forward<TArgs>(args)...);
+            rc.position->second.value = std::move(value_type(std::forward<TArgs>(args)...));
             m_ttl_list.front() = key;
             move_to_top(rc.position);
     #else
