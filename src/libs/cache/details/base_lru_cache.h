@@ -189,7 +189,11 @@ protected:
 
     void clear()
     {
+#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
+        m_hash_tbl.clear_and_dispose(std::bind(&base_lru_cache::deallocate<_lru_node_t>, this, std::placeholders::_1));
+#else
         m_hash_tbl.clear();
+#endif
         m_lru_list.clear();
     }
 
@@ -198,7 +202,13 @@ protected:
         typename _hash_table_t::iterator it = find_in_tbl(key);
         if (it != m_hash_tbl.end()) {
             m_lru_list.erase(list_iterator(it));
+#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
+            _lru_node_t* p = &(*it);
             m_hash_tbl.erase(it);
+            deallocate<_lru_node_t>(p);
+#else
+            m_hash_tbl.erase(it);
+#endif
         }
     }
 
@@ -221,7 +231,9 @@ protected:
             p_node->value = std::move(value_type(std::forward<TArgs>(args)...));
             insert_node(std::move(p_node));
         } else {
-            _lru_node_ptr_t p_node = std::make_unique<_lru_node_t>(key_type(key), value_type(std::forward<TArgs>(args)...));
+            _lru_node_t* p_raw_node = allocate<_lru_node_t>(std::move(key_type(key)), std::move(value_type(std::forward<TArgs>(args)...)));
+            //_lru_node_ptr_t p_node = std::make_unique<_lru_node_t>(key_type(key), value_type(std::forward<TArgs>(args)...));
+            _lru_node_ptr_t p_node(p_raw_node);
             insert_node(std::move(p_node));
         }
 #else
@@ -318,6 +330,19 @@ private:
     typedef std::vector<typename _traits_t::_bucket_type_t> _buckets_list_t;
     typedef typename _traits_t::_lru_node_t                 _lru_node_t;
     typedef std::unique_ptr<_lru_node_t>                    _lru_node_ptr_t;
+
+    template<typename T, typename... TArgs>
+    T* allocate(TArgs&&... args)
+    {
+        T* p_raw = new T(std::forward<TArgs>(args)...);
+        return p_raw;
+    }
+
+    template<typename T>
+    void deallocate(T* p_raw)
+    {
+        delete p_raw;
+    }
 
     _lru_node_ptr_t extract_node(typename _lru_list_t::iterator it)
     {
