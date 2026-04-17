@@ -121,12 +121,14 @@ namespace lru {
  */
 template<typename TKey, typename TValue,
          class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>,
+         class TAllocator = std::allocator<std::pair<const TKey, TValue>>,
          class TLock = std::mutex>
 class thread_safe_lru_cache
 {
     typedef lru_cache<TKey, TValue, THash, TKeyEqual>   _shard_type;
 
 public:
+    typedef typename _shard_type::allocator_type    allocator_type;
     typedef typename _shard_type::key_type          key_type;
     typedef typename _shard_type::value_type        value_type;
     typedef typename _shard_type::size_type         size_type;
@@ -142,7 +144,7 @@ public:
     /// \param  capacity - number of elements for which space has been allocated
     ///         in the container.
     /// \param  shards_count - shards count.
-    explicit thread_safe_lru_cache(size_t capacity, size_t shards_count)
+    explicit thread_safe_lru_cache(size_t capacity, size_t shards_count, const allocator_type& alloc = allocator_type())
         : m_capacity(capacity)
         , m_shards((m_capacity > shards_count) ? shards_count : m_capacity)
     {
@@ -151,7 +153,7 @@ public:
             const size_t shard_capacity = (i != 0)
                 ? (m_capacity / shards_count)
                 : ((m_capacity / shards_count) + (m_capacity % shards_count));
-            m_shards[i].first = std::make_shared<_shard_type>(shard_capacity);
+            m_shards[i].first = std::make_shared<_shard_type>(shard_capacity, alloc);
         }
     }
 

@@ -54,13 +54,15 @@ namespace lru {
  *          number of elements for each storage.
  */
 template<typename TKey, typename TValue,
-         class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>>
-class lru_cache final : protected details::base_lru_cache<TKey, TValue, THash, TKeyEqual>
+         class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>,
+         class TAllocator = std::allocator<std::pair<const TKey, TValue>>>
+class lru_cache final : protected details::base_lru_cache<TKey, TValue, THash, TKeyEqual, TAllocator>
 {
 private:
-    typedef details::base_lru_cache<TKey, TValue, THash, TKeyEqual>     base;
+    typedef details::base_lru_cache<TKey, TValue, THash, TKeyEqual, TAllocator> base;
 
 public:
+    typedef typename base::allocator_type    allocator_type;
     typedef typename base::key_type          key_type;
     typedef typename base::value_type        value_type;
     typedef typename base::size_type         size_type;
@@ -74,8 +76,8 @@ public:
     /// \brief  Constructs a new container.
     /// \param  capacity - number of elements for which space has been allocated
     ///         in the container.
-    explicit lru_cache(size_type capacity)
-        : base(capacity)
+    explicit lru_cache(size_type capacity, const allocator_type& alloc = allocator_type())
+        : base(capacity, alloc)
     {}
 
     lru_cache(const lru_cache&) = delete;
