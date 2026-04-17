@@ -40,8 +40,6 @@ namespace lru {
  *  \tparam THash - function object for hashing the cache key.
  *  \tparam TKeyEqual - function object for performing comparisons the cache key.
  *
- *  \todo   Add allocator as template parameter.
- *
  *  \details    LRU cache has two implementations - based on std::unordered_map
  *          and based boost::intrusive::unordered_set_base_hook. Since a hash
  *          table is used as a container, searching in it takes O(1) time.

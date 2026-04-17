@@ -125,7 +125,7 @@ template<typename TKey, typename TValue,
          class TLock = std::mutex>
 class thread_safe_lru_cache
 {
-    typedef lru_cache<TKey, TValue, THash, TKeyEqual>   _shard_type;
+    typedef lru_cache<TKey, TValue, THash, TKeyEqual, TAllocator>   _shard_type;
 
 public:
     typedef typename _shard_type::allocator_type    allocator_type;

@@ -40,8 +40,6 @@ namespace ttl {
  *  \tparam THash - function object for hashing the cache key.
  *  \tparam TKeyEqual - function object for performing comparisons the cache key.
  *
- *  \todo   Add allocator as template parameter.
- *
  *  \details    TTL cache has two implementations - based on std::unordered_map
  *          and based boost::intrusive::unordered_set_base_hook. Since a hash
  *          table is used as a container, searching in it takes O(1) time.
@@ -54,13 +52,15 @@ namespace ttl {
  *          number of elements for each storage.
  */
 template<typename TKey, typename TValue,
-         class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>>
-class ttl_cache : protected details::base_ttl_cache<TKey, TValue, THash, TKeyEqual>
+         class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>,
+         class TAllocator = std::allocator<std::pair<const TKey, TValue>>>
+class ttl_cache : protected details::base_ttl_cache<TKey, TValue, THash, TKeyEqual, TAllocator>
 {
 private:
-    typedef details::base_ttl_cache<TKey, TValue, THash, TKeyEqual>     base;
+    typedef details::base_ttl_cache<TKey, TValue, THash, TKeyEqual, TAllocator> base;
 
 public:
+    typedef typename base::allocator_type    allocator_type;
     typedef typename base::key_type          key_type;
     typedef typename base::value_type        value_type;
     typedef typename base::size_type         size_type;
@@ -75,8 +75,8 @@ public:
     /// \param  ttl_msecs - time to live milliseconds.
     /// \param  capacity - number of elements for which space has been allocated
     ///         in the container.
-    explicit ttl_cache(size_type ttl_msecs, size_type capacity)
-        : base(ttl_msecs, capacity)
+    explicit ttl_cache(size_type ttl_msecs, size_type capacity, const allocator_type& alloc = allocator_type())
+        : base(ttl_msecs, capacity, alloc)
     {}
 
     ttl_cache(const ttl_cache&) = delete;
