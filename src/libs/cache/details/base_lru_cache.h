@@ -37,6 +37,7 @@
 #endif
 
 namespace wstux {
+namespace cache {
 namespace lru {
 namespace details {
 
@@ -390,6 +391,7 @@ private:
 
 } // namespace details
 } // namespace lru
+} // namespace cache
 } // namespace wstux
 
 #endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_BASE_LRU_CACHE_H_ */

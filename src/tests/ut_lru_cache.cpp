@@ -34,7 +34,7 @@
 
 TEST(lru_cache, hit)
 {
-    using lru_cache = ::wstux::lru::lru_cache<size_t, size_t>;
+    using lru_cache = ::wstux::cache::lru::lru_cache<size_t, size_t>;
     using test_data_vector = std::vector<lru_cache::key_type>;
 
     test_data_vector td(10);

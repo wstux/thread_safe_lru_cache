@@ -39,6 +39,7 @@
 #endif
 
 namespace wstux {
+namespace cache {
 namespace ttl {
 namespace details {
 
@@ -428,6 +429,7 @@ private:
 
 } // namespace details
 } // namespace ttl
+} // namespace cache
 } // namespace wstux
 
 #endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_BASE_TTL_CACHE_H_ */

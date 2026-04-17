@@ -40,21 +40,21 @@ constexpr size_t g_k_count = 100000;
 
 struct lru_cache
 {
-    using cache = ::wstux::lru::lru_cache<size_t, size_t>;
+    using cache = ::wstux::cache::lru::lru_cache<size_t, size_t>;
 
     static cache create(size_t cap = 10) { return cache(cap); }
 };
 
 struct rr_cache
 {
-    using cache = ::wstux::rr::rr_cache<size_t, size_t>;
+    using cache = ::wstux::cache::rr::rr_cache<size_t, size_t>;
 
     static cache create(size_t cap = 10) { return cache(cap); }
 };
 
 struct ttl_cache
 {
-    using cache = ::wstux::ttl::ttl_cache<size_t, size_t>;
+    using cache = ::wstux::cache::ttl::ttl_cache<size_t, size_t>;
 
     static cache create(size_t cap = 10) { return cache(900, cap); }
 };

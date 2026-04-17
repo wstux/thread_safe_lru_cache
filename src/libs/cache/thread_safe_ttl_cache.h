@@ -36,6 +36,7 @@
 #include "cache/ttl_cache.h"
 
 namespace wstux {
+namespace cache {
 namespace ttl {
 
 /**
@@ -351,6 +352,7 @@ private:
 };
 
 } // namespace ttl
+} // namespace cache
 } // namespace wstux
 
 #endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_THREAD_SAFE_TTL_CACHE_H_ */

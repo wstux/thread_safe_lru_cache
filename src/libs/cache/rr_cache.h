@@ -31,6 +31,7 @@
 #include "cache/details/base_rr_cache.h"
 
 namespace wstux {
+namespace cache {
 namespace rr {
 
 /**
@@ -218,6 +219,7 @@ private:
 };
 
 } // namespace rr
+} // namespace cache
 } // namespace wstux
 
 #endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_RR_CACHE_H_ */

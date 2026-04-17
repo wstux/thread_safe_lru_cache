@@ -144,7 +144,7 @@ struct lru_cache
 {
     using key_type = std::string;
     using value_type = size_t;
-    using cache = ::wstux::lru::thread_safe_lru_cache<key_type, value_type>;
+    using cache = ::wstux::cache::lru::thread_safe_lru_cache<key_type, value_type>;
 
     static bool find(cache& c, const key_type& k)
     {

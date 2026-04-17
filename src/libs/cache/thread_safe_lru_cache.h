@@ -35,6 +35,7 @@
 #include "cache/lru_cache.h"
 
 namespace wstux {
+namespace cache {
 namespace lru {
 
 /**
@@ -348,6 +349,7 @@ private:
 };
 
 } // namespace lru
+} // namespace cache
 } // namespace wstux
 
 #endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_THREAD_SAFE_LRU_CACHE_H_ */
