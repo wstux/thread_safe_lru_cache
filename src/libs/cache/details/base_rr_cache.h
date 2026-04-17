@@ -29,16 +29,14 @@
 #include <random>
 #include <vector>
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-    #include <memory>
-
     #include <boost/intrusive/list.hpp>
     #include <boost/intrusive/unordered_set.hpp>
 #else
-    #include <list>
     #include <unordered_map>
 #endif
 
 namespace wstux {
+namespace cache {
 namespace rr {
 namespace details {
 
@@ -52,12 +50,12 @@ namespace details {
 namespace bi = boost::intrusive;
 
 template<typename TKey, typename TValue>
-struct cache_node : public bi::unordered_set_base_hook<bi::link_mode<bi::normal_link>>
+struct node : public bi::unordered_set_base_hook<bi::link_mode<bi::normal_link>>
 {
     typedef TKey        key_type;
     typedef TValue      value_type;
 
-    cache_node(key_type&& k, value_type&& v)
+    node(key_type&& k, value_type&& v)
         : key(std::move(k))
         , value(std::move(v))
     {}
@@ -67,23 +65,23 @@ struct cache_node : public bi::unordered_set_base_hook<bi::link_mode<bi::normal_
 };
 
 template<typename THash>
-struct cache_node_hash
+struct node_hash
 {
     template<typename T>
     size_t operator()(const T& t) const { return THash{}(t); }
 
     template<typename TKey, typename TValue>
-    size_t operator()(const cache_node<TKey, TValue>& n) const { return THash{}(n.key); }
+    size_t operator()(const node<TKey, TValue>& n) const { return THash{}(n.key); }
 };
 
 template<typename TKey>
 const TKey& _key(const TKey& k) { return k; }
 
 template<typename TKey, typename TValue>
-const TKey& _key(const cache_node<TKey, TValue>& n) { return n.key; }
+const TKey& _key(const node<TKey, TValue>& n) { return n.key; }
 
 template<typename TKeyEqual>
-struct cache_node_equal
+struct node_equal
 {
     template<typename T1, typename T2>
     bool operator()(const T1& l, const T2& r) const { return TKeyEqual{}(_key(l), _key(r)); }
@@ -93,9 +91,10 @@ struct cache_node_equal
 ////////////////////////////////////////////////////////////////////////////////
 // class type_traits
 
-template<typename TKey, typename TValue, typename THash, typename TKeyEqual>
+template<typename TKey, typename TValue, typename THash, typename TKeyEqual, class TAllocator>
 struct type_traits
 {
+    typedef TAllocator          allocator_type;
     typedef TKey                key_type;
     typedef TValue              value_type;
     typedef value_type&         reference;
@@ -108,19 +107,24 @@ struct type_traits
     typedef TKeyEqual           key_equal;
 
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-    typedef cache_node<key_type, value_type>        _rr_node_t;
+    typedef node<key_type, value_type>              _node_t;
+    typedef typename std::allocator_traits<allocator_type>::template rebind_alloc<_node_t>  _node_allocator_t;
 
-    typedef bi::constant_time_size<true>            _is_ct_size_t;
-    typedef bi::hash<cache_node_hash<hasher>>       _intr_hash_t;
-    typedef bi::equal<cache_node_equal<key_equal>>  _intr_key_equal_t;
-    typedef bi::unordered_set<_rr_node_t, _is_ct_size_t, _intr_hash_t, _intr_key_equal_t> _hash_table_t;
-    typedef std::vector<_rr_node_t*>                _rr_keys_vector;
+    typedef bi::constant_time_size<true>            _ct_size_t;
+    typedef bi::hash<node_hash<hasher>>             _intr_hash_t;
+    typedef bi::equal<node_equal<key_equal>>        _intr_key_equal_t;
+    typedef bi::unordered_set<_node_t, _ct_size_t, _intr_hash_t, _intr_key_equal_t> _hash_table_t;
+
+    typedef typename std::allocator_traits<allocator_type>::template rebind_alloc<_node_t*> _key_allocator_t;
+    typedef std::vector<_node_t*, _key_allocator_t> _keys_vector;
 
     typedef typename _hash_table_t::bucket_type     _bucket_type_t;
     typedef typename _hash_table_t::bucket_traits   _bucket_traits_t;
+    typedef typename std::allocator_traits<allocator_type>::template rebind_alloc<_bucket_traits_t> _bucket_allocator_t;
+    typedef std::vector<_bucket_type_t, _bucket_allocator_t>    _buckets_list_t;
 #else
-    typedef std::unordered_map<key_type, value_type, hasher, key_equal> _hash_table_t;
-    typedef std::vector<key_type>                   _rr_keys_vector;
+    typedef std::unordered_map<key_type, value_type, hasher, key_equal, allocator_type> _hash_table_t;
+    typedef std::vector<key_type, allocator_type>   _keys_vector;
 #endif
 };
 
@@ -132,13 +136,14 @@ struct type_traits
  *  \details    The idea of a cache based on intrusive containers is taken from
  *              https://www.youtube.com/watch?v=60XhYzkXu1M&t=2358s
  */
-template<typename TKey, typename TValue, class THash, class TKeyEqual>
+template<typename TKey, typename TValue, class THash, class TKeyEqual, class TAllocator>
 class base_rr_cache
 {
 private:
-    typedef type_traits<TKey, TValue, THash, TKeyEqual> _traits_t;
+    typedef type_traits<TKey, TValue, THash, TKeyEqual, TAllocator> _traits_t;
 
 protected:
+    typedef typename _traits_t::allocator_type      allocator_type;
     typedef typename _traits_t::key_type            key_type;
     typedef typename _traits_t::value_type          value_type;
     typedef typename _traits_t::size_type           size_type;
@@ -150,15 +155,27 @@ protected:
     typedef typename _traits_t::const_pointer       const_pointer;
 
     typedef typename _traits_t::_hash_table_t       _hash_table_t;
-    typedef typename _traits_t::_rr_keys_vector     _rr_keys_vector;
+    typedef typename _traits_t::_keys_vector        _keys_vector;
+#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
+    typedef typename _traits_t::_bucket_allocator_t _bucket_allocator_t;
+    typedef typename _traits_t::_node_allocator_t   _node_allocator_t;
 
-    explicit base_rr_cache(size_type capacity)
+    typedef typename _traits_t::_bucket_traits_t    _bucket_traits_t;
+    typedef typename _traits_t::_buckets_list_t     _buckets_list_t;
+    typedef typename _traits_t::_node_t             _node_t;
+#endif
+
+    explicit base_rr_cache(size_type capacity, const allocator_type& alloc)
         : m_capacity(capacity)
         , m_rand_gen(std::random_device{}())
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-        , m_buckets(m_capacity)
+        , m_allocator(alloc)
+        , m_buckets(m_capacity, alloc)
         , m_hash_tbl(_bucket_traits_t(m_buckets.data(), m_buckets.capacity()))
+#else
+        , m_hash_tbl(alloc)
 #endif
+        , m_keys(alloc)
     {
         m_keys.reserve(capacity);
 #if ! defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
@@ -172,7 +189,11 @@ protected:
 
     void clear()
     {
+#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
+        m_hash_tbl.clear_and_dispose(std::bind(&base_rr_cache::deallocate<_node_t>, this, std::placeholders::_1));
+#else
         m_hash_tbl.clear();
+#endif
         m_keys.clear();
     }
 
@@ -180,8 +201,8 @@ protected:
     {
         typename _hash_table_t::iterator it = find_in_tbl(key);
         if (it != m_hash_tbl.end()) {
-            typename _rr_keys_vector::iterator key_it = std::find_if(m_keys.begin(), m_keys.end(),
-                [&key](const typename _rr_keys_vector::value_type& v) -> bool {
+            typename _keys_vector::iterator key_it = std::find_if(m_keys.begin(), m_keys.end(),
+                [&key](const typename _keys_vector::value_type& v) -> bool {
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
                     return (key == v->key);
 #else
@@ -190,7 +211,13 @@ protected:
                 });
             std::swap(*key_it, m_keys[m_keys.size() - 1]);
             m_keys.pop_back();
+#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
+            _node_t* p = &(*it);
             m_hash_tbl.erase(it);
+            deallocate<_node_t>(p);
+#else
+            m_hash_tbl.erase(it);
+#endif
         }
     }
 
@@ -206,18 +233,13 @@ protected:
     template<typename... TArgs>
     void insert(const key_type& key, TArgs&&... args)
     {
-#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
         if (size() >= m_capacity) {
-            _rr_node_ptr_t p_node = extract_node();
+#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
+            _node_t* p_node = extract_node();
             p_node->key = key;
             p_node->value = std::move(value_type(std::forward<TArgs>(args)...));
-            insert_node(std::move(p_node));
-        } else {
-            _rr_node_ptr_t p_node = std::make_unique<_rr_node_t>(key_type(key), value_type(std::forward<TArgs>(args)...));
-            insert_node(std::move(p_node));
-        }
+            insert_node(p_node);
 #else
-        if (size() >= m_capacity) {
             std::uniform_int_distribution<size_t> dist(0, m_keys.size() - 1);
             const size_t idx = dist(m_rand_gen);
             const key_type& rand_key = m_keys[idx];
@@ -231,11 +253,16 @@ protected:
             m_hash_tbl.emplace(key, value_type(std::forward<TArgs>(args)...));
     #endif
             m_keys[idx] = key;
+#endif
         } else {
+#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
+            _node_t* p_node = allocate<_node_t>(std::move(key_type(key)), std::move(value_type(std::forward<TArgs>(args)...)));
+            insert_node(p_node);
+#else
             m_hash_tbl.emplace(key, value_type(std::forward<TArgs>(args)...));
             m_keys.emplace_back(key);
-        }
 #endif
+        }
     }
 
     inline bool is_find(typename _hash_table_t::iterator& it) const
@@ -289,30 +316,42 @@ protected:
 
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
 private:
-    typedef typename _traits_t::_bucket_traits_t            _bucket_traits_t;
-    typedef std::vector<typename _traits_t::_bucket_type_t> _buckets_list_t;
-    typedef typename _traits_t::_rr_node_t                  _rr_node_t;
-    typedef std::unique_ptr<_rr_node_t>                     _rr_node_ptr_t;
+    template<typename T, typename... TArgs>
+    T* allocate(TArgs&&... args)
+    {
+        using allocator_traits_t = std::allocator_traits<_node_allocator_t>;
 
-    _rr_node_ptr_t extract_node()
+        T* p_raw = allocator_traits_t::allocate(m_allocator, 1);
+        allocator_traits_t::construct(m_allocator, p_raw, std::forward<TArgs>(args)...);
+        return p_raw;
+    }
+
+    template<typename T>
+    void deallocate(T* p_raw)
+    {
+        using allocator_traits_t = std::allocator_traits<_node_allocator_t>;
+
+        allocator_traits_t::destroy(m_allocator, p_raw);
+        allocator_traits_t::deallocate(m_allocator, p_raw, 1);
+    }
+
+    _node_t* extract_node()
     {
         std::uniform_int_distribution<size_t> dist(0, m_keys.size() - 1);
         const size_t idx = dist(m_rand_gen);
 
-        _rr_node_t* p_raw_node = m_keys[idx];
-        _rr_node_ptr_t p_node(p_raw_node);
+        _node_t* p_node = m_keys[idx];
 
-        m_hash_tbl.erase(m_hash_tbl.iterator_to(*p_raw_node));
+        m_hash_tbl.erase(m_hash_tbl.iterator_to(*p_node));
         std::swap(m_keys[idx], m_keys[m_keys.size() - 1]);
         m_keys.pop_back();
         return p_node;
     }
 
-    void insert_node(_rr_node_ptr_t p_node)
+    void insert_node(_node_t* p_node)
     {
         m_hash_tbl.insert(*p_node);
-        m_keys.emplace_back(p_node.get());
-        [[maybe_unused]] cache_node<TKey, TValue>* p_ignore = p_node.release();
+        m_keys.emplace_back(p_node);
     }
 #endif
 
@@ -322,14 +361,16 @@ private:
     std::mt19937 m_rand_gen;
 
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
+    _node_allocator_t m_allocator;
     _buckets_list_t m_buckets;
 #endif
     _hash_table_t m_hash_tbl;
-    _rr_keys_vector m_keys;
+    _keys_vector m_keys;
 };
 
 } // namespace details
 } // namespace rr
+} // namespace cache
 } // namespace wstux
 
 #endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_BASE_RR_CACHE_H_ */

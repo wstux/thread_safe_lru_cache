@@ -31,6 +31,7 @@
 #include "cache/details/base_rr_cache.h"
 
 namespace wstux {
+namespace cache {
 namespace rr {
 
 /**
@@ -39,8 +40,6 @@ namespace rr {
  *  \tparam TValue - cache value.
  *  \tparam THash - function object for hashing the cache key.
  *  \tparam TKeyEqual - function object for performing comparisons the cache key.
- *
- *  \todo   Add allocator as template parameter.
  *
  *  \details    RR cache has two implementations - based on std::unordered_map
  *          and based boost::intrusive::unordered_set_base_hook. Since a hash
@@ -54,13 +53,15 @@ namespace rr {
  *          number of elements for each storage.
  */
 template<typename TKey, typename TValue,
-         class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>>
-class rr_cache final : protected details::base_rr_cache<TKey, TValue, THash, TKeyEqual>
+         class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>,
+         class TAllocator = std::allocator<std::pair<const TKey, TValue>>>
+class rr_cache final : protected details::base_rr_cache<TKey, TValue, THash, TKeyEqual, TAllocator>
 {
 private:
-    typedef details::base_rr_cache<TKey, TValue, THash, TKeyEqual>     base;
+    typedef details::base_rr_cache<TKey, TValue, THash, TKeyEqual, TAllocator>  base;
 
 public:
+    typedef typename base::allocator_type    allocator_type;
     typedef typename base::key_type          key_type;
     typedef typename base::value_type        value_type;
     typedef typename base::size_type         size_type;
@@ -74,8 +75,8 @@ public:
     /// \brief  Constructs a new container.
     /// \param  capacity - number of elements for which space has been allocated
     ///         in the container.
-    explicit rr_cache(size_type capacity)
-        : base(capacity)
+    explicit rr_cache(size_type capacity, const allocator_type& alloc = allocator_type())
+        : base(capacity, alloc)
     {}
 
     rr_cache(const rr_cache&) = delete;
@@ -218,6 +219,7 @@ private:
 };
 
 } // namespace rr
+} // namespace cache
 } // namespace wstux
 
 #endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_RR_CACHE_H_ */

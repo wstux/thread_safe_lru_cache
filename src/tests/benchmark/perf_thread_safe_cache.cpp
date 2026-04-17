@@ -74,21 +74,21 @@ public:
 
 struct lru_cache
 {
-    using cache = ::wstux::lru::thread_safe_lru_cache<size_t, size_t>;
+    using cache = ::wstux::cache::lru::thread_safe_lru_cache<size_t, size_t>;
 
     static cache create(size_t cap, size_t shards = g_k_threads_count) { return cache(cap, shards); }
 };
 
 struct rr_cache
 {
-    using cache = ::wstux::rr::thread_safe_rr_cache<size_t, size_t>;
+    using cache = ::wstux::cache::rr::thread_safe_rr_cache<size_t, size_t>;
 
     static cache create(size_t cap, size_t shards = g_k_threads_count) { return cache(cap, shards); }
 };
 
 struct ttl_cache
 {
-    using cache = ::wstux::ttl::thread_safe_ttl_cache<size_t, size_t>;
+    using cache = ::wstux::cache::ttl::thread_safe_ttl_cache<size_t, size_t>;
 
     static cache create(size_t cap, size_t shards = g_k_threads_count) { return cache(900, cap, shards); }
 };

@@ -36,7 +36,7 @@
 
 namespace {
 
-using lru_cache = ::wstux::lru::thread_safe_lru_cache<size_t, size_t>;
+using lru_cache = ::wstux::cache::lru::thread_safe_lru_cache<size_t, size_t>;
 using test_data_vector = std::vector<lru_cache::key_type>;
 
 ////////////////////////////////////////////////////////////////////////////////

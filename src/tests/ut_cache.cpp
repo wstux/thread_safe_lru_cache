@@ -46,7 +46,7 @@ class cache_fixture : public ::testing::Test
 
 struct lru_cache
 {
-    using cache = ::wstux::lru::lru_cache<size_t, std::string>;
+    using cache = ::wstux::cache::lru::lru_cache<size_t, std::string>;
 
     static constexpr bool is_lru_base = true;
 
@@ -56,7 +56,7 @@ struct lru_cache
 
 struct rr_cache
 {
-    using cache = ::wstux::rr::rr_cache<size_t, std::string>;
+    using cache = ::wstux::cache::rr::rr_cache<size_t, std::string>;
 
     static constexpr bool is_lru_base = false;
 
@@ -66,7 +66,7 @@ struct rr_cache
 
 struct ttl_cache
 {
-    using cache = ::wstux::ttl::ttl_cache<size_t, std::string>;
+    using cache = ::wstux::cache::ttl::ttl_cache<size_t, std::string>;
 
     static constexpr bool is_lru_base = true;
 
@@ -76,7 +76,7 @@ struct ttl_cache
 
 struct thread_safe_lru_cache
 {
-    using cache = ::wstux::lru::thread_safe_lru_cache<size_t, std::string>;
+    using cache = ::wstux::cache::lru::thread_safe_lru_cache<size_t, std::string>;
 
     static constexpr bool is_lru_base = true;
 
@@ -86,7 +86,7 @@ struct thread_safe_lru_cache
 
 struct thread_safe_rr_cache
 {
-    using cache = ::wstux::rr::thread_safe_rr_cache<size_t, std::string>;
+    using cache = ::wstux::cache::rr::thread_safe_rr_cache<size_t, std::string>;
 
     static constexpr bool is_lru_base = false;
 
@@ -96,7 +96,7 @@ struct thread_safe_rr_cache
 
 struct thread_safe_ttl_cache
 {
-    using cache = ::wstux::ttl::thread_safe_ttl_cache<size_t, std::string>;
+    using cache = ::wstux::cache::ttl::thread_safe_ttl_cache<size_t, std::string>;
 
     static constexpr bool is_lru_base = true;
 

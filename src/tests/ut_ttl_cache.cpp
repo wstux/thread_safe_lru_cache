@@ -47,14 +47,14 @@ class cache_fixture : public ::testing::Test
 
 struct ttl_cache
 {
-    using cache = ::wstux::ttl::ttl_cache<size_t, std::string>;
+    using cache = ::wstux::cache::ttl::ttl_cache<size_t, std::string>;
 
     static cache create(size_t cap = 10, size_t shards = 0) { (void)shards; return cache(250, cap); }
 };
 
 struct thread_safe_ttl_cache
 {
-    using cache = ::wstux::ttl::thread_safe_ttl_cache<size_t, std::string>;
+    using cache = ::wstux::cache::ttl::thread_safe_ttl_cache<size_t, std::string>;
 
     static cache create(size_t cap = 10, size_t shards = 2) { return cache(250, cap, shards); }
 };
@@ -226,7 +226,7 @@ TYPED_TEST(cache_fixture, update_expired)
 
 TEST(ttl_cache, hit)
 {
-    using ttl_cache = ::wstux::ttl::ttl_cache<size_t, size_t>;
+    using ttl_cache = ::wstux::cache::ttl::ttl_cache<size_t, size_t>;
     using test_data_vector = std::vector<ttl_cache::key_type>;
 
     test_data_vector td(10);
