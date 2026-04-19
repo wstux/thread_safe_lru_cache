@@ -28,9 +28,11 @@
 
 #include <gtest/gtest.h>
 
+#include "cache/fifo_cache.h"
 #include "cache/lru_cache.h"
 #include "cache/rr_cache.h"
 #include "cache/ttl_cache.h"
+#include "cache/thread_safe_fifo_cache.h"
 #include "cache/thread_safe_lru_cache.h"
 #include "cache/thread_safe_rr_cache.h"
 #include "cache/thread_safe_ttl_cache.h"
@@ -43,6 +45,16 @@ namespace {
 template<typename TParam>
 class cache_fixture : public ::testing::Test
 {};
+
+struct fifo_cache
+{
+    using cache = ::wstux::cache::fifo::fifo_cache<size_t, std::string>;
+
+    static constexpr bool is_lru_base = true;
+
+    static cache create(size_t cap = 10) { return cache(cap); }
+    static void reset(cache& c, size_t cap) { c.reset(cap); }
+};
 
 struct lru_cache
 {
@@ -72,6 +84,16 @@ struct ttl_cache
 
     static cache create(size_t cap = 10) { return cache(900, cap); }
     static void reset(cache& c, size_t cap) { c.reset(900, cap); }
+};
+
+struct thread_safe_fifo_cache
+{
+    using cache = ::wstux::cache::fifo::thread_safe_fifo_cache<size_t, std::string>;
+
+    static constexpr bool is_lru_base = true;
+
+    static cache create(size_t cap = 10) { return cache(cap, 2); }
+    static void reset(cache& c, size_t cap) { c.reset(cap); }
 };
 
 struct thread_safe_lru_cache
@@ -104,8 +126,14 @@ struct thread_safe_ttl_cache
     static void reset(cache& c, size_t cap) { c.reset(900, cap); }
 };
 
-using cache_types = testing::Types<lru_cache, rr_cache, ttl_cache,
-                                   thread_safe_lru_cache, thread_safe_rr_cache, thread_safe_ttl_cache>;
+using cache_types = testing::Types<fifo_cache,
+                                   lru_cache,
+                                   rr_cache,
+                                   ttl_cache,
+                                   thread_safe_fifo_cache,
+                                   thread_safe_lru_cache,
+                                   thread_safe_rr_cache,
+                                   thread_safe_ttl_cache>;
 TYPED_TEST_SUITE(cache_fixture, cache_types);
 
 } // <anonymous> namespace
@@ -121,29 +149,6 @@ TYPED_TEST(cache_fixture, contains)
 
     EXPECT_TRUE(cache.emplace(0, 4, 'b'));
     EXPECT_TRUE(cache.contains(0));
-}
-
-TYPED_TEST(cache_fixture, contains_touch)
-{
-    using param_type = TypeParam;
-    using cache_type = typename param_type::cache;
-
-    cache_type cache = param_type::create(4);
-
-    EXPECT_FALSE(cache.contains(0));
-
-    EXPECT_TRUE(cache.emplace(0, 4, 'b'));
-    EXPECT_TRUE(cache.emplace(1, 4, 'b'));
-    EXPECT_TRUE(cache.emplace(2, 4, 'b'));
-    EXPECT_TRUE(cache.emplace(3, 4, 'b'));
-    EXPECT_TRUE(cache.contains(0));
-
-    EXPECT_TRUE(cache.emplace(5, 4, 'b'));
-    EXPECT_TRUE(cache.size() == 4);
-    if (param_type::is_lru_base) {
-        EXPECT_TRUE(cache.contains(0));
-        EXPECT_FALSE(cache.contains(1));
-    }
 }
 
 TYPED_TEST(cache_fixture, emplace)

@@ -20,6 +20,15 @@ TestTarget(ut_thread_safe_cache
         googletest
 )
 
+TestTarget(ut_fifo_cache
+    SOURCES
+        ut_fifo_cache.cpp
+    LIBRARIES
+        thread_safe_cache
+    DEPENDS
+        googletest
+)
+
 TestTarget(ut_lru_cache
     SOURCES
         ut_lru_cache.cpp
@@ -53,6 +62,17 @@ if (USE_BOOST_INTRUSIVE)
     TestTarget(ut_thread_safe_cache_std
         SOURCES
             ut_thread_safe_cache.cpp
+        LIBRARIES
+            thread_safe_cache
+        COMPILE_DEFINITIONS
+            THREAD_SAFE_CACHE_DISABLE_BOOST
+        DEPENDS
+            googletest
+    )
+
+    TestTarget(ut_fifo_cache_std
+        SOURCES
+            ut_fifo_cache.cpp
         LIBRARIES
             thread_safe_cache
         COMPILE_DEFINITIONS

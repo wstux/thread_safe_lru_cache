@@ -30,6 +30,7 @@
 
 #include <benchmark/benchmark.h>
 
+#include "cache/fifo_cache.h"
 #include "cache/lru_cache.h"
 #include "cache/rr_cache.h"
 #include "cache/ttl_cache.h"
@@ -37,6 +38,13 @@
 namespace {
 
 constexpr size_t g_k_count = 100000;
+
+struct fifo_cache
+{
+    using cache = ::wstux::cache::fifo::fifo_cache<size_t, size_t>;
+
+    static cache create(size_t cap = 10) { return cache(cap); }
+};
 
 struct lru_cache
 {
@@ -172,6 +180,7 @@ static void insert_overflow(::benchmark::State& state)
     BENCHMARK_TEMPLATE(find, cache_type);           \
     BENCHMARK_TEMPLATE(insert_overflow, cache_type)
 
+DECLARE_TYPED_BENCHMARKS(fifo_cache);
 DECLARE_TYPED_BENCHMARKS(lru_cache);
 DECLARE_TYPED_BENCHMARKS(rr_cache);
 DECLARE_TYPED_BENCHMARKS(ttl_cache);

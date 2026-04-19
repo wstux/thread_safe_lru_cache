@@ -64,6 +64,27 @@ TYPED_TEST_SUITE(cache_fixture, ttl_types);
 
 } // <anonymous> namespace
 
+TYPED_TEST(cache_fixture, contains_touch)
+{
+    using param_type = TypeParam;
+    using ttl_cache = typename param_type::cache;
+
+    ttl_cache cache = param_type::create(4);
+
+    EXPECT_FALSE(cache.contains(0));
+
+    EXPECT_TRUE(cache.emplace(0, 4, 'b'));
+    EXPECT_TRUE(cache.emplace(1, 4, 'b'));
+    EXPECT_TRUE(cache.emplace(2, 4, 'b'));
+    EXPECT_TRUE(cache.emplace(3, 4, 'b'));
+    EXPECT_TRUE(cache.contains(0));
+
+    EXPECT_TRUE(cache.emplace(5, 4, 'b'));
+    EXPECT_TRUE(cache.size() == 4);
+    EXPECT_TRUE(cache.contains(0));
+    EXPECT_FALSE(cache.contains(1));
+}
+
 TYPED_TEST(cache_fixture, contains_expired)
 {
     using cache_type = TypeParam;

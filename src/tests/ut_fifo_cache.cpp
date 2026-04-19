@@ -30,8 +30,8 @@
 
 #include <gtest/gtest.h>
 
-#include "cache/lru_cache.h"
-#include "cache/thread_safe_lru_cache.h"
+#include "cache/fifo_cache.h"
+#include "cache/thread_safe_fifo_cache.h"
 
 namespace {
 
@@ -42,31 +42,31 @@ template<typename TParam>
 class cache_fixture : public ::testing::Test
 {};
 
-struct lru_cache
+struct fifo_cache
 {
-    using cache = ::wstux::cache::lru::lru_cache<size_t, std::string>;
+    using cache = ::wstux::cache::fifo::fifo_cache<size_t, std::string>;
 
     static cache create(size_t cap = 10, size_t shards = 0) { (void)shards; return cache(cap); }
 };
 
-struct thread_safe_lru_cache
+struct thread_safe_fifo_cache
 {
-    using cache = ::wstux::cache::lru::thread_safe_lru_cache<size_t, std::string>;
+    using cache = ::wstux::cache::fifo::thread_safe_fifo_cache<size_t, std::string>;
 
     static cache create(size_t cap = 10, size_t shards = 2) { return cache(cap, shards); }
 };
 
-using lru_types = testing::Types<lru_cache, thread_safe_lru_cache>;
-TYPED_TEST_SUITE(cache_fixture, lru_types);
+using fifo_types = testing::Types<fifo_cache, thread_safe_fifo_cache>;
+TYPED_TEST_SUITE(cache_fixture, fifo_types);
 
 } // <anonymous> namespace
 
-TYPED_TEST(cache_fixture, contains_touch)
+TYPED_TEST(cache_fixture, eviction)
 {
     using param_type = TypeParam;
     using cache_type = typename param_type::cache;
 
-    cache_type cache = param_type::create(4);
+    cache_type cache = param_type::create(4, 4);
 
     EXPECT_FALSE(cache.contains(0));
 
@@ -76,40 +76,13 @@ TYPED_TEST(cache_fixture, contains_touch)
     EXPECT_TRUE(cache.emplace(3, 4, 'b'));
     EXPECT_TRUE(cache.contains(0));
 
-    EXPECT_TRUE(cache.emplace(5, 4, 'b'));
+    EXPECT_TRUE(cache.emplace(4, 4, 'b'));
     EXPECT_TRUE(cache.size() == 4);
-    EXPECT_TRUE(cache.contains(0));
-    EXPECT_FALSE(cache.contains(1));
-}
 
-TEST(lru_cache, hit)
-{
-    using lru_cache = ::wstux::cache::lru::lru_cache<size_t, size_t>;
-    using test_data_vector = std::vector<lru_cache::key_type>;
-
-    test_data_vector td(10);
-    for (size_t i = 0; i < 10; ++i) {
-        td.emplace_back(i);
-    }
-
-    size_t hit_count = 0;
-    size_t total_count = 0;
-
-    lru_cache cache(10);
-    for (size_t i = 0; i < 10; ++i) {
-        for (const lru_cache::key_type& key : td) {
-            lru_cache::value_type val;
-            if (! cache.find(key, val)) {
-                EXPECT_TRUE(cache.insert(key, key)) << "failed to insert key '" << key << "'";
-            } else {
-                EXPECT_TRUE(key == val) << "key('" << key << "') != value('" << val << "'";
-                ++hit_count;
-            }
-            ++total_count;
-        }
-    }
-    EXPECT_TRUE((hit_count + 10) == total_count)
-        << "hit_count = " << hit_count << "; total_count = " << total_count;
+    EXPECT_FALSE(cache.contains(0));
+    EXPECT_TRUE(cache.contains(1));
+    EXPECT_TRUE(cache.contains(2));
+    EXPECT_TRUE(cache.contains(3));
 }
 
 int main(int argc, char** argv)

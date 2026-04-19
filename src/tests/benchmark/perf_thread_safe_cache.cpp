@@ -32,6 +32,7 @@
 
 #include <benchmark/benchmark.h>
 
+#include "cache/thread_safe_fifo_cache.h"
 #include "cache/thread_safe_lru_cache.h"
 #include "cache/thread_safe_rr_cache.h"
 #include "cache/thread_safe_ttl_cache.h"
@@ -70,6 +71,13 @@ public:
     void TearDown(const ::benchmark::State&) {}
 
     const std::vector<value_type>& test_data() const { return g_k_test_data; }
+};
+
+struct fifo_cache
+{
+    using cache = ::wstux::cache::fifo::thread_safe_fifo_cache<size_t, size_t>;
+
+    static cache create(size_t cap, size_t shards = g_k_threads_count) { return cache(cap, shards); }
 };
 
 struct lru_cache
@@ -322,6 +330,7 @@ BENCHMARK_TEMPLATE_METHOD_F(cache_fixture, many_shards)(benchmark::State& state)
     BENCHMARK_TEMPLATE_INSTANTIATE_F(fixture, request_hot,     cache_type)->Threads(g_k_threads_count); \
     BENCHMARK_TEMPLATE_INSTANTIATE_F(fixture, many_shards,     cache_type)->Threads(g_k_threads_count)
 
+DECLARE_TYPED_BENCHMARKS(cache_fixture, fifo_cache);
 DECLARE_TYPED_BENCHMARKS(cache_fixture, lru_cache);
 DECLARE_TYPED_BENCHMARKS(cache_fixture, rr_cache);
 DECLARE_TYPED_BENCHMARKS(cache_fixture, ttl_cache);
