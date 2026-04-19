@@ -28,7 +28,8 @@
 #include <functional>
 #include <optional>
 
-#include "cache/details/base_lru_cache.h"
+#include "cache/details/base_cache.h"
+#include "cache/details/lru_policy.h"
 
 namespace wstux {
 namespace cache {
@@ -55,22 +56,24 @@ namespace lru {
 template<typename TKey, typename TValue,
          class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>,
          class TAllocator = std::allocator<std::pair<const TKey, TValue>>>
-class lru_cache final : protected details::base_lru_cache<TKey, TValue, THash, TKeyEqual, TAllocator>
+//class lru_cache final : protected details::base_lru_cache<TKey, TValue, THash, TKeyEqual, TAllocator>
+class lru_cache final : protected details::common::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, details::lru::lru_policy>
 {
 private:
-    typedef details::base_lru_cache<TKey, TValue, THash, TKeyEqual, TAllocator> base;
+    typedef details::common::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, details::lru::lru_policy>    base;
+    typedef typename base::policy_type      policy_type;
 
 public:
-    typedef typename base::allocator_type    allocator_type;
-    typedef typename base::key_type          key_type;
-    typedef typename base::value_type        value_type;
-    typedef typename base::size_type         size_type;
-    typedef typename base::hasher            hasher;
-    typedef typename base::key_equal         key_equal;
-    typedef typename base::reference         reference;
-    typedef typename base::const_reference   const_reference;
-    typedef typename base::pointer           pointer;
-    typedef typename base::const_pointer     const_pointer;
+    typedef typename base::allocator_type   allocator_type;
+    typedef typename base::key_type         key_type;
+    typedef typename base::value_type       value_type;
+    typedef typename base::size_type        size_type;
+    typedef typename base::hasher           hasher;
+    typedef typename base::key_equal        key_equal;
+    typedef typename base::reference        reference;
+    typedef typename base::const_reference  const_reference;
+    typedef typename base::pointer          pointer;
+    typedef typename base::const_pointer    const_pointer;
 
     /// \brief  Constructs a new container.
     /// \param  capacity - number of elements for which space has been allocated
@@ -100,7 +103,7 @@ public:
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
-            base::move_to_top(it);
+            policy_type::move_to_top(base::policy().list, it);
             return true;
         }
         return false;
@@ -117,7 +120,7 @@ public:
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
-            base::move_to_top(it);
+            policy_type::move_to_top(base::policy().list, it);
             return false;
         }
 
@@ -143,7 +146,7 @@ public:
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
-            base::move_to_top(it);
+            policy_type::move_to_top(base::policy().list, it);
             base::load(it, result);
             return true;
         }
@@ -160,7 +163,7 @@ public:
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
-            base::move_to_top(it);
+            policy_type::move_to_top(base::policy().list, it);
             return false;
         }
 
@@ -175,7 +178,7 @@ public:
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
-            base::move_to_top(it);
+            policy_type::move_to_top(base::policy().list, it);
             return base::load(it);
         }
 
@@ -200,7 +203,7 @@ public:
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
             base::store(it, value_type(val));
-            base::move_to_top(it);
+            policy_type::move_to_top(base::policy().list, it);
             return;
         }
 
@@ -217,7 +220,7 @@ public:
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
             base::store(it, std::move(val));
-            base::move_to_top(it);
+            policy_type::move_to_top(base::policy().list, it);
             return;
         }
 
@@ -225,7 +228,7 @@ public:
     }
 
 private:
-    typedef typename base::_hash_table_t    _hash_table_t;
+    typedef typename base::hash_table_type      _hash_table_t;
 };
 
 } // namespace lru

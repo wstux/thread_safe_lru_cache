@@ -61,16 +61,16 @@ private:
     typedef details::base_rr_cache<TKey, TValue, THash, TKeyEqual, TAllocator>  base;
 
 public:
-    typedef typename base::allocator_type    allocator_type;
-    typedef typename base::key_type          key_type;
-    typedef typename base::value_type        value_type;
-    typedef typename base::size_type         size_type;
-    typedef typename base::hasher            hasher;
-    typedef typename base::key_equal         key_equal;
-    typedef typename base::reference         reference;
-    typedef typename base::const_reference   const_reference;
-    typedef typename base::pointer           pointer;
-    typedef typename base::const_pointer     const_pointer;
+    typedef typename base::allocator_type   allocator_type;
+    typedef typename base::key_type         key_type;
+    typedef typename base::value_type       value_type;
+    typedef typename base::size_type        size_type;
+    typedef typename base::hasher           hasher;
+    typedef typename base::key_equal        key_equal;
+    typedef typename base::reference        reference;
+    typedef typename base::const_reference  const_reference;
+    typedef typename base::pointer          pointer;
+    typedef typename base::const_pointer    const_pointer;
 
     /// \brief  Constructs a new container.
     /// \param  capacity - number of elements for which space has been allocated
@@ -215,7 +215,7 @@ public:
     }
 
 private:
-    typedef typename base::_hash_table_t    _hash_table_t;
+    typedef typename base::hash_table_type      _hash_table_t;
 };
 
 } // namespace rr

@@ -22,26 +22,28 @@
  * THE SOFTWARE.
  */
 
-#ifndef _THREAD_SAFE_CACHE_LIBS_CACHE_BASE_RR_CACHE_H_
-#define _THREAD_SAFE_CACHE_LIBS_CACHE_BASE_RR_CACHE_H_
+#ifndef _THREAD_SAFE_CACHE_LIBS_CACHE_FIFO_POLICY_H_
+#define _THREAD_SAFE_CACHE_LIBS_CACHE_FIFO_POLICY_H_
 
-#include "cache/details/base_cache.h"
-#include "cache/details/rr_policy.h"
+#include "cache/details/lru_policy.h"
 
 namespace wstux {
 namespace cache {
-namespace rr {
 namespace details {
+namespace fifo {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Specifics of cache implementation
 
-template<typename TKey, typename TValue, class THash, class TKeyEqual, class TAllocator>
-using base_rr_cache = cache::details::common::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, cache::details::rr::rr_policy>;
+////////////////////////////////////////////////////////////////////////////////
+// struct fifo_policy
 
+template<typename TTraits>
+using fifo_policy = lru::lru_policy<TTraits>;
+
+} // namespace fifo
 } // namespace details
-} // namespace rr
 } // namespace cache
 } // namespace wstux
 
-#endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_BASE_RR_CACHE_H_ */
+#endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_FIFO_POLICY_H_ */

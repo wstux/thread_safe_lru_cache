@@ -28,7 +28,8 @@
 #include <functional>
 #include <optional>
 
-#include "cache/details/base_lru_cache.h"
+#include "cache/details/base_cache.h"
+#include "cache/details/fifo_policy.h"
 
 namespace wstux {
 namespace cache {
@@ -55,10 +56,10 @@ namespace fifo {
 template<typename TKey, typename TValue,
          class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>,
          class TAllocator = std::allocator<std::pair<const TKey, TValue>>>
-class fifo_cache final : protected lru::details::base_lru_cache<TKey, TValue, THash, TKeyEqual, TAllocator>
+class fifo_cache final : protected details::common::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, details::fifo::fifo_policy>
 {
 private:
-    typedef lru::details::base_lru_cache<TKey, TValue, THash, TKeyEqual, TAllocator> base;
+    typedef details::common::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, details::fifo::fifo_policy> base;
 
 public:
     typedef typename base::allocator_type    allocator_type;
@@ -218,7 +219,7 @@ public:
     }
 
 private:
-    typedef typename base::_hash_table_t    _hash_table_t;
+    typedef typename base::hash_table_type      _hash_table_t;
 };
 
 } // namespace fifo
