@@ -29,10 +29,12 @@
 #include <gtest/gtest.h>
 
 #include "cache/fifo_cache.h"
+#include "cache/lfu_cache.h"
 #include "cache/lru_cache.h"
 #include "cache/rr_cache.h"
 #include "cache/ttl_cache.h"
 #include "cache/thread_safe_fifo_cache.h"
+#include "cache/thread_safe_lfu_cache.h"
 #include "cache/thread_safe_lru_cache.h"
 #include "cache/thread_safe_rr_cache.h"
 #include "cache/thread_safe_ttl_cache.h"
@@ -49,9 +51,13 @@ class cache_fixture : public ::testing::Test
 struct fifo_cache
 {
     using cache = ::wstux::cache::fifo::fifo_cache<size_t, std::string>;
+    static cache create(size_t cap = 10) { return cache(cap); }
+    static void reset(cache& c, size_t cap) { c.reset(cap); }
+};
 
-    static constexpr bool is_lru_base = true;
-
+struct lfu_cache
+{
+    using cache = ::wstux::cache::lfu::lfu_cache<size_t, std::string>;
     static cache create(size_t cap = 10) { return cache(cap); }
     static void reset(cache& c, size_t cap) { c.reset(cap); }
 };
@@ -59,9 +65,6 @@ struct fifo_cache
 struct lru_cache
 {
     using cache = ::wstux::cache::lru::lru_cache<size_t, std::string>;
-
-    static constexpr bool is_lru_base = true;
-
     static cache create(size_t cap = 10) { return cache(cap); }
     static void reset(cache& c, size_t cap) { c.reset(cap); }
 };
@@ -69,9 +72,6 @@ struct lru_cache
 struct rr_cache
 {
     using cache = ::wstux::cache::rr::rr_cache<size_t, std::string>;
-
-    static constexpr bool is_lru_base = false;
-
     static cache create(size_t cap = 10) { return cache(cap); }
     static void reset(cache& c, size_t cap) { c.reset(cap); }
 };
@@ -79,9 +79,6 @@ struct rr_cache
 struct ttl_cache
 {
     using cache = ::wstux::cache::ttl::ttl_cache<size_t, std::string>;
-
-    static constexpr bool is_lru_base = true;
-
     static cache create(size_t cap = 10) { return cache(900, cap); }
     static void reset(cache& c, size_t cap) { c.reset(900, cap); }
 };
@@ -89,9 +86,13 @@ struct ttl_cache
 struct thread_safe_fifo_cache
 {
     using cache = ::wstux::cache::fifo::thread_safe_fifo_cache<size_t, std::string>;
+    static cache create(size_t cap = 10) { return cache(cap, 2); }
+    static void reset(cache& c, size_t cap) { c.reset(cap); }
+};
 
-    static constexpr bool is_lru_base = true;
-
+struct thread_safe_lfu_cache
+{
+    using cache = ::wstux::cache::lfu::thread_safe_lfu_cache<size_t, std::string>;
     static cache create(size_t cap = 10) { return cache(cap, 2); }
     static void reset(cache& c, size_t cap) { c.reset(cap); }
 };
@@ -99,9 +100,6 @@ struct thread_safe_fifo_cache
 struct thread_safe_lru_cache
 {
     using cache = ::wstux::cache::lru::thread_safe_lru_cache<size_t, std::string>;
-
-    static constexpr bool is_lru_base = true;
-
     static cache create(size_t cap = 10) { return cache(cap, 2); }
     static void reset(cache& c, size_t cap) { c.reset(cap); }
 };
@@ -109,9 +107,6 @@ struct thread_safe_lru_cache
 struct thread_safe_rr_cache
 {
     using cache = ::wstux::cache::rr::thread_safe_rr_cache<size_t, std::string>;
-
-    static constexpr bool is_lru_base = false;
-
     static cache create(size_t cap = 10) { return cache(cap, 2); }
     static void reset(cache& c, size_t cap) { c.reset(cap); }
 };
@@ -119,18 +114,17 @@ struct thread_safe_rr_cache
 struct thread_safe_ttl_cache
 {
     using cache = ::wstux::cache::ttl::thread_safe_ttl_cache<size_t, std::string>;
-
-    static constexpr bool is_lru_base = true;
-
     static cache create(size_t cap = 10) { return cache(900, cap, 2); }
     static void reset(cache& c, size_t cap) { c.reset(900, cap); }
 };
 
 using cache_types = testing::Types<fifo_cache,
+                                   lfu_cache,
                                    lru_cache,
                                    rr_cache,
                                    ttl_cache,
                                    thread_safe_fifo_cache,
+                                   thread_safe_lfu_cache,
                                    thread_safe_lru_cache,
                                    thread_safe_rr_cache,
                                    thread_safe_ttl_cache>;
@@ -277,10 +271,6 @@ TYPED_TEST(cache_fixture, reset)
     cache.emplace(1, 4, 'b');
     cache.emplace(2, 4, 'c');
     EXPECT_TRUE(cache.size() == 2) << cache.size();
-    if (param_type::is_lru_base) {
-        EXPECT_FALSE(cache.contains(0));
-        EXPECT_TRUE(cache.contains(1));
-    }
     EXPECT_TRUE(cache.contains(2));
 
     param_type::reset(cache, 4);

@@ -33,6 +33,7 @@
 #include <benchmark/benchmark.h>
 
 #include "cache/thread_safe_fifo_cache.h"
+#include "cache/thread_safe_lfu_cache.h"
 #include "cache/thread_safe_lru_cache.h"
 #include "cache/thread_safe_rr_cache.h"
 #include "cache/thread_safe_ttl_cache.h"
@@ -76,6 +77,12 @@ public:
 struct fifo_cache
 {
     using cache = ::wstux::cache::fifo::thread_safe_fifo_cache<size_t, size_t>;
+    static cache create(size_t cap, size_t shards = g_k_threads_count) { return cache(cap, shards); }
+};
+
+struct lfu_cache
+{
+    using cache = ::wstux::cache::lfu::thread_safe_lfu_cache<size_t, size_t>;
     static cache create(size_t cap, size_t shards = g_k_threads_count) { return cache(cap, shards); }
 };
 
@@ -327,6 +334,7 @@ BENCHMARK_TEMPLATE_METHOD_F(cache_fixture, many_shards)(benchmark::State& state)
     BENCHMARK_TEMPLATE_INSTANTIATE_F(fixture, many_shards,     cache_type)->Threads(g_k_threads_count)
 
 DECLARE_TYPED_BENCHMARKS(cache_fixture, fifo_cache);
+DECLARE_TYPED_BENCHMARKS(cache_fixture, lfu_cache);
 DECLARE_TYPED_BENCHMARKS(cache_fixture, lru_cache);
 DECLARE_TYPED_BENCHMARKS(cache_fixture, rr_cache);
 DECLARE_TYPED_BENCHMARKS(cache_fixture, ttl_cache);
