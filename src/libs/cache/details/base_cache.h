@@ -25,38 +25,12 @@
 #ifndef _THREAD_SAFE_CACHE_LIBS_CACHE_BASE_CACHE_H_
 #define _THREAD_SAFE_CACHE_LIBS_CACHE_BASE_CACHE_H_
 
-#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-    #include <vector>
-
-    #include <boost/intrusive/list.hpp>
-    #include <boost/intrusive/unordered_set.hpp>
-#else
-    #include <list>
-    #include <unordered_map>
-#endif
+#include "cache/details/traits.h"
 
 namespace wstux {
 namespace cache {
 namespace details {
 namespace common {
-
-////////////////////////////////////////////////////////////////////////////////
-// class type_traits
-
-template<typename TKey, typename TValue, typename THash, typename TKeyEqual, typename TAllocator>
-struct type_traits
-{
-    typedef TAllocator          allocator_type;
-    typedef TKey                key_type;
-    typedef TValue              value_type;
-    typedef value_type&         reference;
-    typedef const value_type&   const_reference;
-    typedef value_type*         pointer;
-    typedef const value_type*   const_pointer;
-    typedef std::size_t         size_type;
-    typedef THash               hasher;
-    typedef TKeyEqual           key_equal;
-};
 
 ////////////////////////////////////////////////////////////////////////////////
 // class base_cache

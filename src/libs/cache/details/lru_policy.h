@@ -26,14 +26,12 @@
 #define _THREAD_SAFE_CACHE_LIBS_CACHE_LRU_POLICY_H_
 
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-    #include <vector>
-
     #include <boost/intrusive/list.hpp>
-    #include <boost/intrusive/unordered_set.hpp>
 #else
     #include <list>
-    #include <unordered_map>
 #endif
+
+#include "cache/details/traits.h"
 
 namespace wstux {
 namespace cache {
@@ -65,28 +63,8 @@ struct node : public bi::list_base_hook<bi::link_mode<bi::normal_link>>
     value_type value;
 };
 
-template<typename THash>
-struct node_hash
-{
-    template<typename T>
-    size_t operator()(const T& t) const { return THash{}(t); }
-
-    template<typename TKey, typename TValue>
-    size_t operator()(const node<TKey, TValue>& n) const { return THash{}(n.key); }
-};
-
-template<typename TKey>
-const TKey& _key(const TKey& k) { return k; }
-
 template<typename TKey, typename TValue>
-const TKey& _key(const node<TKey, TValue>& n) { return n.key; }
-
-template<typename TKeyEqual>
-struct node_equal
-{
-    template<typename T1, typename T2>
-    bool operator()(const T1& l, const T2& r) const { return TKeyEqual{}(_key(l), _key(r)); }
-};
+using _tbl_node = node<TKey, TValue>;
 #else
 /**
  *  \brief  Implementations based on standard library.
@@ -106,6 +84,9 @@ struct hash_table_value
     value_type value;
     typename _list_t::iterator list_it;
 };
+
+template<typename TKey, typename TValue, typename TAllocator>
+using _tbl_node = hash_table_value<TKey, TValue, TAllocator>;
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -125,26 +106,20 @@ struct lru_policy
     typedef typename TTraits::hasher            hasher;
     typedef typename TTraits::key_equal         key_equal;
 
+    typedef cache::details::common::hash_table_traits<TTraits, _tbl_node>   _tbl_traits;
+    typedef typename _tbl_traits::_hash_table_t     _hash_table_t;
+
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-    typedef node<key_type, value_type>              _node_t;
-    typedef typename std::allocator_traits<allocator_type>::template rebind_alloc<_node_t>          _node_allocator_t;
+    typedef typename _tbl_traits::_node_t           _node_t;
+    typedef typename _tbl_traits::_node_allocator_t _node_allocator_t;
+
+    typedef typename _tbl_traits::_bucket_traits_t  _bucket_traits_t;
+    typedef typename _tbl_traits::_buckets_list_t   _buckets_list_t;
 
     typedef bi::list<_node_t, bi::constant_time_size<false>>    _list_t;
-
-    typedef bi::constant_time_size<true>            _ct_size_t;
-    typedef bi::hash<node_hash<hasher>>             _intr_hash_t;
-    typedef bi::equal<node_equal<key_equal>>        _intr_key_equal_t;
-    typedef bi::unordered_set<_node_t, _ct_size_t, _intr_hash_t, _intr_key_equal_t> _hash_table_t;
-
-    typedef typename _hash_table_t::bucket_type     _bucket_type_t;
-    typedef typename _hash_table_t::bucket_traits   _bucket_traits_t;
-
-    typedef typename std::allocator_traits<allocator_type>::template rebind_alloc<_bucket_traits_t> _bucket_allocator_t;
-    typedef std::vector<_bucket_type_t, _bucket_allocator_t>        _buckets_list_t;
 #else
-    typedef hash_table_value<key_type, value_type, allocator_type>  _table_value_t;
-    typedef typename _table_value_t::_list_t                        _list_t;
-    typedef std::unordered_map<key_type, _table_value_t, hasher, key_equal, allocator_type> _hash_table_t;
+    typedef typename _tbl_traits::_table_value_t    _table_value_t;
+    typedef typename _table_value_t::_list_t        _list_t;
 #endif
 
     lru_policy(size_type capacity, const allocator_type& alloc)
