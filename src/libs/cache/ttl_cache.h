@@ -28,7 +28,9 @@
 #include <functional>
 #include <optional>
 
-#include "cache/details/base_ttl_cache.h"
+//#include "cache/details/base_ttl_cache.h"
+#include "cache/details/base_cache.h"
+#include "cache/details/ttl_policy.h"
 
 namespace wstux {
 namespace cache {
@@ -55,29 +57,30 @@ namespace ttl {
 template<typename TKey, typename TValue,
          class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>,
          class TAllocator = std::allocator<std::pair<const TKey, TValue>>>
-class ttl_cache : protected details::base_ttl_cache<TKey, TValue, THash, TKeyEqual, TAllocator>
+class ttl_cache : protected details::common::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, details::ttl::ttl_policy>
 {
 private:
-    typedef details::base_ttl_cache<TKey, TValue, THash, TKeyEqual, TAllocator> base;
+    typedef details::common::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, details::ttl::ttl_policy>   base;
+    typedef typename base::policy_type      policy_type;
 
 public:
-    typedef typename base::allocator_type    allocator_type;
-    typedef typename base::key_type          key_type;
-    typedef typename base::value_type        value_type;
-    typedef typename base::size_type         size_type;
-    typedef typename base::hasher            hasher;
-    typedef typename base::key_equal         key_equal;
-    typedef typename base::reference         reference;
-    typedef typename base::const_reference   const_reference;
-    typedef typename base::pointer           pointer;
-    typedef typename base::const_pointer     const_pointer;
+    typedef typename base::allocator_type   allocator_type;
+    typedef typename base::key_type         key_type;
+    typedef typename base::value_type       value_type;
+    typedef typename base::size_type        size_type;
+    typedef typename base::hasher           hasher;
+    typedef typename base::key_equal        key_equal;
+    typedef typename base::reference        reference;
+    typedef typename base::const_reference  const_reference;
+    typedef typename base::pointer          pointer;
+    typedef typename base::const_pointer    const_pointer;
 
     /// \brief  Constructs a new container.
     /// \param  ttl_msecs - time to live milliseconds.
     /// \param  capacity - number of elements for which space has been allocated
     ///         in the container.
     explicit ttl_cache(size_type ttl_msecs, size_type capacity, const allocator_type& alloc = allocator_type())
-        : base(ttl_msecs, capacity, alloc)
+        : base(capacity, alloc, ttl_msecs)
     {}
 
     ttl_cache(const ttl_cache&) = delete;
@@ -100,8 +103,8 @@ public:
     bool contains(const key_type& key)
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
-        if (base::is_find(it) && ! base::is_expired(it)) {
-            base::move_to_top(it);
+        if (base::is_find(it) && ! base::policy().is_expired(it)) {
+            policy_type::move_to_top(base::policy().list, it);
             return true;
         }
         return false;
@@ -119,11 +122,11 @@ public:
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
             bool rc = false;
-            if (base::is_expired(it)) {
+            if (base::policy().is_expired(it)) {
                 base::store(it, value_type(std::forward<TArgs>(args)...));
                 rc = true;
             }
-            base::move_to_top(it);
+            policy_type::move_to_top(base::policy().list, it);
             return rc;
         }
 
@@ -149,10 +152,10 @@ public:
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
-            if (base::is_expired(it)) {
+            if (base::policy().is_expired(it)) {
                 base::erase(it);
             } else {
-                base::move_to_top(it);
+                policy_type::move_to_top(base::policy().list, it);
                 base::load(it, result);
                 return true;
             }
@@ -171,11 +174,11 @@ public:
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
             bool rc = false;
-            if (base::is_expired(it)) {
+            if (base::policy().is_expired(it)) {
                 base::store(it, value_type(val));
                 rc = true;
             }
-            base::move_to_top(it);
+            policy_type::move_to_top(base::policy().list, it);
             return rc;
         }
 
@@ -189,8 +192,8 @@ public:
     std::optional<value_type> get(const key_type& key)
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
-        if (base::is_find(it) && ! base::is_expired(it)) {
-            base::move_to_top(it);
+        if (base::is_find(it) && ! base::policy().is_expired(it)) {
+            policy_type::move_to_top(base::policy().list, it);
             return base::load(it);
         }
 
@@ -202,7 +205,7 @@ public:
     /// \param  new_capacity - new capacity of the cache, in number of elements.
     void reset(size_type ttl_msecs, size_type new_capacity)
     {
-        base::reset(ttl_msecs, new_capacity);
+        base::reset(new_capacity, ttl_msecs);
     }
 
     /// \brief  Return the number of elements in the container.
@@ -219,7 +222,7 @@ public:
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
             base::store(it, value_type(val));
-            base::move_to_top(it);
+            policy_type::move_to_top(base::policy().list, it);
             return;
         }
 
@@ -236,7 +239,7 @@ public:
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
             base::store(it, std::move(val));
-            base::move_to_top(it);
+            policy_type::move_to_top(base::policy().list, it);
             return;
         }
 
@@ -244,7 +247,7 @@ public:
     }
 
 private:
-    typedef typename base::_hash_table_t    _hash_table_t;
+    typedef typename base::hash_table_type      _hash_table_t;
 };
 
 } // namespace ttl

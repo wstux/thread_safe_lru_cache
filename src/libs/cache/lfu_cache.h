@@ -22,27 +22,27 @@
  * THE SOFTWARE.
  */
 
-#ifndef _THREAD_SAFE_CACHE_LIBS_CACHE_LRU_CACHE_H_
-#define _THREAD_SAFE_CACHE_LIBS_CACHE_LRU_CACHE_H_
+#ifndef _THREAD_SAFE_CACHE_LIBS_CACHE_LFU_CACHE_H_
+#define _THREAD_SAFE_CACHE_LIBS_CACHE_LFU_CACHE_H_
 
 #include <functional>
 #include <optional>
 
 #include "cache/details/base_cache.h"
-#include "cache/details/lru_policy.h"
+#include "cache/details/lfu_policy.h"
 
 namespace wstux {
 namespace cache {
-namespace lru {
+namespace lfu {
 
 /**
- *  \brief  LRU cache.
+ *  \brief  LFU cache.
  *  \tparam TKey - cache key.
  *  \tparam TValue - cache value.
  *  \tparam THash - function object for hashing the cache key.
  *  \tparam TKeyEqual - function object for performing comparisons the cache key.
  *
- *  \details    LRU cache has two implementations - based on std::unordered_map
+ *  \details    LFU cache has two implementations - based on std::unordered_map
  *          and based boost::intrusive::unordered_set_base_hook. Since a hash
  *          table is used as a container, searching in it takes O(1) time.
  *
@@ -56,10 +56,10 @@ namespace lru {
 template<typename TKey, typename TValue,
          class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>,
          class TAllocator = std::allocator<std::pair<const TKey, TValue>>>
-class lru_cache final : protected details::common::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, details::lru::lru_policy>
+class lfu_cache final : protected details::common::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, details::lfu::lfu_policy>
 {
 private:
-    typedef details::common::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, details::lru::lru_policy>    base;
+    typedef details::common::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, details::lfu::lfu_policy>    base;
     typedef typename base::policy_type      policy_type;
 
 public:
@@ -77,12 +77,12 @@ public:
     /// \brief  Constructs a new container.
     /// \param  capacity - number of elements for which space has been allocated
     ///         in the container.
-    explicit lru_cache(size_type capacity, const allocator_type& alloc = allocator_type())
+    explicit lfu_cache(size_type capacity, const allocator_type& alloc = allocator_type())
         : base(capacity, alloc)
     {}
 
-    lru_cache(const lru_cache&) = delete;
-    lru_cache& operator=(const lru_cache&) = delete;
+    lfu_cache(const lfu_cache&) = delete;
+    lfu_cache& operator=(const lfu_cache&) = delete;
 
     /// \brief  Return the number of items for which space has been allocated in
     ///         the container.
@@ -102,7 +102,7 @@ public:
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
-            policy_type::move_to_top(base::policy().list, it);
+            base::policy().touch(it);
             return true;
         }
         return false;
@@ -119,7 +119,7 @@ public:
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
-            policy_type::move_to_top(base::policy().list, it);
+            base::policy().touch(it);
             return false;
         }
 
@@ -145,7 +145,7 @@ public:
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
-            policy_type::move_to_top(base::policy().list, it);
+            base::policy().touch(it);
             base::load(it, result);
             return true;
         }
@@ -162,7 +162,7 @@ public:
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
-            policy_type::move_to_top(base::policy().list, it);
+            base::policy().touch(it);
             return false;
         }
 
@@ -177,7 +177,7 @@ public:
     {
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
-            policy_type::move_to_top(base::policy().list, it);
+            base::policy().touch(it);
             return base::load(it);
         }
 
@@ -202,7 +202,7 @@ public:
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
             base::store(it, value_type(val));
-            policy_type::move_to_top(base::policy().list, it);
+            base::policy().touch(it);
             return;
         }
 
@@ -219,7 +219,7 @@ public:
         typename _hash_table_t::iterator it = base::find_in_tbl(key);
         if (base::is_find(it)) {
             base::store(it, std::move(val));
-            policy_type::move_to_top(base::policy().list, it);
+            base::policy().touch(it);
             return;
         }
 
@@ -230,8 +230,8 @@ private:
     typedef typename base::hash_table_type      _hash_table_t;
 };
 
-} // namespace lru
+} // namespace lfu
 } // namespace cache
 } // namespace wstux
 
-#endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_LRU_CACHE_H_ */
+#endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_LFU_CACHE_H_ */
