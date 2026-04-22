@@ -56,7 +56,6 @@ namespace lru {
 template<typename TKey, typename TValue,
          class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>,
          class TAllocator = std::allocator<std::pair<const TKey, TValue>>>
-//class lru_cache final : protected details::base_lru_cache<TKey, TValue, THash, TKeyEqual, TAllocator>
 class lru_cache final : protected details::common::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, details::lru::lru_policy>
 {
 private:

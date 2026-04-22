@@ -68,7 +68,7 @@ protected:
         , m_policy(m_capacity, alloc, std::forward<TArgs>(args)...)
     {}
 
-    virtual ~base_cache() {}
+    virtual ~base_cache() { clear(); }
 
     inline size_type capacity() const { return m_capacity; }
 
