@@ -31,11 +31,13 @@
 #include "cache/fifo_cache.h"
 #include "cache/lfu_cache.h"
 #include "cache/lru_cache.h"
+#include "cache/naive_rr_cache.h"
 #include "cache/rr_cache.h"
 #include "cache/ttl_cache.h"
 #include "cache/thread_safe_fifo_cache.h"
 #include "cache/thread_safe_lfu_cache.h"
 #include "cache/thread_safe_lru_cache.h"
+#include "cache/thread_safe_naive_rr_cache.h"
 #include "cache/thread_safe_rr_cache.h"
 #include "cache/thread_safe_ttl_cache.h"
 
@@ -65,6 +67,13 @@ struct lfu_cache
 struct lru_cache
 {
     using cache = ::wstux::cache::lru::lru_cache<size_t, std::string>;
+    static cache create(size_t cap = 10) { return cache(cap); }
+    static void reset(cache& c, size_t cap) { c.reset(cap); }
+};
+
+struct naive_rr_cache
+{
+    using cache = ::wstux::cache::rr::naive_rr_cache<size_t, std::string>;
     static cache create(size_t cap = 10) { return cache(cap); }
     static void reset(cache& c, size_t cap) { c.reset(cap); }
 };
@@ -104,6 +113,13 @@ struct thread_safe_lru_cache
     static void reset(cache& c, size_t cap) { c.reset(cap); }
 };
 
+struct thread_safe_naive_rr_cache
+{
+    using cache = ::wstux::cache::rr::thread_safe_naive_rr_cache<size_t, std::string>;
+    static cache create(size_t cap = 10) { return cache(cap, 2); }
+    static void reset(cache& c, size_t cap) { c.reset(cap); }
+};
+
 struct thread_safe_rr_cache
 {
     using cache = ::wstux::cache::rr::thread_safe_rr_cache<size_t, std::string>;
@@ -121,11 +137,13 @@ struct thread_safe_ttl_cache
 using cache_types = testing::Types<fifo_cache,
                                    lfu_cache,
                                    lru_cache,
+                                   naive_rr_cache,
                                    rr_cache,
                                    ttl_cache,
                                    thread_safe_fifo_cache,
                                    thread_safe_lfu_cache,
                                    thread_safe_lru_cache,
+                                   thread_safe_naive_rr_cache,
                                    thread_safe_rr_cache,
                                    thread_safe_ttl_cache>;
 TYPED_TEST_SUITE(cache_fixture, cache_types);

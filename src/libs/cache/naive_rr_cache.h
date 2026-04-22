@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2023 Chistyakov Alexander.
+ * Copyright 2026 Chistyakov Alexander.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,14 +22,13 @@
  * THE SOFTWARE.
  */
 
-#ifndef _THREAD_SAFE_CACHE_LIBS_CACHE_RR_CACHE_H_
-#define _THREAD_SAFE_CACHE_LIBS_CACHE_RR_CACHE_H_
+#ifndef _THREAD_SAFE_CACHE_LIBS_CACHE_NAIVE_RR_CACHE_H_
+#define _THREAD_SAFE_CACHE_LIBS_CACHE_NAIVE_RR_CACHE_H_
 
 #include <functional>
 #include <optional>
 
-#include "cache/details/base_cache.h"
-#include "cache/details/rr_policy.h"
+#include "cache/details/base_rr_cache.h"
 
 namespace wstux {
 namespace cache {
@@ -56,10 +55,10 @@ namespace rr {
 template<typename TKey, typename TValue,
          class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>,
          class TAllocator = std::allocator<std::pair<const TKey, TValue>>>
-class rr_cache final : protected cache::details::common::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, cache::details::rr::rr_policy>
+class naive_rr_cache final : protected details::base_rr_cache<TKey, TValue, THash, TKeyEqual, TAllocator>
 {
 private:
-    typedef cache::details::common::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, cache::details::rr::rr_policy>   base;
+    typedef details::base_rr_cache<TKey, TValue, THash, TKeyEqual, TAllocator>  base;
 
 public:
     typedef typename base::allocator_type   allocator_type;
@@ -76,12 +75,12 @@ public:
     /// \brief  Constructs a new container.
     /// \param  capacity - number of elements for which space has been allocated
     ///         in the container.
-    explicit rr_cache(size_type capacity, const allocator_type& alloc = allocator_type())
+    explicit naive_rr_cache(size_type capacity, const allocator_type& alloc = allocator_type())
         : base(capacity, alloc)
     {}
 
-    rr_cache(const rr_cache&) = delete;
-    rr_cache& operator=(const rr_cache&) = delete;
+    naive_rr_cache(const naive_rr_cache&) = delete;
+    naive_rr_cache& operator=(const naive_rr_cache&) = delete;
 
     /// \brief  Return the number of items for which space has been allocated in
     ///         the container.
@@ -223,4 +222,4 @@ private:
 } // namespace cache
 } // namespace wstux
 
-#endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_RR_CACHE_H_ */
+#endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_NAIVE_RR_CACHE_H_ */

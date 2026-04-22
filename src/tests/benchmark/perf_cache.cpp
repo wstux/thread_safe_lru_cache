@@ -33,6 +33,7 @@
 #include "cache/fifo_cache.h"
 #include "cache/lfu_cache.h"
 #include "cache/lru_cache.h"
+#include "cache/naive_rr_cache.h"
 #include "cache/rr_cache.h"
 #include "cache/ttl_cache.h"
 
@@ -55,6 +56,12 @@ struct lfu_cache
 struct lru_cache
 {
     using cache = ::wstux::cache::lru::lru_cache<size_t, size_t>;
+    static cache create(size_t cap = 10) { return cache(cap); }
+};
+
+struct naive_rr_cache
+{
+    using cache = ::wstux::cache::rr::naive_rr_cache<size_t, size_t>;
     static cache create(size_t cap = 10) { return cache(cap); }
 };
 
@@ -186,6 +193,7 @@ static void insert_overflow(::benchmark::State& state)
 DECLARE_TYPED_BENCHMARKS(fifo_cache);
 DECLARE_TYPED_BENCHMARKS(lfu_cache);
 DECLARE_TYPED_BENCHMARKS(lru_cache);
+DECLARE_TYPED_BENCHMARKS(naive_rr_cache);
 DECLARE_TYPED_BENCHMARKS(rr_cache);
 DECLARE_TYPED_BENCHMARKS(ttl_cache);
 
