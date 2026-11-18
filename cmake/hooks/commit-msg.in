@@ -50,4 +50,3 @@ Incorrect commit message.
 EOF
     exit 1
 fi
-

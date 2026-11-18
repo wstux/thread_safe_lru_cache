@@ -26,19 +26,24 @@ cmake_minimum_required (VERSION 3.10)
 # Build check
 ################################################################################
 
-include(common)
+include(logging)
+include(public)
+include(version)
+include(utils/common_utils)
 
 if (NOT COMMON_CMAKE_DIR)
-    message(FATAL_ERROR "[FATAL] COMMON_CMAKE_DIR variable is not setted")
+    log_fatal("COMMON_CMAKE_DIR variable is not setted")
 endif()
+
+log_info("Building project '${PROJECT_NAME}' version v.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}-${PROJECT_VERSION_BUILD}")
 
 AddPlatform("Linux")
 
 _is_supported_platform("${CMAKE_SYSTEM_NAME}" _is_support)
 if (_is_support)
-    message(STATUS "[INFO ] Build for '${CMAKE_SYSTEM_NAME}' platform")
+    log_info("Build for '${CMAKE_SYSTEM_NAME}' platform")
 else()
-    message(FATAL_ERROR "[FATAL] Unsupported '${CMAKE_SYSTEM_NAME}' platform")
+    log_fatal("Unsupported '${CMAKE_SYSTEM_NAME}' platform")
 endif()
 
 ################################################################################
@@ -48,12 +53,13 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY  "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY  "${CMAKE_BINARY_DIR}/lib")
+set(CMAKE_DRIVER_OUTPUT_DIRECTORY   "${CMAKE_BINARY_DIR}/driver")
 set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY} ${CMAKE_LIBRARY_PATH})
 file(MAKE_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 file(MAKE_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 file(MAKE_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 
-message(STATUS "[INFO ] CMAKE_BINARY_DIR: '${CMAKE_BINARY_DIR}'")
+log_info("CMAKE_BINARY_DIR: '${CMAKE_BINARY_DIR}'")
 
 ################################################################################
 # Configuration options
@@ -61,7 +67,8 @@ message(STATUS "[INFO ] CMAKE_BINARY_DIR: '${CMAKE_BINARY_DIR}'")
 
 include(CMakeDependentOption)
 
-include(build_flags)
+include(build_flag)
+include(sanitizers)
 
 set(PROJECT_BUILD_TYPE "${CMAKE_BUILD_TYPE}")
 set(_build_type "${PROJECT_BUILD_TYPE}")
@@ -71,37 +78,37 @@ if (PROJECT_BUILD_TYPE)
 endif()
 
 if(CMAKE_C_COMPILER)
-    message(STATUS "[INFO ] C compiler flags: '${CMAKE_C_FLAGS}'")
+    log_info("C compiler flags: '${CMAKE_C_FLAGS}'")
 
     if(PROJECT_BUILD_TYPE STREQUAL "debug" OR PROJECT_BUILD_TYPE STREQUAL "release")
-        message(STATUS "[INFO ] C ${PROJECT_BUILD_TYPE} compiler flags: '${CMAKE_C_FLAGS_${_build_type}}'")
+        log_info("C ${PROJECT_BUILD_TYPE} compiler flags: '${CMAKE_C_FLAGS_${_build_type}}'")
     endif()
 
 #    if(PROJECT_BUILD_TYPE STREQUAL "relwithdebinfo")
-#        message(STATUS "[INFO ] C rel_with_deb_info compiler flags: '${CMAKE_C_FLAGS_RELWITHDEBINFO}'")
+#        log_info("C rel_with_deb_info compiler flags: '${CMAKE_C_FLAGS_RELWITHDEBINFO}'")
 #    elseif(PROJECT_BUILD_TYPE STREQUAL "minsizerel")
-#        message(STATUS "[INFO ] C min_size_rel compiler flags: '${CMAKE_C_FLAGS_MINSIZEREL}'")
+#        log_info("C min_size_rel compiler flags: '${CMAKE_C_FLAGS_MINSIZEREL}'")
 #    endif()
-    message(STATUS "[INFO ] C link executable: '${CMAKE_C_LINK_EXECUTABLE}'")
+    log_info("C link executable: '${CMAKE_C_LINK_EXECUTABLE}'")
 endif()
 if(CMAKE_CXX_COMPILER)
-    message(STATUS "[INFO ] C++ compiler flags: '${CMAKE_CXX_FLAGS}'")
+    log_info("C++ compiler flags: '${CMAKE_CXX_FLAGS}'")
 
     if(PROJECT_BUILD_TYPE STREQUAL "debug" OR PROJECT_BUILD_TYPE STREQUAL "release")
-        message(STATUS "[INFO ] C++ ${PROJECT_BUILD_TYPE} compiler flags: '${CMAKE_C_FLAGS_${_build_type}}'")
+        log_info("C++ ${PROJECT_BUILD_TYPE} compiler flags: '${CMAKE_C_FLAGS_${_build_type}}'")
     endif()
 
 #    if(PROJECT_BUILD_TYPE STREQUAL "relwithdebinfo")
-#        message(STATUS "[INFO ] C++ rel_with_deb_info compiler flags: '${CMAKE_CXX_FLAGS_RELWITHDEBINFO}'")
+#        log_info("C++ rel_with_deb_info compiler flags: '${CMAKE_CXX_FLAGS_RELWITHDEBINFO}'")
 #    elseif(PROJECT_BUILD_TYPE STREQUAL "minsizerel")
-#        message(STATUS "[INFO ] C++ min_size_rel compiler flags: '${CMAKE_CXX_FLAGS_MINSIZEREL}'")
+#        log_info("C++ min_size_rel compiler flags: '${CMAKE_CXX_FLAGS_MINSIZEREL}'")
 #    endif()
-    message(STATUS "[INFO ] C++ link executable: '${CMAKE_CXX_LINK_EXECUTABLE}'")
+    log_info("C++ link executable: '${CMAKE_CXX_LINK_EXECUTABLE}'")
 endif()
 
-message(STATUS "[INFO ] Exe linker flags: '${CMAKE_EXE_LINKER_FLAGS}'")
-message(STATUS "[INFO ] Module linker flags: '${CMAKE_MODULE_LINKER_FLAGS}'")
-message(STATUS "[INFO ] Shared linker flags: '${CMAKE_SHARED_LINKER_FLAGS}'")
+log_info("Exe linker flags: '${CMAKE_EXE_LINKER_FLAGS}'")
+log_info("Module linker flags: '${CMAKE_MODULE_LINKER_FLAGS}'")
+log_info("Shared linker flags: '${CMAKE_SHARED_LINKER_FLAGS}'")
 
 ################################################################################
 # Configure git repository
@@ -116,9 +123,21 @@ InstallHook(commit-msg)
 # Include targets functions
 ################################################################################
 
+enable_testing()
+
 include(build_targets)
 include(custom_targets)
 include(driver_targets)
+include(example_targets)
 include(external_targets)
 include(fetch_targets)
+include(test_targets)
 include(wrapper_targets)
+
+################################################################################
+# Include custom targets
+################################################################################
+
+include(coverage)
+include(docs)
+include(static_analysis)

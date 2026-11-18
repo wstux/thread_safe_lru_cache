@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 3.10)
 # Project definition
 ################################################################################
 
-project(thread_safe_cache
+project(thread_safe_lru_cache
         VERSION 1.1.0
         LANGUAGES CXX)
 
@@ -27,7 +27,6 @@ option(USE_WERROR           "Tell the compiler to make the build fail when warni
 
 option(USE_BOOST_INTRUSIVE  "Use boost intrusive backend" ON)
 option(BUILD_BOOST          "Build boost" ON)
-
 option(BUILD_EXAMPLES       "Build examples" ON)
 option(BUILD_TESTS          "Build perftests and unittests" ON)
 
@@ -40,8 +39,6 @@ set(COMMON_MAIN_CMAKE ${COMMON_CMAKE_DIR}/main.cmake)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/${COMMON_CMAKE_DIR} ${CMAKE_MODULE_PATH})
 
 include(${COMMON_MAIN_CMAKE} PUBLIC)
-
-EnableSanitizers(${USE_ADDR_SANITIZER} ${USE_LEAK_SANITIZER} ${USE_BEHAVIOR_SANITIZER} ${USE_THREAD_SANITIZER})
 
 ################################################################################
 # Include source code

@@ -1,4 +1,9 @@
 # Build generated
+build*/
+.kdev4/
+*.kdev4
+
+# Build generated
 build_*/
 .kdev4/
 *.kdev4
