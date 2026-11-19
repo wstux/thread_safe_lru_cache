@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-include(build_utils)
+include(utils/target_utils)
 
 ################################################################################
 # Targets
@@ -54,7 +54,10 @@ macro(LibTarget TARGET_NAME)
 
     set(_include_dir "")
     if (${TARGET_NAME}_INCLUDE_DIR)
-        set(_include_dir "${PROJECT_SOURCE_DIR}/${${TARGET_NAME}_INCLUDE_DIR}")
+        set(_include_dir "${${TARGET_NAME}_INCLUDE_DIR}")
+        if (NOT IS_ABSOLUTE "${_include_dir}")
+            set(_include_dir "${PROJECT_SOURCE_DIR}/${_include_dir}")
+        endif()
     else()
         _get_default_include_dirs(${TARGET_NAME} _include_dir)
     endif()
@@ -63,6 +66,9 @@ macro(LibTarget TARGET_NAME)
     if (${TARGET_NAME}_INTERFACE)
         add_library(${TARGET_NAME} INTERFACE)
         set(_qualifier INTERFACE)
+
+        target_include_directories(${TARGET_NAME} INTERFACE ${_include_dir})
+        set_target_properties(${TARGET_NAME} PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${_include_dir})
     elseif (${TARGET_NAME}_SHARED OR ${TARGET_NAME}_STATIC)
         set(LIB_TYPE SHARED)
         if (${TARGET_NAME}_STATIC)
@@ -76,7 +82,7 @@ macro(LibTarget TARGET_NAME)
         target_include_directories(${TARGET_NAME} PRIVATE ${_include_dir})
         set_target_properties(${TARGET_NAME} PROPERTIES INCLUDE_DIRECTORIES ${_include_dir})
     else()
-        message(ERROR "[ERROR] Unsupported library type")
+        log_error("Unsupported library type")
     endif()
 
     set(_public_headers "")
@@ -144,9 +150,21 @@ macro(ExecTarget TARGET_NAME)
         _flags_kw _values_kw _lists_kw ${ARGN}
     )
 
+    set(_include_dir "")
+    if (${TARGET_NAME}_INCLUDE_DIR)
+        set(_include_dir "${${TARGET_NAME}_INCLUDE_DIR}")
+        if (NOT IS_ABSOLUTE "${_include_dir}")
+            set(_include_dir "${PROJECT_SOURCE_DIR}/${_include_dir}")
+        endif()
+    else()
+        _get_default_include_dirs(${TARGET_NAME} _include_dir)
+    endif()
+
     add_executable(${TARGET_NAME}
         ${${TARGET_NAME}_HEADERS} ${${TARGET_NAME}_SOURCES}
     )
+
+    target_include_directories(${TARGET_NAME} PRIVATE ${_include_dir})
 
     if ("${${TARGET_NAME}_LINKER_LANGUAGE}" STREQUAL "C" OR "${${TARGET_NAME}_LINKER_LANGUAGE}" STREQUAL "CXX")
         set_target_properties(${TARGET_NAME} PROPERTIES

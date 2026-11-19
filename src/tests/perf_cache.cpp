@@ -37,41 +37,50 @@
 #include "cache/rr_cache.h"
 #include "cache/ttl_cache.h"
 
+#define TSC_CONCAT_IMPL(a, b)       a ## b
+#define TSC_CONCAT(a, b)            TSC_CONCAT_IMPL(a, b)
+
+#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
+    #define TSC_CACHE_NAME(cache_type)  TSC_CONCAT(cache_type, _intrusive)
+#else
+    #define TSC_CACHE_NAME(cache_type)  TSC_CONCAT(cache_type, _std)
+#endif
+
 namespace {
 
 constexpr size_t g_k_count = 100000;
 
-struct fifo_cache
+struct TSC_CACHE_NAME(fifo_cache)
 {
     using cache = ::wstux::cache::fifo::fifo_cache<size_t, size_t>;
     static cache create(size_t cap = 10) { return cache(cap); }
 };
 
-struct lfu_cache
+struct TSC_CACHE_NAME(lfu_cache)
 {
     using cache = ::wstux::cache::lfu::lfu_cache<size_t, size_t>;
     static cache create(size_t cap = 10) { return cache(cap); }
 };
 
-struct lru_cache
+struct TSC_CACHE_NAME(lru_cache)
 {
     using cache = ::wstux::cache::lru::lru_cache<size_t, size_t>;
     static cache create(size_t cap = 10) { return cache(cap); }
 };
 
-struct naive_rr_cache
+struct TSC_CACHE_NAME(naive_rr_cache)
 {
     using cache = ::wstux::cache::rr::naive_rr_cache<size_t, size_t>;
     static cache create(size_t cap = 10) { return cache(cap); }
 };
 
-struct rr_cache
+struct TSC_CACHE_NAME(rr_cache)
 {
     using cache = ::wstux::cache::rr::rr_cache<size_t, size_t>;
     static cache create(size_t cap = 10) { return cache(cap); }
 };
 
-struct ttl_cache
+struct TSC_CACHE_NAME(ttl_cache)
 {
     using cache = ::wstux::cache::ttl::ttl_cache<size_t, size_t>;
     static cache create(size_t cap = 10) { return cache(900, cap); }
@@ -182,19 +191,19 @@ static void insert_overflow(::benchmark::State& state)
 
 } // <anonymous> namespace
 
-#define DECLARE_TYPED_BENCHMARKS(cache_type)        \
-    BENCHMARK_TEMPLATE(insert, cache_type);         \
-    BENCHMARK_TEMPLATE(emplace, cache_type);        \
-    BENCHMARK_TEMPLATE(update_insert, cache_type);  \
-    BENCHMARK_TEMPLATE(update, cache_type);         \
-    BENCHMARK_TEMPLATE(find, cache_type);           \
+#define DECLARE_TYPED_BENCHMARKS(cache_type)                                    \
+    BENCHMARK_TEMPLATE(insert,          cache_type);                            \
+    BENCHMARK_TEMPLATE(emplace,         cache_type);                            \
+    BENCHMARK_TEMPLATE(update_insert,   cache_type);                            \
+    BENCHMARK_TEMPLATE(update,          cache_type);                            \
+    BENCHMARK_TEMPLATE(find,            cache_type);                            \
     BENCHMARK_TEMPLATE(insert_overflow, cache_type)
 
-DECLARE_TYPED_BENCHMARKS(fifo_cache);
-DECLARE_TYPED_BENCHMARKS(lfu_cache);
-DECLARE_TYPED_BENCHMARKS(lru_cache);
-DECLARE_TYPED_BENCHMARKS(naive_rr_cache);
-DECLARE_TYPED_BENCHMARKS(rr_cache);
-DECLARE_TYPED_BENCHMARKS(ttl_cache);
+DECLARE_TYPED_BENCHMARKS(TSC_CACHE_NAME(fifo_cache));
+DECLARE_TYPED_BENCHMARKS(TSC_CACHE_NAME(lfu_cache));
+DECLARE_TYPED_BENCHMARKS(TSC_CACHE_NAME(lru_cache));
+DECLARE_TYPED_BENCHMARKS(TSC_CACHE_NAME(naive_rr_cache));
+DECLARE_TYPED_BENCHMARKS(TSC_CACHE_NAME(rr_cache));
+DECLARE_TYPED_BENCHMARKS(TSC_CACHE_NAME(ttl_cache));
 
 BENCHMARK_MAIN();
