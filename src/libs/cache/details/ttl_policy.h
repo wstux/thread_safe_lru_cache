@@ -23,7 +23,7 @@
  */
 
 #ifndef _THREAD_SAFE_CACHE_LIBS_CACHE_TTL_POLICY_H_
-#define _THREAD_SAFE_CACHE_LIBS_CACHE_TLL_POLICY_H_
+#define _THREAD_SAFE_CACHE_LIBS_CACHE_TTL_POLICY_H_
 
 #include <chrono>
 
@@ -296,4 +296,4 @@ struct ttl_policy
 } // namespace cache
 } // namespace wstux
 
-#endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_TLL_POLICY_H_ */
+#endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_TTL_POLICY_H_ */
