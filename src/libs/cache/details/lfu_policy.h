@@ -60,6 +60,13 @@ struct node : public bi::set_base_hook<bi::link_mode<bi::normal_link>>
         , freq(0)
     {}
 
+    template<typename... TArgs>
+    node(key_type&& k, TArgs&&... args)
+        : key(std::move(k))
+        , value(std::forward<TArgs>(args)...)
+        , freq(0)
+    {}
+
     key_type key;
     value_type value;
     size_t freq;

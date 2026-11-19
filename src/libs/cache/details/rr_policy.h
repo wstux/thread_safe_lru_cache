@@ -56,6 +56,12 @@ struct node : public bi::unordered_set_base_hook<bi::link_mode<bi::normal_link>>
         , value(std::move(v))
     {}
 
+    template<typename... TArgs>
+    node(key_type&& k, TArgs&&... args)
+        : key(std::move(k))
+        , value(std::forward<TArgs>(args)...)
+    {}
+
     key_type key;
     value_type value;
 };

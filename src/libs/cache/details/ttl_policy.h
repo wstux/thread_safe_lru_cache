@@ -64,6 +64,13 @@ struct node : public bi::list_base_hook<bi::link_mode<bi::normal_link>>
         , time_point(_clock_t::now())
     {}
 
+    template<typename... TArgs>
+    node(key_type&& k, TArgs&&... args)
+        : key(std::move(k))
+        , value(std::forward<TArgs>(args)...)
+        , time_point(_clock_t::now())
+    {}
+
     key_type key;
     value_type value;
     _time_point_t time_point;
