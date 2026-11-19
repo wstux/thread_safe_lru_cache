@@ -28,16 +28,16 @@
 
 #include <gtest/gtest.h>
 
+#include "cache/dm_cache.h"
 #include "cache/fifo_cache.h"
 #include "cache/lfu_cache.h"
 #include "cache/lru_cache.h"
-#include "cache/naive_rr_cache.h"
 #include "cache/rr_cache.h"
 #include "cache/ttl_cache.h"
+#include "cache/thread_safe_dm_cache.h"
 #include "cache/thread_safe_fifo_cache.h"
 #include "cache/thread_safe_lfu_cache.h"
 #include "cache/thread_safe_lru_cache.h"
-#include "cache/thread_safe_naive_rr_cache.h"
 #include "cache/thread_safe_rr_cache.h"
 #include "cache/thread_safe_ttl_cache.h"
 
@@ -58,6 +58,13 @@ namespace {
 template<typename TParam>
 class cache_fixture : public ::testing::Test
 {};
+
+struct TSC_CACHE_NAME(dm_cache)
+{
+    using cache = ::wstux::cache::dm::dm_cache<size_t, std::string>;
+    static cache create(size_t cap = 10) { return cache(cap); }
+    static void reset(cache& c, size_t cap) { c.reset(cap); }
+};
 
 struct TSC_CACHE_NAME(fifo_cache)
 {
@@ -80,13 +87,6 @@ struct TSC_CACHE_NAME(lru_cache)
     static void reset(cache& c, size_t cap) { c.reset(cap); }
 };
 
-struct TSC_CACHE_NAME(naive_rr_cache)
-{
-    using cache = ::wstux::cache::rr::naive_rr_cache<size_t, std::string>;
-    static cache create(size_t cap = 10) { return cache(cap); }
-    static void reset(cache& c, size_t cap) { c.reset(cap); }
-};
-
 struct TSC_CACHE_NAME(rr_cache)
 {
     using cache = ::wstux::cache::rr::rr_cache<size_t, std::string>;
@@ -99,6 +99,13 @@ struct TSC_CACHE_NAME(ttl_cache)
     using cache = ::wstux::cache::ttl::ttl_cache<size_t, std::string>;
     static cache create(size_t cap = 10) { return cache(900, cap); }
     static void reset(cache& c, size_t cap) { c.reset(900, cap); }
+};
+
+struct TSC_CACHE_NAME(thread_safe_dm_cache)
+{
+    using cache = ::wstux::cache::dm::thread_safe_dm_cache<size_t, std::string>;
+    static cache create(size_t cap = 10) { return cache(cap, 2); }
+    static void reset(cache& c, size_t cap) { c.reset(cap); }
 };
 
 struct TSC_CACHE_NAME(thread_safe_fifo_cache)
@@ -122,13 +129,6 @@ struct TSC_CACHE_NAME(thread_safe_lru_cache)
     static void reset(cache& c, size_t cap) { c.reset(cap); }
 };
 
-struct TSC_CACHE_NAME(thread_safe_naive_rr_cache)
-{
-    using cache = ::wstux::cache::rr::thread_safe_naive_rr_cache<size_t, std::string>;
-    static cache create(size_t cap = 10) { return cache(cap, 2); }
-    static void reset(cache& c, size_t cap) { c.reset(cap); }
-};
-
 struct TSC_CACHE_NAME(thread_safe_rr_cache)
 {
     using cache = ::wstux::cache::rr::thread_safe_rr_cache<size_t, std::string>;
@@ -143,16 +143,16 @@ struct TSC_CACHE_NAME(thread_safe_ttl_cache)
     static void reset(cache& c, size_t cap) { c.reset(900, cap); }
 };
 
-using cache_types = testing::Types<TSC_CACHE_NAME(fifo_cache),
+using cache_types = testing::Types<TSC_CACHE_NAME(dm_cache),
+                                   TSC_CACHE_NAME(fifo_cache),
                                    TSC_CACHE_NAME(lfu_cache),
                                    TSC_CACHE_NAME(lru_cache),
-                                   TSC_CACHE_NAME(naive_rr_cache),
                                    TSC_CACHE_NAME(rr_cache),
                                    TSC_CACHE_NAME(ttl_cache),
+                                   TSC_CACHE_NAME(thread_safe_dm_cache),
                                    TSC_CACHE_NAME(thread_safe_fifo_cache),
                                    TSC_CACHE_NAME(thread_safe_lfu_cache),
                                    TSC_CACHE_NAME(thread_safe_lru_cache),
-                                   TSC_CACHE_NAME(thread_safe_naive_rr_cache),
                                    TSC_CACHE_NAME(thread_safe_rr_cache),
                                    TSC_CACHE_NAME(thread_safe_ttl_cache)>;
 TYPED_TEST_SUITE(cache_fixture, cache_types);
