@@ -37,12 +37,13 @@
 #include "cache/rr_cache.h"
 #include "cache/ttl_cache.h"
 
-#if defined(THREAD_SAFE_CACHE_DISABLE_BOOST)
-    #define TSC_CACHE_NAME(cache_type)  cache_type
+#define TSC_CONCAT_IMPL(a, b)       a ## b
+#define TSC_CONCAT(a, b)            TSC_CONCAT_IMPL(a, b)
+
+#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
+    #define TSC_CACHE_NAME(cache_type)  TSC_CONCAT(cache_type, _intrusive)
 #else
-    #define TSC_CONCAT_IMPL(a, b)       a ## b
-    #define TSC_CONCAT(a, b)            TSC_CONCAT_IMPL(a, b)
-    #define TSC_CACHE_NAME(cache_type)  TSC_CONCAT(intrusive_, cache_type)
+    #define TSC_CACHE_NAME(cache_type)  TSC_CONCAT(cache_type, _std)
 #endif
 
 namespace {

@@ -39,12 +39,13 @@
 #include "cache/thread_safe_rr_cache.h"
 #include "cache/thread_safe_ttl_cache.h"
 
-#if defined(THREAD_SAFE_CACHE_DISABLE_BOOST)
-    #define TSC_CACHE_NAME(cache_type)  cache_type
+#define TSC_CONCAT_IMPL(a, b)       a ## b
+#define TSC_CONCAT(a, b)            TSC_CONCAT_IMPL(a, b)
+
+#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
+    #define TSC_CACHE_NAME(cache_type)  TSC_CONCAT(cache_type, _intrusive)
 #else
-    #define TSC_CONCAT_IMPL(a, b)       a ## b
-    #define TSC_CONCAT(a, b)            TSC_CONCAT_IMPL(a, b)
-    #define TSC_CACHE_NAME(cache_type)  TSC_CONCAT(intrusive_, cache_type)
+    #define TSC_CACHE_NAME(cache_type)  TSC_CONCAT(cache_type, _std)
 #endif
 
 namespace {
@@ -83,37 +84,37 @@ public:
     const std::vector<value_type>& test_data() const { return g_k_test_data; }
 };
 
-struct TSC_CACHE_NAME(fifo_cache)
+struct TSC_CACHE_NAME(thread_safe_fifo_cache)
 {
     using cache = ::wstux::cache::fifo::thread_safe_fifo_cache<size_t, size_t>;
     static cache create(size_t cap, size_t shards = g_k_threads_count) { return cache(cap, shards); }
 };
 
-struct TSC_CACHE_NAME(lfu_cache)
+struct TSC_CACHE_NAME(thread_safe_lfu_cache)
 {
     using cache = ::wstux::cache::lfu::thread_safe_lfu_cache<size_t, size_t>;
     static cache create(size_t cap, size_t shards = g_k_threads_count) { return cache(cap, shards); }
 };
 
-struct TSC_CACHE_NAME(lru_cache)
+struct TSC_CACHE_NAME(thread_safe_lru_cache)
 {
     using cache = ::wstux::cache::lru::thread_safe_lru_cache<size_t, size_t>;
     static cache create(size_t cap, size_t shards = g_k_threads_count) { return cache(cap, shards); }
 };
 
-struct TSC_CACHE_NAME(naive_rr_cache)
+struct TSC_CACHE_NAME(thread_safe_naive_rr_cache)
 {
     using cache = ::wstux::cache::rr::thread_safe_naive_rr_cache<size_t, size_t>;
     static cache create(size_t cap, size_t shards = g_k_threads_count) { return cache(cap, shards); }
 };
 
-struct TSC_CACHE_NAME(rr_cache)
+struct TSC_CACHE_NAME(thread_safe_rr_cache)
 {
     using cache = ::wstux::cache::rr::thread_safe_rr_cache<size_t, size_t>;
     static cache create(size_t cap, size_t shards = g_k_threads_count) { return cache(cap, shards); }
 };
 
-struct TSC_CACHE_NAME(ttl_cache)
+struct TSC_CACHE_NAME(thread_safe_ttl_cache)
 {
     using cache = ::wstux::cache::ttl::thread_safe_ttl_cache<size_t, size_t>;
     static cache create(size_t cap, size_t shards = g_k_threads_count) { return cache(900, cap, shards); }
@@ -348,11 +349,11 @@ BENCHMARK_TEMPLATE_METHOD_F(cache_fixture, many_shards)(benchmark::State& state)
     BENCHMARK_TEMPLATE_INSTANTIATE_F(fixture, request_hot,     cache_type)->Threads(g_k_threads_count); \
     BENCHMARK_TEMPLATE_INSTANTIATE_F(fixture, many_shards,     cache_type)->Threads(g_k_threads_count)
 
-DECLARE_TYPED_BENCHMARKS(cache_fixture, TSC_CACHE_NAME(fifo_cache));
-DECLARE_TYPED_BENCHMARKS(cache_fixture, TSC_CACHE_NAME(lfu_cache));
-DECLARE_TYPED_BENCHMARKS(cache_fixture, TSC_CACHE_NAME(lru_cache));
-DECLARE_TYPED_BENCHMARKS(cache_fixture, TSC_CACHE_NAME(naive_rr_cache));
-DECLARE_TYPED_BENCHMARKS(cache_fixture, TSC_CACHE_NAME(rr_cache));
-DECLARE_TYPED_BENCHMARKS(cache_fixture, TSC_CACHE_NAME(ttl_cache));
+DECLARE_TYPED_BENCHMARKS(cache_fixture, TSC_CACHE_NAME(thread_safe_fifo_cache));
+DECLARE_TYPED_BENCHMARKS(cache_fixture, TSC_CACHE_NAME(thread_safe_lfu_cache));
+DECLARE_TYPED_BENCHMARKS(cache_fixture, TSC_CACHE_NAME(thread_safe_lru_cache));
+DECLARE_TYPED_BENCHMARKS(cache_fixture, TSC_CACHE_NAME(thread_safe_naive_rr_cache));
+DECLARE_TYPED_BENCHMARKS(cache_fixture, TSC_CACHE_NAME(thread_safe_rr_cache));
+DECLARE_TYPED_BENCHMARKS(cache_fixture, TSC_CACHE_NAME(thread_safe_ttl_cache));
 
 BENCHMARK_MAIN();
