@@ -22,8 +22,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef _THREAD_SAFE_CACHE_LIBS_CACHE_THREAD_SAFE_NAIVE_RR_CACHE_H_
-#define _THREAD_SAFE_CACHE_LIBS_CACHE_THREAD_SAFE_NAIVE_RR_CACHE_H_
+#ifndef _THREAD_SAFE_CACHE_LIBS_CACHE_THREAD_SAFE_DM_CACHE_H_
+#define _THREAD_SAFE_CACHE_LIBS_CACHE_THREAD_SAFE_DM_CACHE_H_
 
 #include <limits>
 #include <memory>
@@ -32,11 +32,11 @@
 #include <vector>
 #include <utility>
 
-#include "cache/naive_rr_cache.h"
+#include "cache/dm_cache.h"
 
 namespace wstux {
 namespace cache {
-namespace rr {
+namespace dm {
 
 /**
  *  \brief  Thread safe RR cache.
@@ -124,9 +124,9 @@ template<typename TKey, typename TValue,
          class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>,
          class TAllocator = std::allocator<std::pair<const TKey, TValue>>,
          class TLock = std::mutex>
-class thread_safe_naive_rr_cache
+class thread_safe_dm_cache
 {
-    typedef naive_rr_cache<TKey, TValue, THash, TKeyEqual, TAllocator>  _shard_type;
+    typedef dm_cache<TKey, TValue, THash, TKeyEqual, TAllocator>  _shard_type;
 
 public:
     typedef typename _shard_type::allocator_type    allocator_type;
@@ -145,7 +145,7 @@ public:
     /// \param  capacity - number of elements for which space has been allocated
     ///         in the container.
     /// \param  shards_count - shards count.
-    explicit thread_safe_naive_rr_cache(size_t capacity, size_t shards_count, const allocator_type& alloc = allocator_type())
+    explicit thread_safe_dm_cache(size_t capacity, size_t shards_count, const allocator_type& alloc = allocator_type())
         : m_capacity(capacity)
         , m_shards((m_capacity > shards_count) ? shards_count : m_capacity)
     {
@@ -158,8 +158,8 @@ public:
         }
     }
 
-    thread_safe_naive_rr_cache(const thread_safe_naive_rr_cache&) = delete;
-    thread_safe_naive_rr_cache& operator=(const thread_safe_naive_rr_cache&) = delete;
+    thread_safe_dm_cache(const thread_safe_dm_cache&) = delete;
+    thread_safe_dm_cache& operator=(const thread_safe_dm_cache&) = delete;
 
     /// \brief  Return the number of items for which space has been allocated in
     ///         the container.
@@ -348,8 +348,8 @@ private:
     std::vector<_shard_guard> m_shards;
 };
 
-} // namespace rr
+} // namespace dm
 } // namespace cache
 } // namespace wstux
 
-#endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_THREAD_SAFE_NAIVE_RR_CACHE_H_ */
+#endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_THREAD_SAFE_DM_CACHE_H_ */

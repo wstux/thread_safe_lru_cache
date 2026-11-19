@@ -30,10 +30,10 @@
 
 #include <benchmark/benchmark.h>
 
+#include "cache/dm_cache.h"
 #include "cache/fifo_cache.h"
 #include "cache/lfu_cache.h"
 #include "cache/lru_cache.h"
-#include "cache/naive_rr_cache.h"
 #include "cache/rr_cache.h"
 #include "cache/ttl_cache.h"
 
@@ -50,6 +50,12 @@ namespace {
 
 constexpr size_t g_k_count = 100000;
 
+struct TSC_CACHE_NAME(dm_cache)
+{
+    using cache = ::wstux::cache::dm::dm_cache<size_t, size_t>;
+    static cache create(size_t cap = 10) { return cache(cap); }
+};
+
 struct TSC_CACHE_NAME(fifo_cache)
 {
     using cache = ::wstux::cache::fifo::fifo_cache<size_t, size_t>;
@@ -65,12 +71,6 @@ struct TSC_CACHE_NAME(lfu_cache)
 struct TSC_CACHE_NAME(lru_cache)
 {
     using cache = ::wstux::cache::lru::lru_cache<size_t, size_t>;
-    static cache create(size_t cap = 10) { return cache(cap); }
-};
-
-struct TSC_CACHE_NAME(naive_rr_cache)
-{
-    using cache = ::wstux::cache::rr::naive_rr_cache<size_t, size_t>;
     static cache create(size_t cap = 10) { return cache(cap); }
 };
 
@@ -199,10 +199,10 @@ static void insert_overflow(::benchmark::State& state)
     BENCHMARK_TEMPLATE(find,            cache_type);                            \
     BENCHMARK_TEMPLATE(insert_overflow, cache_type)
 
+DECLARE_TYPED_BENCHMARKS(TSC_CACHE_NAME(dm_cache));
 DECLARE_TYPED_BENCHMARKS(TSC_CACHE_NAME(fifo_cache));
 DECLARE_TYPED_BENCHMARKS(TSC_CACHE_NAME(lfu_cache));
 DECLARE_TYPED_BENCHMARKS(TSC_CACHE_NAME(lru_cache));
-DECLARE_TYPED_BENCHMARKS(TSC_CACHE_NAME(naive_rr_cache));
 DECLARE_TYPED_BENCHMARKS(TSC_CACHE_NAME(rr_cache));
 DECLARE_TYPED_BENCHMARKS(TSC_CACHE_NAME(ttl_cache));
 

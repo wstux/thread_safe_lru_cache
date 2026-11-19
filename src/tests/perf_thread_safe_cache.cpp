@@ -32,10 +32,10 @@
 
 #include <benchmark/benchmark.h>
 
+#include "cache/thread_safe_dm_cache.h"
 #include "cache/thread_safe_fifo_cache.h"
 #include "cache/thread_safe_lfu_cache.h"
 #include "cache/thread_safe_lru_cache.h"
-#include "cache/thread_safe_naive_rr_cache.h"
 #include "cache/thread_safe_rr_cache.h"
 #include "cache/thread_safe_ttl_cache.h"
 
@@ -84,6 +84,12 @@ public:
     const std::vector<value_type>& test_data() const { return g_k_test_data; }
 };
 
+struct TSC_CACHE_NAME(thread_safe_dm_cache)
+{
+    using cache = ::wstux::cache::dm::thread_safe_dm_cache<size_t, size_t>;
+    static cache create(size_t cap, size_t shards = g_k_threads_count) { return cache(cap, shards); }
+};
+
 struct TSC_CACHE_NAME(thread_safe_fifo_cache)
 {
     using cache = ::wstux::cache::fifo::thread_safe_fifo_cache<size_t, size_t>;
@@ -99,12 +105,6 @@ struct TSC_CACHE_NAME(thread_safe_lfu_cache)
 struct TSC_CACHE_NAME(thread_safe_lru_cache)
 {
     using cache = ::wstux::cache::lru::thread_safe_lru_cache<size_t, size_t>;
-    static cache create(size_t cap, size_t shards = g_k_threads_count) { return cache(cap, shards); }
-};
-
-struct TSC_CACHE_NAME(thread_safe_naive_rr_cache)
-{
-    using cache = ::wstux::cache::rr::thread_safe_naive_rr_cache<size_t, size_t>;
     static cache create(size_t cap, size_t shards = g_k_threads_count) { return cache(cap, shards); }
 };
 
@@ -349,10 +349,10 @@ BENCHMARK_TEMPLATE_METHOD_F(cache_fixture, many_shards)(benchmark::State& state)
     BENCHMARK_TEMPLATE_INSTANTIATE_F(fixture, request_hot,     cache_type)->Threads(g_k_threads_count); \
     BENCHMARK_TEMPLATE_INSTANTIATE_F(fixture, many_shards,     cache_type)->Threads(g_k_threads_count)
 
+DECLARE_TYPED_BENCHMARKS(cache_fixture, TSC_CACHE_NAME(thread_safe_dm_cache));
 DECLARE_TYPED_BENCHMARKS(cache_fixture, TSC_CACHE_NAME(thread_safe_fifo_cache));
 DECLARE_TYPED_BENCHMARKS(cache_fixture, TSC_CACHE_NAME(thread_safe_lfu_cache));
 DECLARE_TYPED_BENCHMARKS(cache_fixture, TSC_CACHE_NAME(thread_safe_lru_cache));
-DECLARE_TYPED_BENCHMARKS(cache_fixture, TSC_CACHE_NAME(thread_safe_naive_rr_cache));
 DECLARE_TYPED_BENCHMARKS(cache_fixture, TSC_CACHE_NAME(thread_safe_rr_cache));
 DECLARE_TYPED_BENCHMARKS(cache_fixture, TSC_CACHE_NAME(thread_safe_ttl_cache));
 

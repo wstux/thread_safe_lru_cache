@@ -22,8 +22,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef _THREAD_SAFE_CACHE_LIBS_CACHE_NAIVE_RR_CACHE_H_
-#define _THREAD_SAFE_CACHE_LIBS_CACHE_NAIVE_RR_CACHE_H_
+#ifndef _THREAD_SAFE_CACHE_LIBS_CACHE_DM_CACHE_H_
+#define _THREAD_SAFE_CACHE_LIBS_CACHE_DM_CACHE_H_
 
 #include <functional>
 #include <optional>
@@ -32,16 +32,16 @@
 
 namespace wstux {
 namespace cache {
-namespace rr {
+namespace dm {
 
 /**
- *  \brief  Random replacement (RR) cache.
+ *  \brief  Direct-Mapped (DM) cache.
  *  \tparam TKey - cache key.
  *  \tparam TValue - cache value.
  *  \tparam THash - function object for hashing the cache key.
  *  \tparam TKeyEqual - function object for performing comparisons the cache key.
  *
- *  \details    RR cache has two implementations - based on std::unordered_map
+ *  \details    DM cache has two implementations - based on std::unordered_map
  *          and based boost::intrusive::unordered_set_base_hook. Since a hash
  *          table is used as a container, searching in it takes O(1) time.
  *
@@ -55,10 +55,10 @@ namespace rr {
 template<typename TKey, typename TValue,
          class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>,
          class TAllocator = std::allocator<std::pair<const TKey, TValue>>>
-class naive_rr_cache final : protected details::base_rr_cache<TKey, TValue, THash, TKeyEqual, TAllocator>
+class dm_cache final : protected rr::details::base_rr_cache<TKey, TValue, THash, TKeyEqual, TAllocator>
 {
 private:
-    typedef details::base_rr_cache<TKey, TValue, THash, TKeyEqual, TAllocator>  base;
+    typedef rr::details::base_rr_cache<TKey, TValue, THash, TKeyEqual, TAllocator>  base;
 
 public:
     typedef typename base::allocator_type   allocator_type;
@@ -75,12 +75,12 @@ public:
     /// \brief  Constructs a new container.
     /// \param  capacity - number of elements for which space has been allocated
     ///         in the container.
-    explicit naive_rr_cache(size_type capacity, const allocator_type& alloc = allocator_type())
+    explicit dm_cache(size_type capacity, const allocator_type& alloc = allocator_type())
         : base(capacity, alloc)
     {}
 
-    naive_rr_cache(const naive_rr_cache&) = delete;
-    naive_rr_cache& operator=(const naive_rr_cache&) = delete;
+    dm_cache(const dm_cache&) = delete;
+    dm_cache& operator=(const dm_cache&) = delete;
 
     /// \brief  Return the number of items for which space has been allocated in
     ///         the container.
@@ -218,8 +218,8 @@ private:
     typedef typename base::hash_table_type      _hash_table_t;
 };
 
-} // namespace rr
+} // namespace dm
 } // namespace cache
 } // namespace wstux
 
-#endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_NAIVE_RR_CACHE_H_ */
+#endif /* _THREAD_SAFE_CACHE_LIBS_CACHE_DM_CACHE_H_ */
