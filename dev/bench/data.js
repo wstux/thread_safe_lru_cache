@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795086711037,
+  "lastUpdate": 1795114387196,
   "repoUrl": "https://github.com/wstux/thread_safe_lru_cache",
   "entries": {
     "Benchmark": [
@@ -1104,6 +1104,1110 @@ window.BENCHMARK_DATA = {
             "value": 277.418300722842,
             "unit": "ns/iter",
             "extra": "iterations: 2926256\ncpu: 277.0968524284955 ns\nthreads: 4"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "wstux1@gmail.com",
+            "name": "wstux",
+            "username": "wstux"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b40140f3b1704faf6f0f0c49d38445d10b0c8fe8",
+          "message": "* all: #41 Merge remote-tracking branch 'wstux/feature/dm_cache' into master;",
+          "timestamp": "2026-11-19T21:48:58+03:00",
+          "tree_id": "7b73f756de02db9a9988c8aead4a3139dec9001a",
+          "url": "https://github.com/wstux/thread_safe_lru_cache/commit/b40140f3b1704faf6f0f0c49d38445d10b0c8fe8"
+        },
+        "date": 1795114386499,
+        "tool": "googlecpp",
+        "benches": [
+          {
+            "name": "insert<dm_cache_intrusive>",
+            "value": 3.3217721950257695,
+            "unit": "ns/iter",
+            "extra": "iterations: 211403347\ncpu: 3.3214682026770364 ns\nthreads: 1"
+          },
+          {
+            "name": "emplace<dm_cache_intrusive>",
+            "value": 3.3014763533197393,
+            "unit": "ns/iter",
+            "extra": "iterations: 210498934\ncpu: 3.3004057018169966 ns\nthreads: 1"
+          },
+          {
+            "name": "update_insert<dm_cache_intrusive>",
+            "value": 3.3183479278607115,
+            "unit": "ns/iter",
+            "extra": "iterations: 211522894\ncpu: 3.3170038085806457 ns\nthreads: 1"
+          },
+          {
+            "name": "update<dm_cache_intrusive>",
+            "value": 3.297440669814414,
+            "unit": "ns/iter",
+            "extra": "iterations: 211735517\ncpu: 3.296109183231646 ns\nthreads: 1"
+          },
+          {
+            "name": "find<dm_cache_intrusive>",
+            "value": 1.4940000028218491e-9,
+            "unit": "ns/iter",
+            "extra": "iterations: 1000000000000\ncpu: 6.7499999989451e-10 ns\nthreads: 1"
+          },
+          {
+            "name": "insert_overflow<dm_cache_intrusive>",
+            "value": 3.305798465998443,
+            "unit": "ns/iter",
+            "extra": "iterations: 211349726\ncpu: 3.3043033280298633 ns\nthreads: 1"
+          },
+          {
+            "name": "insert<fifo_cache_intrusive>",
+            "value": 3.3358343678310933,
+            "unit": "ns/iter",
+            "extra": "iterations: 210018961\ncpu: 3.335706750782376 ns\nthreads: 1"
+          },
+          {
+            "name": "emplace<fifo_cache_intrusive>",
+            "value": 3.327629995181878,
+            "unit": "ns/iter",
+            "extra": "iterations: 210586555\ncpu: 3.3274034897432085 ns\nthreads: 1"
+          },
+          {
+            "name": "update_insert<fifo_cache_intrusive>",
+            "value": 3.3093585465774016,
+            "unit": "ns/iter",
+            "extra": "iterations: 210971873\ncpu: 3.3092829346023818 ns\nthreads: 1"
+          },
+          {
+            "name": "update<fifo_cache_intrusive>",
+            "value": 3.3287350304563317,
+            "unit": "ns/iter",
+            "extra": "iterations: 213144942\ncpu: 3.327908592829761 ns\nthreads: 1"
+          },
+          {
+            "name": "find<fifo_cache_intrusive>",
+            "value": 3.3054533738171563,
+            "unit": "ns/iter",
+            "extra": "iterations: 211300259\ncpu: 3.304524037521413 ns\nthreads: 1"
+          },
+          {
+            "name": "insert_overflow<fifo_cache_intrusive>",
+            "value": 3.926247990932968,
+            "unit": "ns/iter",
+            "extra": "iterations: 178101955\ncpu: 3.925452615048506 ns\nthreads: 1"
+          },
+          {
+            "name": "insert<lfu_cache_intrusive>",
+            "value": 131.8963456034564,
+            "unit": "ns/iter",
+            "extra": "iterations: 5480385\ncpu: 131.68040292789635 ns\nthreads: 1"
+          },
+          {
+            "name": "emplace<lfu_cache_intrusive>",
+            "value": 131.23477565782338,
+            "unit": "ns/iter",
+            "extra": "iterations: 5390627\ncpu: 131.22401568500268 ns\nthreads: 1"
+          },
+          {
+            "name": "update_insert<lfu_cache_intrusive>",
+            "value": 128.97332257557562,
+            "unit": "ns/iter",
+            "extra": "iterations: 5503005\ncpu: 128.9670427339246 ns\nthreads: 1"
+          },
+          {
+            "name": "update<lfu_cache_intrusive>",
+            "value": 131.57915770116145,
+            "unit": "ns/iter",
+            "extra": "iterations: 5304127\ncpu: 131.57075594155296 ns\nthreads: 1"
+          },
+          {
+            "name": "find<lfu_cache_intrusive>",
+            "value": 3.3866276526093744,
+            "unit": "ns/iter",
+            "extra": "iterations: 200725940\ncpu: 3.3864665523549133 ns\nthreads: 1"
+          },
+          {
+            "name": "insert_overflow<lfu_cache_intrusive>",
+            "value": 100.09136631948498,
+            "unit": "ns/iter",
+            "extra": "iterations: 7313231\ncpu: 100.08680773245113 ns\nthreads: 1"
+          },
+          {
+            "name": "insert<lru_cache_intrusive>",
+            "value": 3.35196818065429,
+            "unit": "ns/iter",
+            "extra": "iterations: 208956403\ncpu: 3.3518678200064618 ns\nthreads: 1"
+          },
+          {
+            "name": "emplace<lru_cache_intrusive>",
+            "value": 3.3438798081801004,
+            "unit": "ns/iter",
+            "extra": "iterations: 208467698\ncpu: 3.343732610315479 ns\nthreads: 1"
+          },
+          {
+            "name": "update_insert<lru_cache_intrusive>",
+            "value": 3.313912642109479,
+            "unit": "ns/iter",
+            "extra": "iterations: 209383536\ncpu: 3.3137300489566743 ns\nthreads: 1"
+          },
+          {
+            "name": "update<lru_cache_intrusive>",
+            "value": 3.3192615391505833,
+            "unit": "ns/iter",
+            "extra": "iterations: 209700054\ncpu: 3.319202874406502 ns\nthreads: 1"
+          },
+          {
+            "name": "find<lru_cache_intrusive>",
+            "value": 3.298649828158501,
+            "unit": "ns/iter",
+            "extra": "iterations: 212978964\ncpu: 3.2985417846243297 ns\nthreads: 1"
+          },
+          {
+            "name": "insert_overflow<lru_cache_intrusive>",
+            "value": 3.8774430769320634,
+            "unit": "ns/iter",
+            "extra": "iterations: 180050204\ncpu: 3.877333024293604 ns\nthreads: 1"
+          },
+          {
+            "name": "insert<rr_cache_intrusive>",
+            "value": 3.2969199003592085,
+            "unit": "ns/iter",
+            "extra": "iterations: 211258750\ncpu: 3.296606090871978 ns\nthreads: 1"
+          },
+          {
+            "name": "emplace<rr_cache_intrusive>",
+            "value": 3.3062293764149007,
+            "unit": "ns/iter",
+            "extra": "iterations: 211621487\ncpu: 3.3060671197344043 ns\nthreads: 1"
+          },
+          {
+            "name": "update_insert<rr_cache_intrusive>",
+            "value": 3.310740837369542,
+            "unit": "ns/iter",
+            "extra": "iterations: 212056325\ncpu: 3.3105386929628224 ns\nthreads: 1"
+          },
+          {
+            "name": "update<rr_cache_intrusive>",
+            "value": 3.2867982661717496,
+            "unit": "ns/iter",
+            "extra": "iterations: 212394973\ncpu: 3.2866036570460655 ns\nthreads: 1"
+          },
+          {
+            "name": "find<rr_cache_intrusive>",
+            "value": 8.899999954792293e-10,
+            "unit": "ns/iter",
+            "extra": "iterations: 1000000000000\ncpu: 5.6999999742402e-10 ns\nthreads: 1"
+          },
+          {
+            "name": "insert_overflow<rr_cache_intrusive>",
+            "value": 47.49338898108335,
+            "unit": "ns/iter",
+            "extra": "iterations: 14772685\ncpu: 47.49163621914371 ns\nthreads: 1"
+          },
+          {
+            "name": "insert<ttl_cache_intrusive>",
+            "value": 34.98597267367106,
+            "unit": "ns/iter",
+            "extra": "iterations: 19944428\ncpu: 34.984673513825435 ns\nthreads: 1"
+          },
+          {
+            "name": "emplace<ttl_cache_intrusive>",
+            "value": 34.889569260261624,
+            "unit": "ns/iter",
+            "extra": "iterations: 20002148\ncpu: 34.889248844674036 ns\nthreads: 1"
+          },
+          {
+            "name": "update_insert<ttl_cache_intrusive>",
+            "value": 3.4651760021645686,
+            "unit": "ns/iter",
+            "extra": "iterations: 202076009\ncpu: 3.464913393058958 ns\nthreads: 1"
+          },
+          {
+            "name": "update<ttl_cache_intrusive>",
+            "value": 3.4405097226531454,
+            "unit": "ns/iter",
+            "extra": "iterations: 203281293\ncpu: 3.440285875198543 ns\nthreads: 1"
+          },
+          {
+            "name": "find<ttl_cache_intrusive>",
+            "value": 3.3529845587752463,
+            "unit": "ns/iter",
+            "extra": "iterations: 207509383\ncpu: 3.3526198186421325 ns\nthreads: 1"
+          },
+          {
+            "name": "insert_overflow<ttl_cache_intrusive>",
+            "value": 4.225765900793047,
+            "unit": "ns/iter",
+            "extra": "iterations: 166021861\ncpu: 4.225477119546286 ns\nthreads: 1"
+          },
+          {
+            "name": "cache_fixture<thread_safe_dm_cache_intrusive>/insert/threads:4",
+            "value": 78.78859352889468,
+            "unit": "ns/iter",
+            "extra": "iterations: 8740144\ncpu: 78.60238309574764 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_dm_cache_intrusive>/emplace/threads:4",
+            "value": 79.63999522143389,
+            "unit": "ns/iter",
+            "extra": "iterations: 8730648\ncpu: 79.53255405555237 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_dm_cache_intrusive>/update_insert/threads:4",
+            "value": 80.43438545555954,
+            "unit": "ns/iter",
+            "extra": "iterations: 8632964\ncpu: 80.20373153415213 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_dm_cache_intrusive>/update/threads:4",
+            "value": 80.15071072898597,
+            "unit": "ns/iter",
+            "extra": "iterations: 8661248\ncpu: 80.11659301292377 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_dm_cache_intrusive>/find/threads:4",
+            "value": 50.49012910191342,
+            "unit": "ns/iter",
+            "extra": "iterations: 14034184\ncpu: 50.42241494054803 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_dm_cache_intrusive>/insert_overflow/threads:4",
+            "value": 65.28668779406463,
+            "unit": "ns/iter",
+            "extra": "iterations: 10685652\ncpu: 65.08950974634023 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_dm_cache_intrusive>/request/threads:4",
+            "value": 99.25176027869392,
+            "unit": "ns/iter",
+            "extra": "iterations: 7050020\ncpu: 99.11583002601414 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_dm_cache_intrusive>/request_hot/threads:4",
+            "value": 99.46004310300543,
+            "unit": "ns/iter",
+            "extra": "iterations: 7065864\ncpu: 99.30948968165818 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_dm_cache_intrusive>/many_shards/threads:4",
+            "value": 75.75154356842893,
+            "unit": "ns/iter",
+            "extra": "iterations: 8728476\ncpu: 75.43098589032036 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_fifo_cache_intrusive>/insert/threads:4",
+            "value": 109.8074711725216,
+            "unit": "ns/iter",
+            "extra": "iterations: 5506900\ncpu: 109.43120957344425 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_fifo_cache_intrusive>/emplace/threads:4",
+            "value": 110.10616044532772,
+            "unit": "ns/iter",
+            "extra": "iterations: 5412336\ncpu: 109.90571132316988 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_fifo_cache_intrusive>/update_insert/threads:4",
+            "value": 112.16375745443342,
+            "unit": "ns/iter",
+            "extra": "iterations: 6266072\ncpu: 112.03125817896762 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_fifo_cache_intrusive>/update/threads:4",
+            "value": 109.63378459736984,
+            "unit": "ns/iter",
+            "extra": "iterations: 5587564\ncpu: 109.23202526181358 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_fifo_cache_intrusive>/find/threads:4",
+            "value": 53.65695470096642,
+            "unit": "ns/iter",
+            "extra": "iterations: 13140148\ncpu: 53.61011778558354 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_fifo_cache_intrusive>/insert_overflow/threads:4",
+            "value": 138.65255791739202,
+            "unit": "ns/iter",
+            "extra": "iterations: 4045244\ncpu: 136.02883905148846 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_fifo_cache_intrusive>/request/threads:4",
+            "value": 142.05834924775826,
+            "unit": "ns/iter",
+            "extra": "iterations: 4274948\ncpu: 140.97472787973084 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_fifo_cache_intrusive>/request_hot/threads:4",
+            "value": 138.6663737992703,
+            "unit": "ns/iter",
+            "extra": "iterations: 4578864\ncpu: 138.08079580437422 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_fifo_cache_intrusive>/many_shards/threads:4",
+            "value": 83.39928937403121,
+            "unit": "ns/iter",
+            "extra": "iterations: 7942012\ncpu: 83.25941310589819 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lfu_cache_intrusive>/insert/threads:4",
+            "value": 516.8042740225727,
+            "unit": "ns/iter",
+            "extra": "iterations: 1741404\ncpu: 515.9097756752599 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lfu_cache_intrusive>/emplace/threads:4",
+            "value": 514.083470598004,
+            "unit": "ns/iter",
+            "extra": "iterations: 1780016\ncpu: 513.0801745602291 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lfu_cache_intrusive>/update_insert/threads:4",
+            "value": 510.73788542018224,
+            "unit": "ns/iter",
+            "extra": "iterations: 1768200\ncpu: 509.25506956226656 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lfu_cache_intrusive>/update/threads:4",
+            "value": 499.95079606673784,
+            "unit": "ns/iter",
+            "extra": "iterations: 1643832\ncpu: 499.31063393339497 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lfu_cache_intrusive>/find/threads:4",
+            "value": 116.02102543171358,
+            "unit": "ns/iter",
+            "extra": "iterations: 6169148\ncpu: 115.91495422058284 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lfu_cache_intrusive>/insert_overflow/threads:4",
+            "value": 457.8876670092488,
+            "unit": "ns/iter",
+            "extra": "iterations: 1790320\ncpu: 457.5007317127663 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lfu_cache_intrusive>/request/threads:4",
+            "value": 540.0579342781045,
+            "unit": "ns/iter",
+            "extra": "iterations: 1648644\ncpu: 538.2672614585078 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lfu_cache_intrusive>/request_hot/threads:4",
+            "value": 520.9870820280086,
+            "unit": "ns/iter",
+            "extra": "iterations: 1721168\ncpu: 514.4702312615619 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lfu_cache_intrusive>/many_shards/threads:4",
+            "value": 478.1775017770323,
+            "unit": "ns/iter",
+            "extra": "iterations: 1873908\ncpu: 477.2980210341178 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lru_cache_intrusive>/insert/threads:4",
+            "value": 131.64542562530505,
+            "unit": "ns/iter",
+            "extra": "iterations: 5071644\ncpu: 131.21851454873388 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lru_cache_intrusive>/emplace/threads:4",
+            "value": 128.9234017109042,
+            "unit": "ns/iter",
+            "extra": "iterations: 5452080\ncpu: 128.82246096902483 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lru_cache_intrusive>/update_insert/threads:4",
+            "value": 127.97486879483857,
+            "unit": "ns/iter",
+            "extra": "iterations: 5399940\ncpu: 127.85517653899858 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lru_cache_intrusive>/update/threads:4",
+            "value": 126.45757421518437,
+            "unit": "ns/iter",
+            "extra": "iterations: 5536468\ncpu: 126.29982021028597 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lru_cache_intrusive>/find/threads:4",
+            "value": 58.07796325576865,
+            "unit": "ns/iter",
+            "extra": "iterations: 11882572\ncpu: 57.92563386108664 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lru_cache_intrusive>/insert_overflow/threads:4",
+            "value": 153.49640665835526,
+            "unit": "ns/iter",
+            "extra": "iterations: 4129304\ncpu: 153.2705593969345 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lru_cache_intrusive>/request/threads:4",
+            "value": 158.68179089770808,
+            "unit": "ns/iter",
+            "extra": "iterations: 4388168\ncpu: 158.46916275766992 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lru_cache_intrusive>/request_hot/threads:4",
+            "value": 159.7330096105037,
+            "unit": "ns/iter",
+            "extra": "iterations: 4348576\ncpu: 158.95224712641524 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lru_cache_intrusive>/many_shards/threads:4",
+            "value": 112.47135144664577,
+            "unit": "ns/iter",
+            "extra": "iterations: 5445720\ncpu: 111.42037196183422 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_rr_cache_intrusive>/insert/threads:4",
+            "value": 97.35654188676197,
+            "unit": "ns/iter",
+            "extra": "iterations: 6910728\ncpu: 97.19138056077433 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_rr_cache_intrusive>/emplace/threads:4",
+            "value": 96.4397881531458,
+            "unit": "ns/iter",
+            "extra": "iterations: 7109664\ncpu: 96.28409936109493 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_rr_cache_intrusive>/update_insert/threads:4",
+            "value": 104.15812225888324,
+            "unit": "ns/iter",
+            "extra": "iterations: 6776440\ncpu: 103.3944199314095 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_rr_cache_intrusive>/update/threads:4",
+            "value": 100.79922034394427,
+            "unit": "ns/iter",
+            "extra": "iterations: 6750156\ncpu: 100.6031748007008 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_rr_cache_intrusive>/find/threads:4",
+            "value": 52.43519317499584,
+            "unit": "ns/iter",
+            "extra": "iterations: 13197360\ncpu: 52.364999211963614 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_rr_cache_intrusive>/insert_overflow/threads:4",
+            "value": 135.79862872301533,
+            "unit": "ns/iter",
+            "extra": "iterations: 3807400\ncpu: 135.2652387456009 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_rr_cache_intrusive>/request/threads:4",
+            "value": 131.2477024527979,
+            "unit": "ns/iter",
+            "extra": "iterations: 4481736\ncpu: 131.08559384131493 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_rr_cache_intrusive>/request_hot/threads:4",
+            "value": 127.40607680041252,
+            "unit": "ns/iter",
+            "extra": "iterations: 4600184\ncpu: 127.27564158303241 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_rr_cache_intrusive>/many_shards/threads:4",
+            "value": 78.78906951880364,
+            "unit": "ns/iter",
+            "extra": "iterations: 8410444\ncpu: 78.64068722174476 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_ttl_cache_intrusive>/insert/threads:4",
+            "value": 208.95865046375326,
+            "unit": "ns/iter",
+            "extra": "iterations: 3668312\ncpu: 207.9302960053561 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_ttl_cache_intrusive>/emplace/threads:4",
+            "value": 205.11110585541897,
+            "unit": "ns/iter",
+            "extra": "iterations: 3784256\ncpu: 204.86183915675912 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_ttl_cache_intrusive>/update_insert/threads:4",
+            "value": 139.0889967888476,
+            "unit": "ns/iter",
+            "extra": "iterations: 4128104\ncpu: 138.96681721196944 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_ttl_cache_intrusive>/update/threads:4",
+            "value": 132.65380599791538,
+            "unit": "ns/iter",
+            "extra": "iterations: 4375252\ncpu: 132.5283521954848 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_ttl_cache_intrusive>/find/threads:4",
+            "value": 76.943533558347,
+            "unit": "ns/iter",
+            "extra": "iterations: 9023448\ncpu: 76.73599338080075 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_ttl_cache_intrusive>/insert_overflow/threads:4",
+            "value": 240.26373562111917,
+            "unit": "ns/iter",
+            "extra": "iterations: 3095164\ncpu: 240.11075051273488 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_ttl_cache_intrusive>/request/threads:4",
+            "value": 248.419912959605,
+            "unit": "ns/iter",
+            "extra": "iterations: 3159912\ncpu: 248.0242231429231 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_ttl_cache_intrusive>/request_hot/threads:4",
+            "value": 248.9683774400971,
+            "unit": "ns/iter",
+            "extra": "iterations: 2842496\ncpu: 248.59136301335215 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_ttl_cache_intrusive>/many_shards/threads:4",
+            "value": 178.24640755660303,
+            "unit": "ns/iter",
+            "extra": "iterations: 3857820\ncpu: 178.03071164543692 ns\nthreads: 4"
+          },
+          {
+            "name": "insert<dm_cache_std>",
+            "value": 1.4812446649814341,
+            "unit": "ns/iter",
+            "extra": "iterations: 469363410\ncpu: 1.4811359879970192 ns\nthreads: 1"
+          },
+          {
+            "name": "emplace<dm_cache_std>",
+            "value": 1.546872567883696,
+            "unit": "ns/iter",
+            "extra": "iterations: 452409500\ncpu: 1.5467772206374977 ns\nthreads: 1"
+          },
+          {
+            "name": "update_insert<dm_cache_std>",
+            "value": 1.5160902350717014,
+            "unit": "ns/iter",
+            "extra": "iterations: 460500637\ncpu: 1.5159244915441892 ns\nthreads: 1"
+          },
+          {
+            "name": "update<dm_cache_std>",
+            "value": 1.5168372463205644,
+            "unit": "ns/iter",
+            "extra": "iterations: 459695211\ncpu: 1.5167412653337384 ns\nthreads: 1"
+          },
+          {
+            "name": "find<dm_cache_std>",
+            "value": 8.929999921747367e-10,
+            "unit": "ns/iter",
+            "extra": "iterations: 1000000000000\ncpu: 4.3899999990770767e-10 ns\nthreads: 1"
+          },
+          {
+            "name": "insert_overflow<dm_cache_std>",
+            "value": 1.5188590239912596,
+            "unit": "ns/iter",
+            "extra": "iterations: 462503362\ncpu: 1.5187050013271048 ns\nthreads: 1"
+          },
+          {
+            "name": "insert<fifo_cache_std>",
+            "value": 3.5299310646074575,
+            "unit": "ns/iter",
+            "extra": "iterations: 197862658\ncpu: 3.5296967606692093 ns\nthreads: 1"
+          },
+          {
+            "name": "emplace<fifo_cache_std>",
+            "value": 3.544136509629563,
+            "unit": "ns/iter",
+            "extra": "iterations: 189431325\ncpu: 3.543744541722441 ns\nthreads: 1"
+          },
+          {
+            "name": "update_insert<fifo_cache_std>",
+            "value": 3.567671671465976,
+            "unit": "ns/iter",
+            "extra": "iterations: 195124972\ncpu: 3.567435048754295 ns\nthreads: 1"
+          },
+          {
+            "name": "update<fifo_cache_std>",
+            "value": 3.5649324332601395,
+            "unit": "ns/iter",
+            "extra": "iterations: 196270236\ncpu: 3.564853929252936 ns\nthreads: 1"
+          },
+          {
+            "name": "find<fifo_cache_std>",
+            "value": 1.1010000093847338e-9,
+            "unit": "ns/iter",
+            "extra": "iterations: 1000000000000\ncpu: 4.950000001002764e-10 ns\nthreads: 1"
+          },
+          {
+            "name": "insert_overflow<fifo_cache_std>",
+            "value": 20.513669563161613,
+            "unit": "ns/iter",
+            "extra": "iterations: 33903278\ncpu: 20.51319506627056 ns\nthreads: 1"
+          },
+          {
+            "name": "insert<lfu_cache_std>",
+            "value": 34.83843742992307,
+            "unit": "ns/iter",
+            "extra": "iterations: 19781692\ncpu: 34.83729253291382 ns\nthreads: 1"
+          },
+          {
+            "name": "emplace<lfu_cache_std>",
+            "value": 34.92506074967383,
+            "unit": "ns/iter",
+            "extra": "iterations: 19746608\ncpu: 34.92157549286436 ns\nthreads: 1"
+          },
+          {
+            "name": "update_insert<lfu_cache_std>",
+            "value": 34.88551580897188,
+            "unit": "ns/iter",
+            "extra": "iterations: 19790156\ncpu: 34.88433901177933 ns\nthreads: 1"
+          },
+          {
+            "name": "update<lfu_cache_std>",
+            "value": 34.447664366614724,
+            "unit": "ns/iter",
+            "extra": "iterations: 20430411\ncpu: 34.44522295709078 ns\nthreads: 1"
+          },
+          {
+            "name": "find<lfu_cache_std>",
+            "value": 4.976763404722418,
+            "unit": "ns/iter",
+            "extra": "iterations: 133830579\ncpu: 4.976535654082469 ns\nthreads: 1"
+          },
+          {
+            "name": "insert_overflow<lfu_cache_std>",
+            "value": 60.24666351821733,
+            "unit": "ns/iter",
+            "extra": "iterations: 11548542\ncpu: 60.24124430599122 ns\nthreads: 1"
+          },
+          {
+            "name": "insert<lru_cache_std>",
+            "value": 5.8952819213122165,
+            "unit": "ns/iter",
+            "extra": "iterations: 112816728\ncpu: 5.895154865686248 ns\nthreads: 1"
+          },
+          {
+            "name": "emplace<lru_cache_std>",
+            "value": 5.761152458792055,
+            "unit": "ns/iter",
+            "extra": "iterations: 130901201\ncpu: 5.76093181146595 ns\nthreads: 1"
+          },
+          {
+            "name": "update_insert<lru_cache_std>",
+            "value": 5.516005264328235,
+            "unit": "ns/iter",
+            "extra": "iterations: 120826808\ncpu: 5.51561501152957 ns\nthreads: 1"
+          },
+          {
+            "name": "update<lru_cache_std>",
+            "value": 5.4289397892657005,
+            "unit": "ns/iter",
+            "extra": "iterations: 127917324\ncpu: 5.428743060635003 ns\nthreads: 1"
+          },
+          {
+            "name": "find<lru_cache_std>",
+            "value": 4.950000000706236,
+            "unit": "ns/iter",
+            "extra": "iterations: 141600242\ncpu: 4.949508560868144 ns\nthreads: 1"
+          },
+          {
+            "name": "insert_overflow<lru_cache_std>",
+            "value": 20.75724066930729,
+            "unit": "ns/iter",
+            "extra": "iterations: 34274732\ncpu: 20.756794684784037 ns\nthreads: 1"
+          },
+          {
+            "name": "insert<rr_cache_std>",
+            "value": 3.3199961855829314,
+            "unit": "ns/iter",
+            "extra": "iterations: 210160552\ncpu: 3.3198321633643237 ns\nthreads: 1"
+          },
+          {
+            "name": "emplace<rr_cache_std>",
+            "value": 3.324744380838671,
+            "unit": "ns/iter",
+            "extra": "iterations: 210213799\ncpu: 3.3246553571870914 ns\nthreads: 1"
+          },
+          {
+            "name": "update_insert<rr_cache_std>",
+            "value": 3.3552282036849603,
+            "unit": "ns/iter",
+            "extra": "iterations: 208877784\ncpu: 3.3551163248648788 ns\nthreads: 1"
+          },
+          {
+            "name": "update<rr_cache_std>",
+            "value": 3.332691247358747,
+            "unit": "ns/iter",
+            "extra": "iterations: 207233411\ncpu: 3.3325329813733484 ns\nthreads: 1"
+          },
+          {
+            "name": "find<rr_cache_std>",
+            "value": 1.0679999888907332e-9,
+            "unit": "ns/iter",
+            "extra": "iterations: 1000000000000\ncpu: 5.399999984945225e-10 ns\nthreads: 1"
+          },
+          {
+            "name": "insert_overflow<rr_cache_std>",
+            "value": 20.59552097939493,
+            "unit": "ns/iter",
+            "extra": "iterations: 34259186\ncpu: 20.594388056972527 ns\nthreads: 1"
+          },
+          {
+            "name": "insert<ttl_cache_std>",
+            "value": 36.76264451738381,
+            "unit": "ns/iter",
+            "extra": "iterations: 19031707\ncpu: 36.76009629614411 ns\nthreads: 1"
+          },
+          {
+            "name": "emplace<ttl_cache_std>",
+            "value": 36.73865630553978,
+            "unit": "ns/iter",
+            "extra": "iterations: 18937966\ncpu: 36.737993932399995 ns\nthreads: 1"
+          },
+          {
+            "name": "update_insert<ttl_cache_std>",
+            "value": 5.6251062649745815,
+            "unit": "ns/iter",
+            "extra": "iterations: 111377244\ncpu: 5.624768072013003 ns\nthreads: 1"
+          },
+          {
+            "name": "update<ttl_cache_std>",
+            "value": 5.547061492232723,
+            "unit": "ns/iter",
+            "extra": "iterations: 125405692\ncpu: 5.54690005617926 ns\nthreads: 1"
+          },
+          {
+            "name": "find<ttl_cache_std>",
+            "value": 4.954621371089356,
+            "unit": "ns/iter",
+            "extra": "iterations: 133820394\ncpu: 4.954446397759076 ns\nthreads: 1"
+          },
+          {
+            "name": "insert_overflow<ttl_cache_std>",
+            "value": 21.1152254864736,
+            "unit": "ns/iter",
+            "extra": "iterations: 32922751\ncpu: 21.114690385381383 ns\nthreads: 1"
+          },
+          {
+            "name": "cache_fixture<thread_safe_dm_cache_std>/insert/threads:4",
+            "value": 78.69932072431845,
+            "unit": "ns/iter",
+            "extra": "iterations: 8828816\ncpu: 78.6251492838904 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_dm_cache_std>/emplace/threads:4",
+            "value": 79.39793074185656,
+            "unit": "ns/iter",
+            "extra": "iterations: 8771936\ncpu: 79.22439231202782 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_dm_cache_std>/update_insert/threads:4",
+            "value": 79.20936490587697,
+            "unit": "ns/iter",
+            "extra": "iterations: 8604016\ncpu: 78.73713298534079 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_dm_cache_std>/update/threads:4",
+            "value": 79.16258057887742,
+            "unit": "ns/iter",
+            "extra": "iterations: 8799452\ncpu: 79.05722901835249 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_dm_cache_std>/find/threads:4",
+            "value": 50.54757494741067,
+            "unit": "ns/iter",
+            "extra": "iterations: 13677724\ncpu: 50.49668585211986 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_dm_cache_std>/insert_overflow/threads:4",
+            "value": 65.80332703534897,
+            "unit": "ns/iter",
+            "extra": "iterations: 10663728\ncpu: 65.42404485560772 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_dm_cache_std>/request/threads:4",
+            "value": 99.75124567691635,
+            "unit": "ns/iter",
+            "extra": "iterations: 7053996\ncpu: 99.54896586275349 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_dm_cache_std>/request_hot/threads:4",
+            "value": 100.646051166394,
+            "unit": "ns/iter",
+            "extra": "iterations: 7076520\ncpu: 97.55658727736234 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_dm_cache_std>/many_shards/threads:4",
+            "value": 72.97849423239013,
+            "unit": "ns/iter",
+            "extra": "iterations: 9014140\ncpu: 72.92614037501085 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_fifo_cache_std>/insert/threads:4",
+            "value": 102.377450783157,
+            "unit": "ns/iter",
+            "extra": "iterations: 6561168\ncpu: 102.29192043245959 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_fifo_cache_std>/emplace/threads:4",
+            "value": 107.03003103179044,
+            "unit": "ns/iter",
+            "extra": "iterations: 5183072\ncpu: 106.93845001574356 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_fifo_cache_std>/update_insert/threads:4",
+            "value": 120.95583464442215,
+            "unit": "ns/iter",
+            "extra": "iterations: 5166176\ncpu: 120.87157193250869 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_fifo_cache_std>/update/threads:4",
+            "value": 113.16071503662538,
+            "unit": "ns/iter",
+            "extra": "iterations: 5421988\ncpu: 112.98792269551316 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_fifo_cache_std>/find/threads:4",
+            "value": 40.33229097838944,
+            "unit": "ns/iter",
+            "extra": "iterations: 17241088\ncpu: 40.232134132138306 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_fifo_cache_std>/insert_overflow/threads:4",
+            "value": 96.9458365497498,
+            "unit": "ns/iter",
+            "extra": "iterations: 6762180\ncpu: 96.81212567544787 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_fifo_cache_std>/request/threads:4",
+            "value": 111.55524493008568,
+            "unit": "ns/iter",
+            "extra": "iterations: 4927692\ncpu: 110.6911517602967 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_fifo_cache_std>/request_hot/threads:4",
+            "value": 101.45412035984448,
+            "unit": "ns/iter",
+            "extra": "iterations: 5349824\ncpu: 101.29827859757631 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_fifo_cache_std>/many_shards/threads:4",
+            "value": 110.70924015821488,
+            "unit": "ns/iter",
+            "extra": "iterations: 4875436\ncpu: 110.57952540039496 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lfu_cache_std>/insert/threads:4",
+            "value": 572.9427186331234,
+            "unit": "ns/iter",
+            "extra": "iterations: 1842676\ncpu: 571.8416829654265 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lfu_cache_std>/emplace/threads:4",
+            "value": 589.2666261120613,
+            "unit": "ns/iter",
+            "extra": "iterations: 1821412\ncpu: 586.7168444042311 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lfu_cache_std>/update_insert/threads:4",
+            "value": 546.8459344803083,
+            "unit": "ns/iter",
+            "extra": "iterations: 1768384\ncpu: 546.5814743856541 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lfu_cache_std>/update/threads:4",
+            "value": 545.2417899039511,
+            "unit": "ns/iter",
+            "extra": "iterations: 1669408\ncpu: 544.4261852105659 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lfu_cache_std>/find/threads:4",
+            "value": 141.74673718051287,
+            "unit": "ns/iter",
+            "extra": "iterations: 5371428\ncpu: 141.72722467842814 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lfu_cache_std>/insert_overflow/threads:4",
+            "value": 495.0618779930646,
+            "unit": "ns/iter",
+            "extra": "iterations: 1859304\ncpu: 493.0570692043905 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lfu_cache_std>/request/threads:4",
+            "value": 587.3700155068284,
+            "unit": "ns/iter",
+            "extra": "iterations: 1774704\ncpu: 586.6540893579999 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lfu_cache_std>/request_hot/threads:4",
+            "value": 578.8956194118429,
+            "unit": "ns/iter",
+            "extra": "iterations: 1579240\ncpu: 578.160300524303 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lfu_cache_std>/many_shards/threads:4",
+            "value": 621.1142981745846,
+            "unit": "ns/iter",
+            "extra": "iterations: 1664716\ncpu: 618.2595974328353 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lru_cache_std>/insert/threads:4",
+            "value": 165.96868806449382,
+            "unit": "ns/iter",
+            "extra": "iterations: 4593488\ncpu: 159.65165708498662 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lru_cache_std>/emplace/threads:4",
+            "value": 169.85173580688937,
+            "unit": "ns/iter",
+            "extra": "iterations: 4725180\ncpu: 158.46946296225775 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lru_cache_std>/update_insert/threads:4",
+            "value": 154.46003837559772,
+            "unit": "ns/iter",
+            "extra": "iterations: 4631068\ncpu: 154.34601456942553 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lru_cache_std>/update/threads:4",
+            "value": 156.59427951910783,
+            "unit": "ns/iter",
+            "extra": "iterations: 4717960\ncpu: 155.63762749154293 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lru_cache_std>/find/threads:4",
+            "value": 48.561360315383446,
+            "unit": "ns/iter",
+            "extra": "iterations: 14390604\ncpu: 48.53541811031695 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lru_cache_std>/insert_overflow/threads:4",
+            "value": 151.72872785725463,
+            "unit": "ns/iter",
+            "extra": "iterations: 4247668\ncpu: 150.69056079712456 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lru_cache_std>/request/threads:4",
+            "value": 153.84060873878846,
+            "unit": "ns/iter",
+            "extra": "iterations: 4193260\ncpu: 153.78736496186715 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lru_cache_std>/request_hot/threads:4",
+            "value": 153.3340486134603,
+            "unit": "ns/iter",
+            "extra": "iterations: 4428568\ncpu: 153.23258308329002 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_lru_cache_std>/many_shards/threads:4",
+            "value": 158.321652918646,
+            "unit": "ns/iter",
+            "extra": "iterations: 4131988\ncpu: 158.12474915222393 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_rr_cache_std>/insert/threads:4",
+            "value": 89.51408655987711,
+            "unit": "ns/iter",
+            "extra": "iterations: 7794096\ncpu: 88.88360394842468 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_rr_cache_std>/emplace/threads:4",
+            "value": 88.67577036257646,
+            "unit": "ns/iter",
+            "extra": "iterations: 7768420\ncpu: 88.60583052924527 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_rr_cache_std>/update_insert/threads:4",
+            "value": 93.77015245342302,
+            "unit": "ns/iter",
+            "extra": "iterations: 7370120\ncpu: 93.57245431553359 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_rr_cache_std>/update/threads:4",
+            "value": 92.63753961106529,
+            "unit": "ns/iter",
+            "extra": "iterations: 7533248\ncpu: 91.45543648636031 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_rr_cache_std>/find/threads:4",
+            "value": 38.26899972656594,
+            "unit": "ns/iter",
+            "extra": "iterations: 18242052\ncpu: 38.19772742671717 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_rr_cache_std>/insert_overflow/threads:4",
+            "value": 102.79134554227056,
+            "unit": "ns/iter",
+            "extra": "iterations: 5156880\ncpu: 102.6404387924481 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_rr_cache_std>/request/threads:4",
+            "value": 90.34665060550834,
+            "unit": "ns/iter",
+            "extra": "iterations: 7573548\ncpu: 89.69109643194979 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_rr_cache_std>/request_hot/threads:4",
+            "value": 89.80348434818674,
+            "unit": "ns/iter",
+            "extra": "iterations: 7717828\ncpu: 89.76724746910656 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_rr_cache_std>/many_shards/threads:4",
+            "value": 92.92988604408613,
+            "unit": "ns/iter",
+            "extra": "iterations: 7383908\ncpu: 92.72289782050376 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_ttl_cache_std>/insert/threads:4",
+            "value": 212.15844520947417,
+            "unit": "ns/iter",
+            "extra": "iterations: 3519368\ncpu: 212.0060939918757 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_ttl_cache_std>/emplace/threads:4",
+            "value": 212.42237995783333,
+            "unit": "ns/iter",
+            "extra": "iterations: 3615896\ncpu: 211.1190811350772 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_ttl_cache_std>/update_insert/threads:4",
+            "value": 158.84737144630623,
+            "unit": "ns/iter",
+            "extra": "iterations: 4022288\ncpu: 157.25453075463514 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_ttl_cache_std>/update/threads:4",
+            "value": 175.55299728478815,
+            "unit": "ns/iter",
+            "extra": "iterations: 4264860\ncpu: 174.55179396275594 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_ttl_cache_std>/find/threads:4",
+            "value": 70.80605656758446,
+            "unit": "ns/iter",
+            "extra": "iterations: 9772664\ncpu: 70.38950372181014 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_ttl_cache_std>/insert_overflow/threads:4",
+            "value": 215.91892230776048,
+            "unit": "ns/iter",
+            "extra": "iterations: 3285836\ncpu: 215.8151955849281 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_ttl_cache_std>/request/threads:4",
+            "value": 216.61786928243023,
+            "unit": "ns/iter",
+            "extra": "iterations: 3400920\ncpu: 215.1306687602179 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_ttl_cache_std>/request_hot/threads:4",
+            "value": 212.42922084715448,
+            "unit": "ns/iter",
+            "extra": "iterations: 3097056\ncpu: 212.34776284316442 ns\nthreads: 4"
+          },
+          {
+            "name": "cache_fixture<thread_safe_ttl_cache_std>/many_shards/threads:4",
+            "value": 219.69013683497897,
+            "unit": "ns/iter",
+            "extra": "iterations: 3273432\ncpu: 218.2391603063696 ns\nthreads: 4"
           }
         ]
       }
