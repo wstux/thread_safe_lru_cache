@@ -56,6 +56,12 @@ struct node : public bi::unordered_set_base_hook<bi::link_mode<bi::normal_link>>
         , value(std::move(v))
     {}
 
+    template<typename... TArgs>
+    node(key_type&& k, TArgs&&... args)
+        : key(std::move(k))
+        , value(std::forward<TArgs>(args)...)
+    {}
+
     key_type key;
     value_type value;
 };
@@ -139,110 +145,113 @@ struct rr_policy
 
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
     _node_t* erase(typename _hash_table_t::iterator& it)
-#else
-    void erase(typename _hash_table_t::iterator& it)
-#endif
     {
         typename _keys_vector::iterator key_it = std::find_if(keys.begin(), keys.end(),
-            [&it](const typename _keys_vector::value_type& v) -> bool {
-#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-                return (it->key == v->key);
-#else
-                return (it->first == v);
-#endif
-            });
+            [&it](const typename _keys_vector::value_type& v) -> bool { return (it->key == v->key); });
         std::swap(*key_it, keys[keys.size() - 1]);
         keys.pop_back();
-#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
         _node_t* p = &(*it);
         hash_tbl.erase(it);
         return p;
-#else
-        hash_tbl.erase(it);
-#endif
     }
+#else
+    void erase(typename _hash_table_t::iterator& it)
+    {
+        typename _keys_vector::iterator key_it = std::find_if(keys.begin(), keys.end(),
+            [&it](const typename _keys_vector::value_type& v) -> bool { return (it->first == v); });
+        std::swap(*key_it, keys[keys.size() - 1]);
+        keys.pop_back();
+        hash_tbl.erase(it);
+    }
+#endif
 
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
     _node_t* evict()
-#else
-    #if __cplusplus >= 201703
-    typename _hash_table_t::node_type evict()
-    #else
-    void evict()
-    #endif
-#endif
     {
         std::uniform_int_distribution<size_t> dist(0, keys.size() - 1);
         const size_t idx = dist(rand_gen);
-#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-        _node_t* p_node = keys[idx];
 
+        _node_t* p_node = keys[idx];
         hash_tbl.erase(hash_tbl.iterator_to(*p_node));
         std::swap(keys[idx], keys[keys.size() - 1]);
         keys.pop_back();
         return p_node;
+    }
 #else
+    #if __cplusplus >= 201703
+    typename _hash_table_t::node_type evict()
+    {
+        std::uniform_int_distribution<size_t> dist(0, keys.size() - 1);
+        const size_t idx = dist(rand_gen);
+
         const key_type& rand_key = keys[idx];
         std::swap(keys[idx], keys[keys.size() - 1]);
         keys.pop_back();
-    #if __cplusplus >= 201703
-        typename _hash_table_t::node_type node = hash_tbl.extract(rand_key);
-        return node;
+        return hash_tbl.extract(rand_key);
+    }
     #else
+    void evict()
+    {
+        std::uniform_int_distribution<size_t> dist(0, keys.size() - 1);
+        const size_t idx = dist(rand_gen);
+
+        const key_type& rand_key = keys[idx];
+        std::swap(keys[idx], keys[keys.size() - 1]);
+        keys.pop_back();
         hash_tbl.erase(rand_key);
+    }
     #endif
 #endif
-    }
 
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
     void insert(_node_t* p_node)
+    {
+        hash_tbl.insert(*p_node);
+        keys.emplace_back(p_node);
+    }
 #else
     template<typename... TArgs>
     void insert(const key_type& key, TArgs&&... args)
-#endif
     {
-#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-        hash_tbl.insert(*p_node);
-        keys.emplace_back(p_node);
-#else
         hash_tbl.emplace(key, std::move(value_type(std::forward<TArgs>(args)...)));
         keys.emplace_back(key);
-#endif
     }
-
-    template<typename... TArgs>
-#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-    void insert_node(_node_t* p_node, const key_type& key, TArgs&&... args)
-#else
-    #if __cplusplus >= 201703
-    void insert_node(typename _hash_table_t::node_type&& node, const key_type& key, TArgs&&... args)
-    #else
-    void insert_node(const key_type& key, TArgs&&... args)
-    #endif
 #endif
-    {
+
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
+    template<typename... TArgs>
+    void insert_node(_node_t* p_node, const key_type& key, TArgs&&... args)
+    {
         p_node->key = key;
         p_node->value = std::move(value_type(std::forward<TArgs>(args)...));
         hash_tbl.insert(*p_node);
         keys.emplace_back(p_node);
+    }
 #else
     #if __cplusplus >= 201703
+    template<typename... TArgs>
+    void insert_node(typename _hash_table_t::node_type&& node, const key_type& key, TArgs&&... args)
+    {
         node.key() = key;
         typename _hash_table_t::insert_return_type rc = hash_tbl.insert(std::move(node));
         rc.position->second.value = std::move(value_type(std::forward<TArgs>(args)...));
-    #else
-        hash_tbl.emplace(key, value_type(std::forward<TArgs>(args)...));
-    #endif
         keys.emplace_back(key);
-#endif
     }
+    #else
+    template<typename... TArgs>
+    void insert_node(const key_type& key, TArgs&&... args)
+    {
+        hash_tbl.emplace(key, value_type(std::forward<TArgs>(args)...));
+        keys.emplace_back(key);
+    }
+    #endif
+#endif
 
     void reset(size_type new_capacity)
     {
         keys.reserve(new_capacity);
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-        _buckets_list_t bucks(new_capacity);
+        _buckets_list_t bucks(new_capacity, buckets.get_allocator());
         hash_tbl.rehash(_bucket_traits_t(bucks.data(), bucks.capacity()));
         buckets = std::move(bucks);
 #else

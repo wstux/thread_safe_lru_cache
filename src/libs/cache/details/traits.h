@@ -92,9 +92,11 @@ struct hash_table_traits
     typedef typename TTraits::hasher            hasher;
     typedef typename TTraits::key_equal         key_equal;
 
+    typedef std::allocator_traits<allocator_type>   allocator_traits;
+
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
     typedef TNode<key_type, value_type>             _node_t;
-    typedef typename std::allocator_traits<allocator_type>::template rebind_alloc<_node_t>          _node_allocator_t;
+    typedef typename allocator_traits::template rebind_alloc<_node_t>   _node_allocator_t;
 
     typedef bi::constant_time_size<true>            _ct_size_t;
     typedef bi::hash<node_hash<hasher, TNode>>      _intr_hash_t;
@@ -103,32 +105,37 @@ struct hash_table_traits
 
     typedef typename _hash_table_t::bucket_type     _bucket_type_t;
     typedef typename _hash_table_t::bucket_traits   _bucket_traits_t;
-
-    typedef typename std::allocator_traits<allocator_type>::template rebind_alloc<_bucket_traits_t> _bucket_allocator_t;
-    typedef std::vector<_bucket_type_t, _bucket_allocator_t>        _buckets_list_t;
+    typedef typename allocator_traits::template rebind_alloc<_bucket_type_t>    _bucket_allocator_t;
+    typedef std::vector<_bucket_type_t, _bucket_allocator_t>                    _buckets_list_t;
 #else
-    typedef TTableValue<key_type, value_type, allocator_type>   _table_value_t;
-    typedef std::unordered_map<key_type, _table_value_t, hasher, key_equal, allocator_type> _hash_table_t;
+    typedef TTableValue<key_type, value_type, allocator_type>                   _table_value_t;
+    typedef std::pair<const key_type, _table_value_t>                           _map_pair_t;
+    typedef typename allocator_traits::template rebind_alloc<_map_pair_t>       _map_allocator_t;
+    typedef std::unordered_map<key_type, _table_value_t, hasher, key_equal, _map_allocator_t>   _hash_table_t;
 #endif
 
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-    template<typename T, typename... TArgs>
-    static T* allocate(_node_allocator_t& allocator, TArgs&&... args)
+    template<typename... TArgs>
+    static _node_t* allocate(_node_allocator_t& allocator, TArgs&&... args)
     {
-        using allocator_traits_t = std::allocator_traits<_node_allocator_t>;
+        using node_alloc_traits = std::allocator_traits<_node_allocator_t>;
 
-        T* p_raw = allocator_traits_t::allocate(allocator, 1);
-        allocator_traits_t::construct(allocator, p_raw, std::forward<TArgs>(args)...);
+        _node_t* p_raw = node_alloc_traits::allocate(allocator, 1);
+        try {
+            node_alloc_traits::construct(allocator, p_raw, std::forward<TArgs>(args)...);
+        } catch (...) {
+            node_alloc_traits::deallocate(allocator, p_raw, 1);
+            throw;
+        }
         return p_raw;
     }
 
-    template<typename T>
-    static void deallocate(_node_allocator_t& allocator, T* p_raw)
+    static void deallocate(_node_allocator_t& allocator, _node_t* p_raw) noexcept
     {
-        using allocator_traits_t = std::allocator_traits<_node_allocator_t>;
+        using node_alloc_traits = std::allocator_traits<_node_allocator_t>;
 
-        allocator_traits_t::destroy(allocator, p_raw);
-        allocator_traits_t::deallocate(allocator, p_raw, 1);
+        node_alloc_traits::destroy(allocator, p_raw);
+        node_alloc_traits::deallocate(allocator, p_raw, 1);
     }
 #endif
 };

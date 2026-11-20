@@ -41,6 +41,7 @@ class base_cache
 private:
     typedef type_traits<TKey, TValue, THash, TKeyEqual, TAllocator> _traits_t;
     typedef TPolicy<_traits_t>                                      _policy_t;
+    typedef typename _policy_t::_tbl_traits                         _tbl_traits;
     typedef typename _policy_t::_hash_table_t                       _hash_table_t;
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
     typedef typename _policy_t::_node_t                             _node_t;
@@ -64,22 +65,22 @@ protected:
 
     template<typename... TArgs>
     base_cache(size_type capacity, const allocator_type& alloc, TArgs&&... args)
-        : m_capacity(capacity)
+        : m_capacity(std::max<size_type>(1, capacity))
         , m_policy(m_capacity, alloc, std::forward<TArgs>(args)...)
     {}
 
-    virtual ~base_cache() { clear(); }
+    ~base_cache() { clear(); }
 
     inline size_type capacity() const { return m_capacity; }
 
     void clear()
     {
+        m_policy.clear();
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-        m_policy.hash_tbl.clear_and_dispose(std::bind(&base_cache::deallocate<_node_t>, this, std::placeholders::_1));
+        m_policy.hash_tbl.clear_and_dispose([this](_node_t* p) { _tbl_traits::deallocate(m_policy.allocator, p); });
 #else
         m_policy.hash_tbl.clear();
 #endif
-        m_policy.clear();
     }
 
     void erase(const key_type& key)
@@ -94,7 +95,7 @@ protected:
     {
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
         _node_t* p = m_policy.erase(it);
-        deallocate<_node_t>(p);
+        _tbl_traits::deallocate(m_policy.allocator, p);
 #else
         m_policy.erase(it);
 #endif
@@ -127,7 +128,7 @@ protected:
 #endif
         } else {
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-            _node_t* p_node = allocate<_node_t>(std::move(key_type(key)), std::move(value_type(std::forward<TArgs>(args)...)));
+            _node_t* p_node = _tbl_traits::allocate(m_policy.allocator, std::move(key_type(key)), std::forward<TArgs>(args)...);
             m_policy.insert(p_node);
 #else
             m_policy.insert(key, std::forward<TArgs>(args)...);
@@ -135,7 +136,7 @@ protected:
         }
     }
 
-    inline bool is_find(typename _hash_table_t::iterator& it) const
+    inline bool is_find(const typename _hash_table_t::iterator& it) const
     {
         return (it != m_policy.hash_tbl.end());
     }
@@ -149,7 +150,7 @@ protected:
     {
         clear();
 
-        m_capacity = new_capacity;
+        m_capacity = std::max<size_type>(1, new_capacity);
         m_policy.reset(m_capacity, std::forward<TArgs>(args)...);
     }
 
@@ -176,33 +177,11 @@ protected:
     inline static void store(const typename _hash_table_t::iterator& it, value_type&& val)
     {
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-        it->value = val;
+        it->value = std::move(val);
 #else
-        it->second.value = val;
+        it->second.value = std::move(val);
 #endif
     }
-
-private:
-#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-    template<typename T, typename... TArgs>
-    T* allocate(TArgs&&... args)
-    {
-        using allocator_traits_t = std::allocator_traits<_node_allocator_t>;
-
-        T* p_raw = allocator_traits_t::allocate(m_policy.allocator, 1);
-        allocator_traits_t::construct(m_policy.allocator, p_raw, std::forward<TArgs>(args)...);
-        return p_raw;
-    }
-
-    template<typename T>
-    void deallocate(T* p_raw)
-    {
-        using allocator_traits_t = std::allocator_traits<_node_allocator_t>;
-
-        allocator_traits_t::destroy(m_policy.allocator, p_raw);
-        allocator_traits_t::deallocate(m_policy.allocator, p_raw, 1);
-    }
-#endif
 
 private:
     size_type m_capacity;

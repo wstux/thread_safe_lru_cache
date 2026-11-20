@@ -59,6 +59,12 @@ struct node : public bi::list_base_hook<bi::link_mode<bi::normal_link>>
         , value(std::move(v))
     {}
 
+    template<typename... TArgs>
+    node(key_type&& k, TArgs&&... args)
+        : key(std::move(k))
+        , value(std::forward<TArgs>(args)...)
+    {}
+
     key_type key;
     value_type value;
 };
@@ -141,102 +147,100 @@ struct lru_policy
 
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
     _node_t* erase(typename _hash_table_t::iterator& it)
-#else
-    void erase(typename _hash_table_t::iterator& it)
-#endif
     {
-#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
         list.erase(list.iterator_to(*it));
         _node_t* p = &(*it);
         hash_tbl.erase(it);
         return p;
+    }
 #else
+    void erase(typename _hash_table_t::iterator& it)
+    {
         list.erase(it->second.list_it);
         hash_tbl.erase(it);
-#endif
     }
+#endif
 
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
     _node_t* evict()
-#else
-    #if __cplusplus >= 201703
-    typename _hash_table_t::node_type evict()
-    #else
-    void evict()
-    #endif
-#endif
     {
-#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
         typename _list_t::iterator it = list.begin();
         _node_t* p_node = &*it;
         hash_tbl.erase(hash_tbl.iterator_to(*it));
         list.erase(it);
         return p_node;
+    }
 #else
     #if __cplusplus >= 201703
-        typename _hash_table_t::node_type node = hash_tbl.extract(list.front());
-        return node;
+    typename _hash_table_t::node_type evict() { return hash_tbl.extract(list.front()); }
     #else
-        hash_tbl.erase(list.front());
+    void evict() { hash_tbl.erase(list.front()); }
     #endif
 #endif
-    }
 
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
     void insert(_node_t* p_node)
+    {
+        hash_tbl.insert(*p_node);
+        list.insert(list.end(), *p_node);
+    }
 #else
     template<typename... TArgs>
     void insert(const key_type& key, TArgs&&... args)
-#endif
     {
-#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-        hash_tbl.insert(*p_node);
-        list.insert(list.end(), *p_node);
-#else
         typename _list_t::iterator it = list.emplace(list.end(), key);
-        std::pair<typename _hash_table_t::iterator, bool> rc =
-            hash_tbl.emplace(key, _table_value_t(std::forward<TArgs>(args)...));
-        rc.first->second.list_it = it;
-#endif
+        try {
+            //std::pair<typename _hash_table_t::iterator, bool> rc =
+            //    hash_tbl.emplace(std::piecewise_construct, std::forward_as_tuple(key), std::forward_as_tuple(std::forward<TArgs>(args)...));
+            std::pair<typename _hash_table_t::iterator, bool> rc =
+                hash_tbl.emplace(key, _table_value_t(std::forward<TArgs>(args)...));
+            rc.first->second.list_it = it;
+        } catch (...) {
+            list.erase(it);
+            throw;
+        }
     }
-
-    template<typename... TArgs>
-#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-    void insert_node(_node_t* p_node, const key_type& key, TArgs&&... args)
-#else
-    #if __cplusplus >= 201703
-    void insert_node(typename _hash_table_t::node_type&& node, const key_type& key, TArgs&&... args)
-    #else
-    void insert_node(const key_type& key, TArgs&&... args)
-    #endif
 #endif
-    {
+
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
+    template<typename... TArgs>
+    void insert_node(_node_t* p_node, const key_type& key, TArgs&&... args)
+    {
         p_node->key = key;
         p_node->value = std::move(value_type(std::forward<TArgs>(args)...));
         hash_tbl.insert(*p_node);
         list.insert(list.end(), *p_node);
+    }
 #else
     #if __cplusplus >= 201703
+    template<typename... TArgs>
+    void insert_node(typename _hash_table_t::node_type&& node, const key_type& key, TArgs&&... args)
+    {
         node.key() = key;
         typename _hash_table_t::insert_return_type rc = hash_tbl.insert(std::move(node));
         rc.position->second.value = std::move(value_type(std::forward<TArgs>(args)...));
         list.front() = key;
         move_to_top(list, rc.position);
+    }
     #else
+    template<typename... TArgs>
+    void insert_node(const key_type& key, TArgs&&... args)
+    {
         list.front() = key;
+        //std::pair<typename _hash_table_t::iterator, bool> rc =
+        //    hash_tbl.emplace(std::piecewise_construct, std::forward_as_tuple(key), std::forward_as_tuple(std::forward<TArgs>(args)...));
         std::pair<typename _hash_table_t::iterator, bool> rc =
             hash_tbl.emplace(key, typename TTraits::_table_value_t(std::forward<TArgs>(args)...));
         rc.first->second.list_it = list.begin();
         move_to_top(list, rc.first);
+    }
     #endif
 #endif
-    }
 
     void reset(size_type new_capacity)
     {
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-        _buckets_list_t bucks(new_capacity);
+        _buckets_list_t bucks(new_capacity, buckets.get_allocator());
         hash_tbl.rehash(_bucket_traits_t(bucks.data(), bucks.capacity()));
         buckets = std::move(bucks);
 #else

@@ -216,10 +216,17 @@ BENCHMARK_TEMPLATE_METHOD_F(cache_fixture, find)(benchmark::State& state)
     std::mt19937 gen(std::hash<std::thread::id>()(std::this_thread::get_id()));
     std::uniform_int_distribution<size_t> rand(0, g_k_count - 1);
 
+    static std::atomic<bool> is_ready{false};
+
     cache_type cache = param_type::create(2 * g_k_count);
     if (state.thread_index() == 0) {
         for (size_t k : td) {
             cache.insert(k, k + 1);
+        }
+        is_ready.store(true, std::memory_order_release);
+    } else {
+        while (! is_ready.load(std::memory_order_acquire)) {
+            std::this_thread::yield();
         }
     }
 
@@ -229,6 +236,7 @@ BENCHMARK_TEMPLATE_METHOD_F(cache_fixture, find)(benchmark::State& state)
         const size_t k = td[rand(gen)];
         cache.find(k, val);
         ++i;
+        benchmark::DoNotOptimize(val);
     }
     state.SetItemsProcessed(i);
 }
