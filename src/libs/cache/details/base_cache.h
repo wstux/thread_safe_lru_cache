@@ -65,7 +65,7 @@ protected:
 
     template<typename... TArgs>
     base_cache(size_type capacity, const allocator_type& alloc, TArgs&&... args)
-        : m_capacity(capacity)
+        : m_capacity(std::max<size_type>(1, capacity))
         , m_policy(m_capacity, alloc, std::forward<TArgs>(args)...)
     {}
 
@@ -113,10 +113,6 @@ protected:
     template<typename... TArgs>
     void insert(const key_type& key, TArgs&&... args)
     {
-        if (m_capacity == 0) {
-            return;
-        }
-
         if (size() >= m_capacity) {
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
             _node_t* p_node = m_policy.evict();
@@ -154,7 +150,7 @@ protected:
     {
         clear();
 
-        m_capacity = new_capacity;
+        m_capacity = std::max<size_type>(1, new_capacity);
         m_policy.reset(m_capacity, std::forward<TArgs>(args)...);
     }
 
