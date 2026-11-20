@@ -56,10 +56,10 @@ namespace rr {
 template<typename TKey, typename TValue,
          class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>,
          class TAllocator = std::allocator<std::pair<const TKey, TValue>>>
-class rr_cache final : protected cache::details::common::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, cache::details::rr::rr_policy>
+class rr_cache final : protected cache::details::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, cache::details::rr::rr_policy>
 {
 private:
-    typedef cache::details::common::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, cache::details::rr::rr_policy>   base;
+    typedef cache::details::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, cache::details::rr::rr_policy>   base;
 
 public:
     typedef typename base::allocator_type   allocator_type;

@@ -79,7 +79,7 @@ template<typename TKey, typename TValue>
 struct key_extractor
 {
     typedef TKey    type;
-    const TKey& operator()(const node<TKey, TValue>& n) const { return cache::details::common::_key(n); }
+    const TKey& operator()(const node<TKey, TValue>& n) const { return cache::details::_key(n); }
 };
 #else
 /**
@@ -124,7 +124,7 @@ struct lfu_policy
     typedef typename TTraits::hasher            hasher;
     typedef typename TTraits::key_equal         key_equal;
 
-    typedef cache::details::common::hash_table_traits<TTraits, _tbl_node>   _tbl_traits;
+    typedef cache::details::hash_table_traits<TTraits, _tbl_node>   _tbl_traits;
     typedef typename _tbl_traits::_hash_table_t     _hash_table_t;
 
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)

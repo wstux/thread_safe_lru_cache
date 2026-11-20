@@ -42,7 +42,7 @@ template<typename TKey, typename TValue, class THash, class TKeyEqual, class TAl
 class base_rr_cache
 {
 private:
-    typedef cache::details::common::type_traits<TKey, TValue, THash, TKeyEqual, TAllocator> _traits_t;
+    typedef cache::details::type_traits<TKey, TValue, THash, TKeyEqual, TAllocator> _traits_t;
 
 protected:
     typedef typename _traits_t::allocator_type      allocator_type;

@@ -36,7 +36,6 @@
 namespace wstux {
 namespace cache {
 namespace details {
-namespace common {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Specifics of cache implementation
@@ -158,7 +157,6 @@ struct type_traits
     typedef TKeyEqual           key_equal;
 };
 
-} // namespace common
 } // namespace details
 } // namespace cache
 } // namespace wstux

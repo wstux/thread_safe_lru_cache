@@ -30,7 +30,6 @@
 namespace wstux {
 namespace cache {
 namespace details {
-namespace common {
 
 ////////////////////////////////////////////////////////////////////////////////
 // class base_cache
@@ -188,7 +187,6 @@ private:
     _policy_t m_policy;
 };
 
-} // namespace common
 } // namespace details
 } // namespace cache
 } // namespace wstux
