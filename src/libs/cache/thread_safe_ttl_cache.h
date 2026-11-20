@@ -156,7 +156,7 @@ public:
             const size_t shard_capacity = (i != 0)
                 ? (m_capacity / shards_count)
                 : ((m_capacity / shards_count) + (m_capacity % shards_count));
-            m_shards[i].first = std::make_shared<_shard_type>(ttl_msecs, shard_capacity, alloc);
+            ::new (static_cast<void*>(m_shards[i].get())) _shard_type(ttl_msecs, shard_capacity, alloc);
         }
     }
 
@@ -259,7 +259,7 @@ public:
     void reset(size_type ttl_msecs, size_type new_capacity)
     {
         m_capacity = new_capacity;
-        size_t shards_count = m_shards.size();
+        const size_t shards_count = shards_size();
         for (size_t i = 0; i < shards_count; i++) {
             const size_t shard_capacity = (i != 0)
                 ? (new_capacity / shards_count)
@@ -308,10 +308,15 @@ public:
     }
 
 private:
-    typedef std::shared_ptr<_shard_type>                    _shard_ptr_type;
-    struct _shard_guard
+    struct alignas(std::max_align_t) _shard_guard final
     {
-        _shard_ptr_type first;
+        ~_shard_guard() { get()->~_shard_type(); }
+
+        inline _shard_type* get() noexcept { return reinterpret_cast<_shard_type*>(first.data()); }
+
+        inline const _shard_type* get() const noexcept { return reinterpret_cast<const _shard_type*>(first.data()); }
+
+        std::array<std::byte, sizeof(_shard_type)> first;
         mutable lock_type second;
     };
 
@@ -335,7 +340,7 @@ private:
         wrapper(T& p, const TFn& func, TArgs&&... args)
     {
         std::unique_lock<decltype(p.second)> lock(p.second);
-        return (p.first.get()->*func)(std::forward<TArgs>(args)...);
+        return (p.get()->*func)(std::forward<TArgs>(args)...);
     }
 
     template<typename T, typename TFn, typename... TArgs>
@@ -343,7 +348,7 @@ private:
         wrapper(const T& p, const TFn& func, TArgs&&... args) const
     {
         std::unique_lock<decltype(p.second)> lock(p.second);
-        return (p.first.get()->*func)(std::forward<TArgs>(args)...);
+        return (p.get()->*func)(std::forward<TArgs>(args)...);
     }
 
 private:
