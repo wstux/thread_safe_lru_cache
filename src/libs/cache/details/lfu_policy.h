@@ -159,86 +159,74 @@ struct lfu_policy
 
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
     _node_t* erase(typename _hash_table_t::iterator& it)
-#else
-    void erase(typename _hash_table_t::iterator& it)
-#endif
     {
-#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
         freq_tbl.erase(freq_tbl.iterator_to(*it));
         _node_t* p = &(*it);
         hash_tbl.erase(it);
         return p;
+    }
 #else
+    void erase(typename _hash_table_t::iterator& it)
+    {
         freq_tbl.erase(it->second.freq_it);
         hash_tbl.erase(it);
-#endif
     }
+#endif
 
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
     _node_t* evict()
-#else
-    #if __cplusplus >= 201703
-    typename _hash_table_t::node_type evict()
-    #else
-    void evict()
-    #endif
-#endif
     {
-#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
         typename _frequency_map_t::iterator it = freq_tbl.begin();
         _node_t* p_node = &*it;
         hash_tbl.erase(hash_tbl.iterator_to(*it));
         freq_tbl.erase(it);
         return p_node;
+    }
 #else
     #if __cplusplus >= 201703
-        typename _hash_table_t::node_type node = hash_tbl.extract(freq_tbl.begin()->second);
-        return node;
+    typename _hash_table_t::node_type evict() { return hash_tbl.extract(freq_tbl.begin()->second); }
     #else
+    void evict()
+    {
         hash_tbl.erase(freq_tbl.begin()->second);
         freq_tbl.erase(freq_tbl.begin());
+    }
     #endif
 #endif
-    }
 
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
     void insert(_node_t* p_node)
-#else
-    template<typename... TArgs>
-    void insert(const key_type& key, TArgs&&... args)
-#endif
     {
-#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
         ++p_node->freq;
         hash_tbl.insert(*p_node);
         freq_tbl.insert(*p_node);
+    }
 #else
+    template<typename... TArgs>
+    void insert(const key_type& key, TArgs&&... args)
+    {
         std::pair<typename _hash_table_t::iterator, bool> rc =
             hash_tbl.emplace(key, _table_value_t(std::forward<TArgs>(args)...));
         ++rc.first->second.freq;
         rc.first->second.freq_it = freq_tbl.emplace(rc.first->second.freq, key);
-#endif
     }
-
-    template<typename... TArgs>
-#if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-    void insert_node(_node_t* p_node, const key_type& key, TArgs&&... args)
-#else
-    #if __cplusplus >= 201703
-    void insert_node(typename _hash_table_t::node_type&& node, const key_type& key, TArgs&&... args)
-    #else
-    void insert_node(const key_type& key, TArgs&&... args)
-    #endif
 #endif
-    {
+
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
+    template<typename... TArgs>
+    void insert_node(_node_t* p_node, const key_type& key, TArgs&&... args)
+    {
         p_node->key = key;
         p_node->value = std::move(value_type(std::forward<TArgs>(args)...));
         p_node->freq = 1;
         hash_tbl.insert(*p_node);
         freq_tbl.insert(*p_node);
+    }
 #else
     #if __cplusplus >= 201703
+    template<typename... TArgs>
+    void insert_node(typename _hash_table_t::node_type&& node, const key_type& key, TArgs&&... args)
+    {
         node.key() = key;
         typename _hash_table_t::insert_return_type rc = hash_tbl.insert(std::move(node));
         rc.position->second.value = std::move(value_type(std::forward<TArgs>(args)...));
@@ -249,19 +237,23 @@ struct lfu_policy
         typename _frequency_map_t::iterator freq_it = freq_tbl.insert(std::move(freq_node));
         freq_it->second = key;
         rc.position->second.freq_it = freq_it;
+    }
     #else
+    template<typename... TArgs>
+    void insert_node(const key_type& key, TArgs&&... args)
+    {
         std::pair<typename _hash_table_t::iterator, bool> rc =
             hash_tbl.emplace(key, typename TTraits::_table_value_t(std::forward<TArgs>(args)...));
         rc.first->second.freq = 1;
         rc.first->second.freq_it = freq_tbl.emplace(rc.first->second.freq, key);
+    }
     #endif
 #endif
-    }
 
     void reset(size_type new_capacity)
     {
 #if defined(THREAD_SAFE_CACHE_USE_BOOST_INTRUSIVE)
-        _buckets_list_t bucks(new_capacity);
+        _buckets_list_t bucks(new_capacity, buckets.get_allocator());
         hash_tbl.rehash(_bucket_traits_t(bucks.data(), bucks.capacity()));
         buckets = std::move(bucks);
 #else
