@@ -33,6 +33,7 @@
 #include <utility>
 
 #include "cache/rr_cache.h"
+#include "cache/details/base_thread_safe_cache.h"
 
 namespace wstux {
 namespace cache {
@@ -124,9 +125,11 @@ template<typename TKey, typename TValue,
          class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>,
          class TAllocator = std::allocator<std::pair<const TKey, TValue>>,
          class TLock = std::mutex>
-class thread_safe_rr_cache
+class thread_safe_rr_cache : protected cache::details::base_thread_safe_cache<rr_cache<TKey, TValue, THash, TKeyEqual, TAllocator>, TLock>
 {
-    typedef rr_cache<TKey, TValue, THash, TKeyEqual, TAllocator>    _shard_type;
+    typedef cache::details::base_thread_safe_cache<rr_cache<TKey, TValue, THash, TKeyEqual, TAllocator>, TLock> base;
+    typedef typename base::_shard_guard             _shard_guard;
+    typedef typename base::_shard_type              _shard_type;
 
 public:
     typedef typename _shard_type::allocator_type    allocator_type;
@@ -146,17 +149,8 @@ public:
     ///         in the container.
     /// \param  shards_count - shards count.
     explicit thread_safe_rr_cache(size_t capacity, size_t shards_count, const allocator_type& alloc = allocator_type())
-        : m_capacity(capacity)
-        , m_shards((m_capacity > shards_count) ? shards_count : m_capacity)
-    {
-        shards_count = m_shards.size();
-        for (size_t i = 0; i < shards_count; i++) {
-            const size_t shard_capacity = (i != 0)
-                ? (m_capacity / shards_count)
-                : ((m_capacity / shards_count) + (m_capacity % shards_count));
-            m_shards[i].first = std::make_shared<_shard_type>(shard_capacity, alloc);
-        }
-    }
+        : base(capacity, shards_count, alloc)
+    {}
 
     thread_safe_rr_cache(const thread_safe_rr_cache&) = delete;
     thread_safe_rr_cache& operator=(const thread_safe_rr_cache&) = delete;
@@ -165,14 +159,14 @@ public:
     ///         the container.
     /// \return The number of elements for which space has been allocated in the
     ///         container.
-    size_type capacity() const { return m_capacity; }
+    size_type capacity() const { return base::m_capacity; }
 
     /// \brief  Erases all elements from the container. After this call, size()
     ///         returns zero.
     void clear()
     {
-        for (_shard_guard& sh : m_shards) {
-            wrapper(sh, &_shard_type::clear);
+        for (_shard_guard& sh : base::m_shards) {
+            base::wrapper(sh, &_shard_type::clear);
         }
     }
 
@@ -182,7 +176,7 @@ public:
     /// \return true if there is such an element, otherwise false.
     bool contains(const key_type& key)
     {
-        return wrapper(get_shard(key), &_shard_type::contains, key);
+        return base::wrapper(base::get_shard(key), &_shard_type::contains, key);
     }
 
     /// \brief  Inserts a new element into the container constructed in-place
@@ -199,16 +193,16 @@ public:
     template<typename... TArgs>
     bool emplace(const key_type& key, TArgs&&... args)
     {
-        return wrapper(get_shard(key), &_shard_type::template emplace<TArgs...>,
-                       key, std::forward<TArgs>(args)...);
+        return base::wrapper(base::get_shard(key), &_shard_type::template emplace<TArgs...>,
+            key, std::forward<TArgs>(args)...);
     }
 
     /// \brief  Checks if the container has no elements.
     /// \return true if the container is empty, false otherwise.
     bool empty() const
     {
-        for (const _shard_guard& sh : m_shards) {
-            if (! wrapper(sh, &_shard_type::empty)) {
+        for (const _shard_guard& sh : base::m_shards) {
+            if (! base::wrapper(sh, &_shard_type::empty)) {
                 return false;
             }
         }
@@ -220,7 +214,7 @@ public:
     /// \param  key - key value of the elements to remove.
     void erase(const key_type& key)
     {
-        wrapper(get_shard(key), &_shard_type::erase, key);
+        base::wrapper(base::get_shard(key), &_shard_type::erase, key);
     }
 
     /// \brief  Finds an element with key equivalent to key.
@@ -230,7 +224,7 @@ public:
     /// \return true if element has been found, otherwise false.
     bool find(const key_type& key, value_type& result)
     {
-        return wrapper(get_shard(key), &_shard_type::find, key, result);
+        return base::wrapper(base::get_shard(key), &_shard_type::find, key, result);
     }
 
     /// \brief  Inserts element into the container, if the container doesn't
@@ -240,7 +234,7 @@ public:
     /// \return true if the insertion took place, otherwise false.
     bool insert(const key_type& key, const value_type& val)
     {
-        return wrapper(get_shard(key), &_shard_type::insert, key, val);
+        return base::wrapper(base::get_shard(key), &_shard_type::insert, key, val);
     }
 
     /// \brief  Gets an element with key equivalent to key.
@@ -248,34 +242,34 @@ public:
     /// \return Element if element has been found, otherwise std::nullopt.
     std::optional<value_type> get(const key_type& key)
     {
-        return wrapper(get_shard(key), &_shard_type::get, key);
+        return base::wrapper(base::get_shard(key), &_shard_type::get, key);
     }
 
     /// \brief  Clear cache contents and change the capacity of the cache.
     /// \param  new_capacity - new capacity of the cache, in number of elements.
     void reset(size_type new_capacity)
     {
-        m_capacity = new_capacity;
-        size_t shards_count = m_shards.size();
+        base::m_capacity = new_capacity;
+        const size_t shards_count = base::m_shards.size();
         for (size_t i = 0; i < shards_count; i++) {
             const size_t shard_capacity = (i != 0)
                 ? (new_capacity / shards_count)
                 : ((new_capacity / shards_count) + (new_capacity % shards_count));
-            wrapper(m_shards[i], &_shard_type::reset, shard_capacity);
+            base::wrapper(base::m_shards[i], &_shard_type::reset, shard_capacity);
         }
     }
 
     /// \brief  Return the number of shards.
     /// \return The number of shards.
-    size_type shards_size() const { return m_shards.size(); }
+    size_type shards_size() const { return base::m_shards.size(); }
 
     /// \brief  Return the number of elements in the container.
     /// \return The number of elements in the container.
     size_type size() const
     {
         size_type s = 0;
-        for (const _shard_guard& sh : m_shards) {
-            s += wrapper(sh, &_shard_type::size);
+        for (const _shard_guard& sh : base::m_shards) {
+            s += base::wrapper(sh, &_shard_type::size);
         }
         return s;
     }
@@ -287,9 +281,8 @@ public:
     /// \param  val - element value to update/insert.
     void update(const key_type& key, const value_type& val)
     {
-        constexpr void (_shard_type::*p_update)(const key_type&, const value_type&) =
-            &_shard_type::update;
-        wrapper(get_shard(key), p_update, key, std::forward<decltype(val)>(val));
+        constexpr void (_shard_type::*p_update)(const key_type&, const value_type&) = &_shard_type::update;
+        base::wrapper(base::get_shard(key), p_update, key, std::forward<decltype(val)>(val));
     }
 
     /// \brief  Inserts element into the container, if the container doesn't
@@ -299,53 +292,9 @@ public:
     /// \param  val - element value to update/insert.
     void update(const key_type& key, value_type&& val)
     {
-        constexpr void (_shard_type::*p_update)(const key_type&, value_type&&) =
-            &_shard_type::update;
-        wrapper(get_shard(key), p_update, key, std::forward<decltype(val)>(val));
+        constexpr void (_shard_type::*p_update)(const key_type&, value_type&&) = &_shard_type::update;
+        base::wrapper(base::get_shard(key), p_update, key, std::forward<decltype(val)>(val));
     }
-
-private:
-    typedef std::shared_ptr<_shard_type>                    _shard_ptr_type;
-    struct _shard_guard
-    {
-        _shard_ptr_type first;
-        mutable lock_type second;
-    };
-
-private:
-    inline const _shard_guard& get_shard(const TKey& key) const
-    {
-        return m_shards[(hasher{}(key)) % m_shards.size()];
-        //constexpr int shift = std::numeric_limits<size_t>::digits - 16;
-        //return m_shards[((hasher{}(key)) >> shift) % m_shards.size()];
-    }
-
-    inline _shard_guard& get_shard(const TKey& key)
-    {
-        return m_shards[(hasher{}(key)) % m_shards.size()];
-        //constexpr int shift = std::numeric_limits<size_t>::digits - 16;
-        //return m_shards[((hasher{}(key)) >> shift) % m_shards.size()];
-    }
-
-    template<typename T, typename TFn, typename... TArgs>
-    inline typename std::result_of<TFn(_shard_type, TArgs...)>::type
-        wrapper(T& p, const TFn& func, TArgs&&... args)
-    {
-        std::unique_lock<decltype(p.second)> lock(p.second);
-        return (p.first.get()->*func)(std::forward<TArgs>(args)...);
-    }
-
-    template<typename T, typename TFn, typename... TArgs>
-    inline typename std::result_of<TFn(_shard_type, TArgs...)>::type
-        wrapper(const T& p, const TFn& func, TArgs&&... args) const
-    {
-        std::unique_lock<decltype(p.second)> lock(p.second);
-        return (p.first.get()->*func)(std::forward<TArgs>(args)...);
-    }
-
-private:
-    size_t m_capacity;
-    std::vector<_shard_guard> m_shards;
 };
 
 } // namespace rr

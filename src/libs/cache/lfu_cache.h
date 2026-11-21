@@ -56,10 +56,10 @@ namespace lfu {
 template<typename TKey, typename TValue,
          class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>,
          class TAllocator = std::allocator<std::pair<const TKey, TValue>>>
-class lfu_cache final : protected details::common::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, details::lfu::lfu_policy>
+class lfu_cache final : protected details::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, details::lfu::lfu_policy>
 {
 private:
-    typedef details::common::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, details::lfu::lfu_policy>    base;
+    typedef details::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, details::lfu::lfu_policy>    base;
     typedef typename base::policy_type      policy_type;
 
 public:

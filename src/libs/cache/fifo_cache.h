@@ -56,10 +56,10 @@ namespace fifo {
 template<typename TKey, typename TValue,
          class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>,
          class TAllocator = std::allocator<std::pair<const TKey, TValue>>>
-class fifo_cache final : protected details::common::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, details::fifo::fifo_policy>
+class fifo_cache final : protected details::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, details::fifo::fifo_policy>
 {
 private:
-    typedef details::common::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, details::fifo::fifo_policy> base;
+    typedef details::base_cache<TKey, TValue, THash, TKeyEqual, TAllocator, details::fifo::fifo_policy> base;
 
 public:
     typedef typename base::allocator_type    allocator_type;

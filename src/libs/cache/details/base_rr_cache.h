@@ -42,7 +42,7 @@ template<typename TKey, typename TValue, class THash, class TKeyEqual, class TAl
 class base_rr_cache
 {
 private:
-    typedef cache::details::common::type_traits<TKey, TValue, THash, TKeyEqual, TAllocator> _traits_t;
+    typedef cache::details::type_traits<TKey, TValue, THash, TKeyEqual, TAllocator> _traits_t;
 
 protected:
     typedef typename _traits_t::allocator_type      allocator_type;
@@ -102,7 +102,9 @@ protected:
 
     inline typename _hash_table_t::iterator find_in_tbl(const key_type& key)
     {
-        const size_type idx = hasher{}(key) % m_capacity;
+        constexpr int shift = std::numeric_limits<size_t>::digits - 16;
+        const size_type idx = ((hasher{}(key)) >> shift) % m_capacity;
+        //const size_type idx = hasher{}(key) % m_capacity;
         //const _node_t& node = m_hash_tbl[idx];
         typename _hash_table_t::iterator it = m_hash_tbl.begin() + idx;
         //if (node && node->first == key) {
@@ -115,7 +117,9 @@ protected:
     template<typename... TArgs>
     void insert(const key_type& key, TArgs&&... args)
     {
-        const size_type idx = hasher{}(key) % m_capacity;
+        constexpr int shift = std::numeric_limits<size_t>::digits - 16;
+        const size_type idx = ((hasher{}(key)) >> shift) % m_capacity;
+        //const size_type idx = hasher{}(key) % m_capacity;
         _node_t& node = m_hash_tbl[idx];
         if (node.get() != nullptr) {
             node->first = key;

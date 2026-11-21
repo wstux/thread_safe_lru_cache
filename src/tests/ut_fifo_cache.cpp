@@ -71,18 +71,18 @@ TYPED_TEST(cache_fixture, eviction)
     EXPECT_FALSE(cache.contains(0));
 
     EXPECT_TRUE(cache.emplace(0, 4, 'b'));
-    EXPECT_TRUE(cache.emplace(1, 4, 'b'));
-    EXPECT_TRUE(cache.emplace(2, 4, 'b'));
-    EXPECT_TRUE(cache.emplace(3, 4, 'b'));
+    EXPECT_TRUE(cache.emplace(281474976710656, 4, 'b'));
+    EXPECT_TRUE(cache.emplace(562949953421312, 4, 'b'));
+    EXPECT_TRUE(cache.emplace(844424930131968, 4, 'b'));
     EXPECT_TRUE(cache.contains(0));
 
-    EXPECT_TRUE(cache.emplace(4, 4, 'b'));
+    EXPECT_TRUE(cache.emplace(1125899906842624, 4, 'b'));
     EXPECT_TRUE(cache.size() == 4);
 
     EXPECT_FALSE(cache.contains(0));
-    EXPECT_TRUE(cache.contains(1));
-    EXPECT_TRUE(cache.contains(2));
-    EXPECT_TRUE(cache.contains(3));
+    EXPECT_TRUE(cache.contains(281474976710656));
+    EXPECT_TRUE(cache.contains(562949953421312));
+    EXPECT_TRUE(cache.contains(844424930131968));
 }
 
 int main(int argc, char** argv)
