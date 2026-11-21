@@ -295,10 +295,10 @@ TYPED_TEST(cache_fixture, reset)
     EXPECT_TRUE(cache.size() == 0);
     EXPECT_TRUE(cache.capacity() == 2);
     cache.emplace(0, 4, 'a');
-    cache.emplace(1, 4, 'b');
-    cache.emplace(2, 4, 'c');
+    cache.emplace(281474976710656, 4, 'b');
+    cache.emplace(562949953421312, 4, 'c');
     EXPECT_TRUE(cache.size() == 2) << cache.size();
-    EXPECT_TRUE(cache.contains(2));
+    EXPECT_TRUE(cache.contains(562949953421312));
 
     param_type::reset(cache, 4);
     EXPECT_TRUE(cache.size() == 0) << cache.size();
@@ -306,8 +306,8 @@ TYPED_TEST(cache_fixture, reset)
 
     cache.emplace(0, 4, 'a');
     EXPECT_TRUE(cache.contains(0));
-    EXPECT_FALSE(cache.contains(1));
-    EXPECT_FALSE(cache.contains(2));
+    EXPECT_FALSE(cache.contains(281474976710656));
+    EXPECT_FALSE(cache.contains(562949953421312));
 }
 
 TYPED_TEST(cache_fixture, size)
