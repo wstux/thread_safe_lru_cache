@@ -4,6 +4,14 @@ export NJOB  ?= $(shell expr '(' $(NPROC) + 1 ')')
 .PHONY: default
 default: release/all
 
+STD_FLAGS :=
+ifdef C_STD
+    STD_FLAGS += -DPROJECT_C_STANDARD=$(C_STD)
+endif
+ifdef CXX_STD
+    STD_FLAGS += -DPROJECT_CXX_STANDARD=$(CXX_STD)
+endif
+
 SANITIZER_FLAGS :=
 # Sanitizer processing template
 # $(1) — command line argument; $(2) — cmake option name
@@ -21,6 +29,8 @@ $(eval $(call check_sanitizer,--sanitizer_addr,USE_ADDR_SANITIZER))
 $(eval $(call check_sanitizer,--sanitizer_leak,USE_LEAK_SANITIZER))
 $(eval $(call check_sanitizer,--sanitizer_ub,USE_BEHAVIOR_SANITIZER))
 $(eval $(call check_sanitizer,--sanitizer_thread,USE_THREAD_SANITIZER))
+
+CMAKE_EXTRA_FLAGS := $(STD_FLAGS) $(SANITIZER_FLAGS)
 
 # Base rule declaration
 define base_rule
@@ -43,7 +53,7 @@ $(1)/rebuild: $(1)/clean $(1)/all
 
 .PHONY: $(1)/help
 $(1)/help: $(1)/configure
-	@echo "Usage: make <command> [profile/<target>] [-- <options>]"
+	@echo "Usage: make <command> [profile/<target>] [VAR=value ...] [-- <options>]"
 	@echo ""
 	@echo "Available profiles:"
 	@echo "  release           Build with optimizations (Default)"
@@ -58,6 +68,10 @@ $(1)/help: $(1)/configure
 	@echo "  test              Build and run tests for profile"
 	@echo "  coverage          Build and run coverage analysis and generate report"
 	@echo "  help              Display this help message"
+	@echo ""
+	@echo "Variables:"
+	@echo "  C_STD=<ver>       Set C standard version (e.g., 99, 11, 17, 23, default)"
+	@echo "  CXX_STD=<ver>     Set C++ standard version (e.g., 14, 17, 20, 23, default)"
 	@echo ""
 	@echo "Options (passed after '--'):"
 	@echo "  --sanitizer_addr    Enable AddressSanitizer (ASan) for memory errors"
@@ -92,7 +106,7 @@ build_$(1)/Makefile: check_gitignore
 	@mkdir -p $$(@D) && \
 	touch $$(@D)/.kdev_ignore && \
 	cd $$(@D) && \
-	cmake -DCMAKE_BUILD_TYPE="$(1)" $$(SANITIZER_FLAGS) ../
+	cmake -DCMAKE_BUILD_TYPE="$(1)" $$(CMAKE_EXTRA_FLAGS) ../
 
 $$(eval $$(call base_rule,$(1)))
 
@@ -105,7 +119,7 @@ build_$(1)/Makefile: check_gitignore
 	@mkdir -p $$(@D) && \
 	touch $$(@D)/.kdev_ignore && \
 	cd $$(@D) && \
-	cmake -DCMAKE_BUILD_TYPE="debug" -DCOVERAGE_BUILD=ON -DBUILD_TESTS=ON $$(SANITIZER_FLAGS) ../
+	cmake -DCMAKE_BUILD_TYPE="debug" -DCOVERAGE_BUILD=ON -DBUILD_TESTS=ON $$(CMAKE_EXTRA_FLAGS) ../
 
 $$(eval $$(call base_rule,$(1)))
 
