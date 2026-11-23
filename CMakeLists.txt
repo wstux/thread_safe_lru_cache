@@ -27,7 +27,7 @@ option(USE_WERROR           "Tell the compiler to make the build fail when warni
 
 option(USE_BOOST_INTRUSIVE  "Use boost intrusive backend" ON)
 option(BUILD_BOOST          "Build boost" ON)
-option(BUILD_EXAMPLES       "Build examples" ON)
+option(BUILD_EXAMPLES       "Build examples" OFF)
 option(BUILD_TESTS          "Build perftests and unittests" ON)
 
 ################################################################################
