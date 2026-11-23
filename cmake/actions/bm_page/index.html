@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Loading Benchmarks...</title>
+</head>
+<body>
+<script>
+  (async function bootstrapAsv() {
+    const resp = await fetch("./www/index.html");
+    let html = await resp.text();
+
+    // Change local paths by ASV to www/...
+    html = html.replace(/\b(src|href)="(?!(?:https?:|\/\/|#|\/))([^"]+)"/g, '$1="www/$2"');
+
+    // Add adapter.js before </head> (after jQuery, but before ASV scripts)
+    html = html.replace("</head>", '<script src="adapter.js"><\/script></head>');
+
+    document.open();
+    document.write(html);
+    document.close();
+  })();
+</script>
+</body>
+</html>

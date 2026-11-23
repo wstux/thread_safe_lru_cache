@@ -119,7 +119,6 @@ namespace lru {
  *               position        +--------+
  *                               | data_3 |
  *                               +--------+
- *
  */
 template<typename TKey, typename TValue,
          class THash = std::hash<TKey>, class TKeyEqual = std::equal_to<TKey>,
